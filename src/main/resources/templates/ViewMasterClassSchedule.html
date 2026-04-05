@@ -22,23 +22,26 @@
         </p>
 
         <form th:action="@{/schedule}" method="get" class="schedule-form">
-<div class="top-filter-row">
-    <div class="form-group term-field">
-        <label for="academicTerm">Academic Term</label>
-        <select id="academicTerm" name="academicTerm">
-            <option value="">-- Select a Term --</option>
-            <option value="Fall 2025">Fall 2025</option>
-            <option value="Spring 2026">Spring 2026</option>
-        </select>
-    </div>
+            <div class="top-filter-area">
+                <div class="top-filter-row">
+                    <div class="form-group term-field">
+                        <label for="academicTerm">Academic Term</label>
+                        <select id="academicTerm" name="academicTerm">
+                            <option value="">-- Select a Term --</option>
+                            <option value="Fall 2025">Fall 2025</option>
+                            <option value="Spring 2026">Spring 2026</option>
+                        </select>
+                    </div>
 
-    <div class="form-group course-field">
-        <label for="courseCode">Course Code</label>
-        <input type="text" id="courseCode" name="courseCode" placeholder="e.g. CS101" />
-    </div>
+                    <div class="form-group course-field">
+                        <label for="courseCode">Course Code</label>
+                        <input type="text" id="courseCode" name="courseCode" placeholder="e.g. CS101" />
+                    </div>
 
-    <details class="more-filters more-filters-inline">
-        <summary>Add More Filters</summary>
+                    <details id="moreFiltersToggle" class="more-filters more-filters-inline">
+                        <summary>Add More Filters</summary>
+                    </details>
+                </div>
 
                 <div class="filter-grid extra-filters">
                     <div class="form-group">
@@ -84,7 +87,7 @@
                         <input type="text" id="location" name="location" placeholder="e.g. Room 101">
                     </div>
                 </div>
-            </details>
+            </div>
 
             <div class="form-actions">
                 <button type="submit">Search Courses</button>

@@ -290,6 +290,10 @@ li {
   margin-bottom: 30px;
 }
 
+.top-filter-area {
+  width: 100%;
+}
+
 /* Top row: Academic Term, Course Code, Add More Filters */
 .top-filter-row {
   display: flex;
@@ -309,7 +313,7 @@ li {
 
 .more-filters-inline {
   flex: 0 0 20%;
-  margin: 0;
+  margin: 0 0 18px;
   display: flex;
   align-items: flex-end;
 }
@@ -357,11 +361,16 @@ li {
 }
 
 .extra-filters {
+  display: none;
   margin-top: 18px;
   padding: 20px;
   background: #f8fbff;
   border: 1px solid #d9e5f7;
   border-radius: 10px;
+}
+
+.top-filter-area:has(#moreFiltersToggle[open]) .extra-filters {
+  display: grid;
 }
 
 .form-actions {
@@ -399,6 +408,7 @@ li {
   .more-filters-inline {
     flex: 1 1 100%;
     width: 100%;
+    margin-bottom: 0;
   }
 
   .more-filters-inline summary {
