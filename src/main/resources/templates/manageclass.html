@@ -5,6 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Manage Classes | University Course Registration</title>
   <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
+  <style>
+    /* Page-local styles only; styles.css is not modified */
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    aside.sidebar {
+      background: #eef4ff; border: 1px solid #d9e5f7; border-radius: 10px;
+      padding: 14px; height: fit-content;
+    }
+    .sidebar h2 { margin: 0 0 10px; font-size: 16px; }
+    .sidebar .btn {
+      display: inline-block; width: 100%; text-align: center; padding: 10px 12px;
+      border-radius: 8px; background: #1e3c72; color: #fff; font-weight: 600; text-decoration: none;
+    }
+    .sidebar .btn:hover { background: #162d56; }
+
+    /* Timetable wrapper */
+    .timetable-card { background: #fff; border: 1px solid #d9e5f7; border-radius: 10px; padding: 14px; }
+    .muted { color: #5b6b87; }
+    .table-wrapper { overflow-x: auto; }
+    table.tt { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; }
+    table.tt th, table.tt td { border: 1px solid #d9e5f7; padding: 8px; vertical-align: top; text-align: left; }
+    table.tt thead th { background: #1e3c72; color: #fff; position: sticky; top: 0; z-index: 1; }
+    table.tt .time { width: 80px; background: #f7faff; font-weight: 600; white-space: nowrap; }
+
+    /* Class boxes: code bigger, tag UNDER code */
+    .class-box {
+      display: inline-block; min-width: 70px;
+      background: #eef7ff; border: 1px solid #b9d7ff; color: #0b2b5e;
+      border-radius: 10px; padding: 8px 6px; margin-bottom: 6px;
+    }
+    .code-link {
+      display: block;
+      font-weight: 800;
+      font-size: 16px;        /* increased word size for course code */
+      line-height: 1.2;
+      color: #0b2b5e;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-bottom: 6px;     /* spacing before section tag */
+    }
+    .code-link[aria-disabled="true"] { opacity: 1; }
+
+    .section-tag {
+      display: inline-block;
+      font-size: 12px; font-weight: 700;
+      background: #d9ecff; color: #143a66; border: 1px solid #a9ccf5;
+      padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+      margin-bottom: 8px;     /* spacing before Drop button */
+    }
+
+    .class-actions { margin-top: 0; }
+    .btn-drop {
+      background: #b3261e; color: #fff; border: none;
+      padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-drop[aria-disabled="true"] { opacity: 1; }
+
+    .legend { font-size: 12px; color: #5b6b87; margin-top: 8px; }
+    .legend strong { color: #2b3d63; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      aside.sidebar { order: -1; }
+    }
+  </style>
 </head>
 <body>
     <nav th:replace="~{nav :: nav}">
@@ -12,13 +84,121 @@
 
   <main class="container">
     <h1>Manage Classes</h1>
-    <p class="muted">This page is intentionally empty for now. Content will be added later.</p>
+    <p class="muted">Add or drop classes. Your weekly timetable is shown below.</p>
 
-    <section class="greeting-box" aria-label="Empty state">
-      <p class="muted">No content to display yet.</p>
-    </section>
+    <div class="layout">
+      <!-- Left sidebar -->
+      <aside class="sidebar" aria-label="Manage actions">
+        <h2>Actions</h2>
+        <a class="btn" href="">+ Add Class</a>
+      </aside>
+
+      <!-- Timetable -->
+      <section class="timetable-card" aria-labelledby="tt-heading">
+        <h2 id="tt-heading" style="margin-top:0;">Weekly Timetable</h2>
+        <p class="muted" style="margin:6px 0 14px;">
+          Time intervals are shown in 1-hour slots from 09:00 to 22:00.
+        </p>
+
+        <div class="table-wrapper">
+          <table class="tt" aria-describedby="tt-desc">
+            <caption id="tt-desc" class="visually-hidden">Student timetable showing classes by day and hour.</caption>
+            <thead>
+              <tr>
+                <th class="time">Time</th>
+                <th>M</th>
+                <th>T</th>
+                <th>W</th>
+                <th>R</th>
+                <th>F</th>
+                <th>S</th>
+              </tr>
+            </thead>
+            <tbody id="tt-body"></tbody>
+          </table>
+        </div>
+
+        <div class="legend">
+          <p><strong>Legend:</strong> M = Monday, T = Tuesday, W = Wednesday, R = Thursday, F = Friday, S = Saturday</p>
+        </div>
+      </section>
+    </div>
 
     <p class="footer-text">© 2026 University Course Registration System</p>
   </main>
+
+  <script>
+    // Hours 09:00–22:00
+    const START = 9, END = 22;
+
+    // Data from timetable.html
+    const classes = [
+      { code:"CSC204", title:"Database Systems",        day:"M", start:"09:00", end:"11:00", venue:"Lab 2",         lecturer:"Dr. Lim",          type:"Lab" },
+      { code:"CSC220", title:"Web Development",         day:"T", start:"10:00", end:"12:00", venue:"Lab 3",         lecturer:"Mr. Jonathan Wong",type:"Lab" },
+      { code:"BUS150", title:"Entrepreneurship",        day:"S", start:"10:00", end:"12:00", venue:"Room C2",       lecturer:"Dr. Karen Ho",     type:"Lecture" },
+      { code:"CSC230", title:"Operating Systems",       day:"F", start:"11:00", end:"13:00", venue:"Auditorium 1",  lecturer:"Dr. Lim",          type:"Lecture" },
+      { code:"MAT210", title:"Discrete Mathematics",    day:"M", start:"13:00", end:"15:00", venue:"Room A1",       lecturer:"Prof. Sarah Lee",  type:"Lecture" },
+      { code:"ENG205", title:"Technical Communication", day:"R", start:"14:00", end:"16:00", venue:"Online",        lecturer:"Prof. Daniel Ng",  type:"Tutorial" },
+      { code:"CSC201", title:"Data Structures",         day:"W", start:"15:00", end:"17:00", venue:"Room B3",       lecturer:"Dr. Aisha Rahman", type:"Lecture" }
+    ];
+
+    const days = ["M","T","W","R","F","S"];
+    const ttBody = document.getElementById('tt-body');
+
+    const timeToHour = t => parseInt(t.split(":")[0], 10);
+
+    function renderGrid() {
+      ttBody.innerHTML = "";
+      for (let h = START; h <= END; h++) {
+        const tr = document.createElement('tr');
+        const timeCell = document.createElement('td');
+        timeCell.className = "time";
+        timeCell.textContent = String(h).padStart(2, "0") + ":00";
+        tr.appendChild(timeCell);
+
+        for (const d of days) {
+          const td = document.createElement('td');
+          td.dataset.day = d;
+          td.dataset.hour = h;
+          tr.appendChild(td);
+        }
+        ttBody.appendChild(tr);
+      }
+    }
+
+    function placeClass(c) {
+      const startHour = timeToHour(c.start);
+      const endHour = timeToHour(c.end);
+
+      for (let h = startHour; h < endHour; h++) {
+        const cell = ttBody.querySelector(`td[data-day="${c.day}"][data-hour="${h}"]`);
+        if (!cell) continue;
+
+        const box = document.createElement('div');
+        box.className = 'class-box';
+        box.dataset.code = c.code;
+        box.dataset.day = c.day;
+        box.dataset.hour = h;
+
+        // Code (bigger), then tag UNDER it, then non-working Drop button
+        box.innerHTML = `
+          <a href="#" class="code-link" aria-disabled="true" role="link" onclick="return false;">${c.code}</a>
+          <span class="section-tag">${c.type}</span>
+          <div class="class-actions">
+            <a href="#" class="btn-drop" aria-disabled="true" role="button" onclick="return false;">Drop</a>
+          </div>
+        `;
+
+        cell.appendChild(box);
+      }
+    }
+
+    function renderAll() {
+      renderGrid();
+      classes.forEach(placeClass);
+    }
+
+    renderAll();
+  </script>
 </body>
 </html>
