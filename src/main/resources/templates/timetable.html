@@ -122,26 +122,38 @@
       margin-top: 15px;
     }
 
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
     .weekly-timetable {
       margin-top: 20px;
       overflow-x: auto;
     }
 
-    .weekly-timetable table {
+    .weekly-timetable table.tt {
       width: 100%;
       min-width: 0;
       table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 14px;
     }
 
-    .weekly-timetable th,
-    .weekly-timetable td {
-      text-align: center;
-      vertical-align: middle;
-      padding: 10px 8px;
+    .weekly-timetable table.tt th,
+    .weekly-timetable table.tt td {
+      text-align: left;
+      vertical-align: top;
+      padding: 8px;
+      border: 1px solid #d9e5f7;
     }
 
-    .weekly-timetable th {
+    .weekly-timetable table.tt thead th {
       text-align: center;
+      background: #1e3c72;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
     .day-header {
@@ -151,9 +163,9 @@
     }
 
     .time-col {
-      width: 130px;
-      font-weight: bold;
-      background: #f8fbff;
+      width: 80px;
+      font-weight: 600;
+      background: #f7faff;
       color: #1e3c72;
       text-align: center;
       position: relative;
@@ -161,53 +173,70 @@
       white-space: nowrap;
     }
 
-    .weekly-timetable thead .time-col {
-      text-align: center;
-    }
-
-    .weekly-timetable tbody .time-col .time-label {
-      display: inline-block;
-      white-space: nowrap;
-    }
-
-    .weekly-timetable tbody td {
-      border-bottom: none;
-    }
-
-    .weekly-timetable tbody td.empty-slot {
-      background-image: repeating-linear-gradient(
-        to right,
-        #c7d7f2 0,
-        #c7d7f2 6px,
-        transparent 6px,
-        transparent 12px
-      );
-      background-size: 100% 1px;
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-
     .class-block {
-      background: #eef4ff;
-      border: 1px solid #cfdff7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      background: #eef7ff;
+      border: 1px solid #b9d7ff;
       border-radius: 10px;
-      color: #1e3c72;
+      color: #0b2b5e;
       font-size: 13px;
       line-height: 1.4;
-      padding: 10px 8px;
+      padding: 8px 6px;
       height: 100%;
       text-align: center;
+      gap: 4px;
+      overflow: hidden;
     }
 
     .class-block strong {
       display: block;
-      font-size: 14px;
-      margin-bottom: 4px;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #0b2b5e;
+      text-decoration: underline;
+      margin-bottom: 2px;
+      word-break: break-word;
+    }
+
+    .class-block .course-title {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #143a66;
+      max-width: 100%;
+      word-break: break-word;
     }
 
     .class-block .venue {
-      color: #333;
       font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #5a2e00;
+      background: #fff4df;
+      border: 1px dashed #d59d3e;
+      border-radius: 6px;
+      padding: 4px 8px;
+      max-width: 100%;
+      word-break: break-word;
+      margin-bottom: 3px;
+    }
+
+    .section-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      background: #d9ecff;
+      color: #143a66;
+      border: 1px solid #a9ccf5;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      margin-bottom: 4px;
     }
 
     .empty-slot {
@@ -312,7 +341,8 @@
       </p>
 
       <div class="weekly-timetable">
-        <table id="weeklyTable" aria-label="Weekly timetable">
+        <table id="weeklyTable" class="tt" aria-label="Weekly timetable" aria-describedby="tt-desc">
+          <caption id="tt-desc" class="visually-hidden">Student timetable showing classes by day and hour.</caption>
           <thead>
             <tr>
               <th class="time-col">Time</th>
@@ -324,182 +354,7 @@
               <th class="day-header">S</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="time-col"><span class="time-label">09:00</span></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>CSC204</strong>
-                  Database Systems
-                  <div class="venue">Lab 2</div>
-                </div>
-              </td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">10:00</span></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>CSC220</strong>
-                  Web Development
-                  <div class="venue">Lab 3</div>
-                </div>
-              </td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>BUS150</strong>
-                  Entrepreneurship
-                  <div class="venue">Room C2</div>
-                </div>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">11:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>CSC230</strong>
-                  Operating Systems
-                  <div class="venue">Auditorium 1</div>
-                </div>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">12:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">13:00</span></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>MAT210</strong>
-                  Discrete Mathematics
-                  <div class="venue">Room A1</div>
-                </div>
-              </td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">14:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>ENG205</strong>
-                  Technical Communication
-                  <div class="venue">Online</div>
-                </div>
-              </td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">15:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td rowspan="2">
-                <div class="class-block">
-                  <strong>CSC201</strong>
-                  Data Structures
-                  <div class="venue">Room B3</div>
-                </div>
-              </td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">16:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">17:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">18:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">19:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">20:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">21:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-
-            <tr>
-              <td class="time-col"><span class="time-label">22:00</span></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-              <td class="empty-slot"></td>
-            </tr>
-          </tbody>
+          <tbody id="tt-body"></tbody>
         </table>
       </div>
 
@@ -606,6 +461,70 @@
   </main>
 
   <script>
+    const START = 9;
+    const END = 22;
+    const classes = [
+      { code: "CSC204", title: "Database Systems", day: "M", start: "09:00", end: "11:00", venue: "Lab 2", lecturer: "Dr. Lim", type: "Lab" },
+      { code: "CSC220", title: "Web Development", day: "T", start: "10:00", end: "12:00", venue: "Lab 3", lecturer: "Mr. Jonathan Wong", type: "Lab" },
+      { code: "BUS150", title: "Entrepreneurship", day: "S", start: "10:00", end: "12:00", venue: "Room C2", lecturer: "Dr. Karen Ho", type: "Lecture" },
+      { code: "CSC230", title: "Operating Systems", day: "F", start: "11:00", end: "13:00", venue: "Auditorium 1", lecturer: "Dr. Lim", type: "Lecture" },
+      { code: "MAT210", title: "Discrete Mathematics", day: "M", start: "13:00", end: "15:00", venue: "Room A1", lecturer: "Prof. Sarah Lee", type: "Lecture" },
+      { code: "ENG205", title: "Technical Communication", day: "R", start: "14:00", end: "16:00", venue: "Online", lecturer: "Prof. Daniel Ng", type: "Tutorial" },
+      { code: "CSC201", title: "Data Structures", day: "W", start: "15:00", end: "17:00", venue: "Room B3", lecturer: "Dr. Aisha Rahman", type: "Lecture" }
+    ];
+
+    const days = ["M", "T", "W", "R", "F", "S"];
+    const ttBody = document.getElementById("tt-body");
+
+    const timeToHour = (time) => parseInt(time.split(":")[0], 10);
+
+    function renderGrid() {
+      ttBody.innerHTML = "";
+      for (let hour = START; hour <= END; hour++) {
+        const row = document.createElement("tr");
+        const timeCell = document.createElement("td");
+        timeCell.className = "time-col";
+        timeCell.textContent = String(hour).padStart(2, "0") + ":00";
+        row.appendChild(timeCell);
+
+        for (const day of days) {
+          const cell = document.createElement("td");
+          cell.className = "empty-slot";
+          cell.dataset.day = day;
+          cell.dataset.hour = hour;
+          row.appendChild(cell);
+        }
+
+        ttBody.appendChild(row);
+      }
+    }
+
+    function placeClass(course) {
+      const startHour = timeToHour(course.start);
+      const endHour = timeToHour(course.end);
+
+      for (let hour = startHour; hour < endHour; hour++) {
+        const cell = ttBody.querySelector(`td[data-day="${course.day}"][data-hour="${hour}"]`);
+        if (!cell) {
+          continue;
+        }
+
+        const block = document.createElement("div");
+        block.className = "class-block";
+        block.innerHTML = `
+          <strong>${course.code}</strong>
+          <div class="course-title">${course.title}</div>
+          <div class="venue">${course.venue}</div>
+          <span class="section-tag">${course.type}</span>
+        `;
+
+        cell.appendChild(block);
+      }
+    }
+
+    renderGrid();
+    classes.forEach(placeClass);
+
     document.getElementById("exportBtn").addEventListener("click", function () {
       const weeklyTable = document.getElementById("weeklyTable").outerHTML;
       const detailsTable = document.getElementById("detailsTable").outerHTML;
