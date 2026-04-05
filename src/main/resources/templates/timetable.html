@@ -8,12 +8,8 @@
 </head>
 <body>
   <!-- Top navigation (aligned with your existing pages) -->
-  <nav aria-label="Primary">
-    <a href="/">Home</a>
-    <a href="/greeting">Greeting</a>
-    <a href="/ViewMasterClassSchedule">Master Schedule</a>
-    <a href="/login">Log In</a>
-  </nav>
+    <nav th:replace="~{nav :: nav}">
+    </nav>
 
   <main class="container">
     <h1>Check Timetable</h1>

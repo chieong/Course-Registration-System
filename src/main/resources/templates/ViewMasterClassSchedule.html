@@ -8,11 +8,7 @@
 </head>
 <body>
 
-    <nav>
-        <a th:href="@{/}">Home</a>
-        <a th:href="@{/ViewMasterClassSchedule}">Master Schedule</a>
-        <a th:href="@{/greeting}">Greeting</a>
-        <a th:href="@{/login}">Logout</a>
+    <nav th:replace="~{nav :: nav}">
     </nav>
 
     <div class="container">
