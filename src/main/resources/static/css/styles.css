@@ -1,279 +1,427 @@
 /* Reset */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f7fb;
-    color: #333;
-    line-height: 1.6;
-    min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
 }
 
 /* =========================
    NAVBAR
 ========================= */
 nav {
-    background: #1e3c72;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #1e3c72;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 nav a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 15px;
-    transition: color 0.3s ease;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 15px;
+  transition: color 0.3s ease;
 }
 
 nav a:hover {
-    color: #cdddfc;
+  color: #cdddfc;
 }
 
 /* =========================
    GENERAL PAGE CONTAINER
 ========================= */
 .container {
-    width: 90%;
-    max-width: 1000px;
-    margin: 40px auto;
-    background: #fff;
-    padding: 30px;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  width: 90%;
+  max-width: 1000px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
-h1, h2, h3 {
-    color: #1e3c72;
-    margin-bottom: 15px;
+h1,
+h2,
+h3 {
+  color: #1e3c72;
+  margin-bottom: 15px;
 }
 
 p {
-    margin-bottom: 15px;
-    color: #555;
+  margin-bottom: 15px;
+  color: #555;
 }
 
 a {
-    color: #2a5298;
-    text-decoration: none;
+  color: #2a5298;
+  text-decoration: none;
 }
 
 a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
+}
+
+/* =========================
+   FORMS
+========================= */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #2a5298;
+  box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+.login-btn,
+button {
+  display: inline-block;
+  width: 100%;
+  padding: 12px;
+  background: #1e3c72;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-btn:hover,
+button:hover {
+  background: #16325c;
 }
 
 /* =========================
    LOGIN PAGE
 ========================= */
 .login-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  padding: 20px;
 }
 
 .login-container {
-    background: #fff;
-    width: 100%;
-    max-width: 400px;
-    padding: 35px 30px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background: #fff;
+  width: 100%;
+  max-width: 400px;
+  padding: 35px 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .logo {
-    text-align: center;
-    font-size: 42px;
-    margin-bottom: 10px;
+  text-align: center;
+  font-size: 42px;
+  margin-bottom: 10px;
 }
 
 .login-container h1 {
-    text-align: center;
-    margin-bottom: 10px;
-    color: #1e3c72;
-    font-size: 28px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #1e3c72;
+  font-size: 28px;
 }
 
 .login-container p {
-    text-align: center;
-    margin-bottom: 25px;
-    color: #666;
-    font-size: 14px;
-}
-
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: #333;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.form-group input:focus {
-    border-color: #2a5298;
-    box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
-}
-
-.login-btn,
-button {
-    display: inline-block;
-    width: 100%;
-    padding: 12px;
-    background: #1e3c72;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.login-btn:hover,
-button:hover {
-    background: #16325c;
+  text-align: center;
+  margin-bottom: 25px;
+  color: #666;
+  font-size: 14px;
 }
 
 .extra-links {
-    margin-top: 18px;
-    text-align: center;
-    font-size: 14px;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .footer-text {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 12px;
-    color: #999;
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
 }
 
 /* =========================
    INDEX / HOME PAGE
 ========================= */
 .home-page {
-    padding: 40px 20px;
+  padding: 40px 20px;
 }
 
 .home-page .container {
-    text-align: center;
+  text-align: center;
 }
 
 .home-page h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
+  font-size: 32px;
+  margin-bottom: 10px;
 }
 
 .home-page .links {
-    margin-top: 25px;
+  margin-top: 25px;
 }
 
 .home-page .links a {
-    display: inline-block;
-    margin: 10px;
-    padding: 10px 18px;
-    background: #2a5298;
-    color: #fff;
-    border-radius: 8px;
-    transition: background 0.3s ease;
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 18px;
+  background: #2a5298;
+  color: #fff;
+  border-radius: 8px;
+  transition: background 0.3s ease;
 }
 
 .home-page .links a:hover {
-    background: #1e3c72;
-    text-decoration: none;
+  background: #1e3c72;
+  text-decoration: none;
 }
 
 /* =========================
    GREETING PAGE
 ========================= */
 .greeting-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 80vh;
-    padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 20px;
 }
 
 .greeting-box {
-    background: #fff;
-    padding: 30px 40px;
-    border-radius: 14px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    text-align: center;
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  text-align: center;
 }
 
 .greeting-box h1 {
-    font-size: 30px;
-    color: #1e3c72;
+  font-size: 30px;
+  color: #1e3c72;
+}
+
+/* =========================
+   TABLES
+========================= */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #fff;
+}
+
+table th,
+table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  background: #1e3c72;
+  color: #fff;
+}
+
+table tr:hover {
+  background: #f8fbff;
 }
 
 /* =========================
    SIMPLE LISTS / LINKS
 ========================= */
 ul {
-    padding-left: 20px;
-    margin-top: 10px;
+  padding-left: 20px;
+  margin-top: 10px;
 }
 
 li {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+/* =========================
+   SCHEDULE PAGE / FILTERS
+========================= */
+.schedule-form {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+/* Top row: Academic Term, Course Code, Add More Filters */
+.top-filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.term-field {
+  flex: 0 0 35%;
+}
+
+.course-field {
+  flex: 0 0 35%;
+}
+
+.more-filters-inline {
+  flex: 0 0 20%;
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+.more-filters-inline summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #1e3c72;
+  background: #eef4ff;
+  border: 1px solid #d9e5f7;
+  padding: 12px 16px;
+  border-radius: 10px;
+  min-height: 48px;
+  width: 100%;
+  transition: background 0.3s ease;
+}
+
+.more-filters-inline summary::-webkit-details-marker {
+  display: none;
+}
+
+.more-filters-inline summary:hover {
+  background: #e3edff;
+}
+
+.more-filters-inline summary::after {
+  content: "▼";
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.more-filters-inline[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.extra-filters {
+  margin-top: 18px;
+  padding: 20px;
+  background: #f8fbff;
+  border: 1px solid #d9e5f7;
+  border-radius: 10px;
+}
+
+.form-actions {
+  margin-top: 10px;
 }
 
 /* =========================
    RESPONSIVE
 ========================= */
 @media (max-width: 768px) {
-    nav {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-    }
+  nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
 
-    .container {
-        width: 95%;
-        padding: 20px;
-    }
+  .container {
+    width: 95%;
+    padding: 20px;
+  }
 
-    .home-page h1,
-    .greeting-box h1,
-    .login-container h1 {
-        font-size: 24px;
-    }
+  .home-page h1,
+  .greeting-box h1,
+  .login-container h1 {
+    font-size: 24px;
+  }
+
+  .top-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .term-field,
+  .course-field,
+  .more-filters-inline {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .more-filters-inline summary {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
-    .login-container {
-        padding: 25px 20px;
-    }
+  .login-container {
+    padding: 25px 20px;
+  }
 
-    .logo {
-        font-size: 36px;
-    }
+  .logo {
+    font-size: 36px;
+  }
 
-    .home-page .links a {
-        display: block;
-        width: 100%;
-        margin: 10px 0;
-    }
+  .home-page .links a {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
 }

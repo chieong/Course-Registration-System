@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Master Class Schedule</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
+</head>
+<body>
+
+    <nav>
+        <a th:href="@{/}">Home</a>
+        <a th:href="@{/ViewMasterClassSchedule}">Master Schedule</a>
+        <a th:href="@{/greeting}">Greeting</a>
+        <a th:href="@{/login}">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1>View Master Class Schedule</h1>
+        <p>
+            Select an academic term and optionally add filters to find matching courses.
+        </p>
+
+        <form th:action="@{/schedule}" method="get" class="schedule-form">
+<div class="top-filter-row">
+    <div class="form-group term-field">
+        <label for="academicTerm">Academic Term</label>
+        <select id="academicTerm" name="academicTerm">
+            <option value="">-- Select a Term --</option>
+            <option value="Fall 2025">Fall 2025</option>
+            <option value="Spring 2026">Spring 2026</option>
+        </select>
+    </div>
+
+    <div class="form-group course-field">
+        <label for="courseCode">Course Code</label>
+        <input type="text" id="courseCode" name="courseCode" placeholder="e.g. CS101" />
+    </div>
+
+    <details class="more-filters more-filters-inline">
+        <summary>Add More Filters</summary>
+
+                <div class="filter-grid extra-filters">
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <select id="department" name="department">
+                            <option value="">-- All Departments --</option>
+                            <option value="cs">Computer Science</option>
+                            <option value="math">Mathematics</option>
+                            <option value="eng">Engineering</option>
+                            <option value="bus">Business</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="instructor">Instructor</label>
+                        <input type="text" id="instructor" name="instructor" placeholder="Enter instructor name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="day">Day</label>
+                        <select id="day" name="day">
+                            <option value="">-- Any Day --</option>
+                            <option value="monday">Monday</option>
+                            <option value="tuesday">Tuesday</option>
+                            <option value="wednesday">Wednesday</option>
+                            <option value="thursday">Thursday</option>
+                            <option value="friday">Friday</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="time">Time</label>
+                        <select id="time" name="time">
+                            <option value="">-- Any Time --</option>
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" placeholder="e.g. Room 101">
+                    </div>
+                </div>
+            </details>
+
+            <div class="form-actions">
+                <button type="submit">Search Courses</button>
+            </div>
+        </form>
+
+        <h2>Available Courses</h2>
+        <p>Showing courses for the selected term and applied filters.</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Title</th>
+                        <th>Department</th>
+                        <th>Instructor</th>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CS101</td>
+                        <td>Introduction to Programming</td>
+                        <td>Computer Science</td>
+                        <td>Dr. Smith</td>
+                        <td>Monday</td>
+                        <td>9:00 AM - 11:00 AM</td>
+                        <td>Room 101</td>
+                    </tr>
+                    <tr>
+                        <td>MATH201</td>
+                        <td>Calculus II</td>
+                        <td>Mathematics</td>
+                        <td>Prof. Johnson</td>
+                        <td>Tuesday</td>
+                        <td>1:00 PM - 3:00 PM</td>
+                        <td>Room 202</td>
+                    </tr>
+                    <tr>
+                        <td>ENG150</td>
+                        <td>Engineering Fundamentals</td>
+                        <td>Engineering</td>
+                        <td>Dr. Lee</td>
+                        <td>Wednesday</td>
+                        <td>10:00 AM - 12:00 PM</td>
+                        <td>Room 303</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>
