@@ -972,6 +972,9 @@ table.preview-timetable td {
   border: 1px solid #d9e5f7;
   padding: 7px;
   vertical-align: top;
+  height: 48px;
+  max-height: 48px;
+  overflow: hidden;
 }
 
 table.preview-timetable th {
@@ -992,35 +995,35 @@ table.preview-timetable th {
   background: #fcfdff;
 }
 
-.preview-merged {
-  vertical-align: middle;
-  background: #f5f9ff;
+.preview-merged,
+.preview-filled {
+  background: #e7f0ff;
 }
 
-.schedule-chip {
-  display: inline-block;
+.preview-merged {
+  vertical-align: middle;
+}
+
+.preview-course-block {
   font-size: 11px;
   font-weight: 700;
   line-height: 1.2;
-  padding: 3px 7px;
-  border-radius: 999px;
-  background: #e7f0ff;
-  border: 1px solid #b7d0f5;
+  padding: 4px 6px;
   color: #173e78;
-  margin: 2px 2px 0 0;
 }
 
-.schedule-chip .chip-code {
+.preview-course-code {
   display: block;
   font-size: 12px;
   font-weight: 800;
 }
 
-.schedule-chip .chip-meta {
+.preview-course-meta {
   display: block;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   margin-top: 2px;
+  color: #4a6fa5;
 }
 
 .conflict-cell {

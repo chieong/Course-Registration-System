@@ -5,6 +5,7 @@
 		const creditStatus = document.getElementById("creditStatus");
 		const clearPlanBtn = document.getElementById("clearPlanBtn");
 		const submitPlanBtn = document.getElementById("submitPlanBtn");
+		const undoPlanBtn = document.getElementById("undoPlanBtn");
 		const previewTimetableBody = document.getElementById("previewTimetableBody");
 		const conflictPanel = document.getElementById("conflictPanel");
 		const conflictList = document.getElementById("conflictList");
@@ -15,6 +16,8 @@
 		const previewStartHour = 9;
 		const previewEndHour = 22;
 		let lastSavedPlanSignature = "";
+		const initialSelectedHTML = selectedPlanBody.innerHTML;
+		const initialWaitlistHTML = waitlistBody.innerHTML;
 
 		function getSelectedRows() {
 			return Array.from(selectedPlanBody.querySelectorAll("tr[data-code]"));
@@ -255,13 +258,13 @@
 							conflicts.push(`${day} ${formatHour(hour)} - ${formatHour(hour + 1)}: ${courses.map((course) => course.code).join(", ")}`);
 
 							courses.forEach((course) => {
-								const chip = document.createElement("span");
-								chip.className = "schedule-chip conflict-chip";
-								chip.innerHTML = `
-									<span class="chip-code">${course.code}</span>
-									<span class="chip-meta">${course.category} | ${course.location}</span>
+								const block = document.createElement("div");
+								block.className = "preview-course-block conflict-block";
+								block.innerHTML = `
+									<span class="preview-course-code">${course.code}</span>
+									<span class="preview-course-meta">${course.category} | ${course.location}</span>
 								`;
-								cell.appendChild(chip);
+								cell.appendChild(block);
 							});
 						} else {
 							const singleCourse = courses[0];
@@ -282,15 +285,17 @@
 								for (let coveredHour = hour + 1; coveredHour < hour + rowSpan; coveredHour += 1) {
 									occupiedCells.add(`${day}|${coveredHour}`);
 								}
+							} else {
+								cell.classList.add("preview-filled");
 							}
 
-							const chip = document.createElement("span");
-							chip.className = "schedule-chip";
-							chip.innerHTML = `
-								<span class="chip-code">${singleCourse.code}</span>
-								<span class="chip-meta">${singleCourse.category} | ${singleCourse.location}</span>
+							const block = document.createElement("div");
+							block.className = "preview-course-block";
+							block.innerHTML = `
+								<span class="preview-course-code">${singleCourse.code}</span>
+								<span class="preview-course-meta">${singleCourse.category} | ${singleCourse.location}</span>
 							`;
-							cell.appendChild(chip);
+							cell.appendChild(block);
 						}
 					}
 
@@ -511,6 +516,47 @@
 			if (!button) return;
 
 			setCourseButtonState(button.dataset.code, row.dataset.availability || "open");
+		});
+
+		getSelectedRows().forEach((row) => {
+			if (row.dataset.code) {
+				setCourseButtonState(row.dataset.code, "added");
+			}
+		});
+
+		getWaitlistedRows().forEach((row) => {
+			if (row.dataset.code) {
+				setCourseButtonState(row.dataset.code, "waitlisted");
+			}
+		});
+
+		undoPlanBtn.addEventListener("click", () => {
+			if (!hasUnsavedPlanChanges()) return;
+
+			const confirmed = window.confirm("Undo all changes and restore the original plan?");
+			if (!confirmed) return;
+
+			selectedPlanBody.innerHTML = initialSelectedHTML;
+			waitlistBody.innerHTML = initialWaitlistHTML;
+
+			Array.from(availableCoursesBody.querySelectorAll("tr")).forEach((row) => {
+				const button = row.querySelector("button[data-code]");
+				if (!button) return;
+				setCourseButtonState(button.dataset.code, row.dataset.availability || "open");
+			});
+
+			getSelectedRows().forEach((row) => {
+				if (row.dataset.code) setCourseButtonState(row.dataset.code, "added");
+			});
+
+			getWaitlistedRows().forEach((row) => {
+				if (row.dataset.code) setCourseButtonState(row.dataset.code, "waitlisted");
+			});
+
+			toggleEmptyState();
+			toggleWaitlistEmptyState();
+			recalculateCredits();
+			renderPreviewTimetable();
 		});
 
 		lastSavedPlanSignature = getCurrentPlanSignature();
