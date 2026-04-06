@@ -8,6 +8,10 @@
   <style>
     /* Page-local styles only; styles.css is not modified */
 
+    :root {
+      --tt-slot-height: 160px;
+    }
+
     /* Layout */
     .layout {
       display: block;
@@ -32,6 +36,176 @@
     }
     .tt-header .btn:hover { background: #162d56; }
 
+    .master-dialog {
+      width: min(1100px, 94vw);
+      max-height: 90vh;
+      border: 1px solid #d9e5f7;
+      border-radius: 12px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+    }
+
+    .master-dialog::backdrop {
+      background: rgba(11, 21, 38, 0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .master-dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #d9e5f7;
+      background: #f7faff;
+    }
+
+    .master-dialog-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #1e3c72;
+    }
+
+    .dialog-close-btn {
+      background: #1e3c72;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .dialog-close-btn:hover {
+      background: #162d56;
+    }
+
+    .master-dialog-content {
+      padding: 14px 16px 16px;
+      background: #fff;
+      max-height: min(74vh, 760px);
+      overflow: auto;
+    }
+
+    .master-dialog-content p {
+      margin: 0 0 12px;
+      color: #4d5f81;
+      font-size: 14px;
+    }
+
+    .master-filters {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: end;
+    }
+
+    .master-filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .master-filter-group label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #2c3f64;
+    }
+
+    .master-filter-group input,
+    .master-filter-group select {
+      height: 36px;
+      border: 1px solid #c7d6ed;
+      border-radius: 8px;
+      padding: 0 10px;
+      font-size: 13px;
+      color: #20375e;
+      background: #fff;
+    }
+
+    .master-filter-group input:focus,
+    .master-filter-group select:focus {
+      outline: none;
+      border-color: #2a5298;
+      box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
+    }
+
+    .btn-reset-filters {
+      height: 36px;
+      border: 1px solid #a9bfdc;
+      background: #f4f8ff;
+      color: #1f437f;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    .btn-reset-filters:hover {
+      background: #e8f0ff;
+    }
+
+    .master-empty {
+      text-align: center;
+      color: #667b9e;
+      font-style: italic;
+    }
+
+    .master-table-wrapper {
+      overflow-x: auto;
+    }
+
+    table.master-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 14px;
+    }
+
+    table.master-table th,
+    table.master-table td {
+      border: 1px solid #d9e5f7;
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: middle;
+      word-break: break-word;
+    }
+
+    table.master-table th {
+      background: #1e3c72;
+      color: #fff;
+    }
+
+    .btn-add {
+      background: #2a5298;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-add:hover {
+      background: #1e3c72;
+    }
+
+    .btn-add:disabled {
+      background: #9fb2d6;
+      cursor: not-allowed;
+    }
+
     /* Timetable wrapper */
     .timetable-card { background: #fff; border: 1px solid #d9e5f7; border-radius: 10px; padding: 14px; }
     .muted { color: #5b6b87; }
@@ -40,6 +214,8 @@
     table.tt th, table.tt td { border: 1px solid #d9e5f7; padding: 8px; vertical-align: top; text-align: left; }
     table.tt thead th { background: #1e3c72; color: #fff; position: sticky; top: 0; z-index: 1; }
     table.tt .time { width: 80px; background: #f7faff; font-weight: 600; white-space: nowrap; }
+    table.tt tbody tr { height: var(--tt-slot-height); }
+    table.tt tbody td { height: var(--tt-slot-height); border-left: none; border-right: none; }
 
     /* Class boxes: code bigger, tag UNDER code */
     .class-box {
@@ -49,9 +225,10 @@
       justify-content: center;
       width: 100%;
       background: #eef7ff; border: 1px solid #b9d7ff; color: #0b2b5e;
-      border-radius: 10px; padding: 8px 6px; margin-bottom: 6px;
+      border-radius: 10px; padding: 8px 6px; margin-bottom: 0;
       text-align: center;
       gap: 4px;
+      height: 100%;
       overflow: hidden;
     }
     .code-link {
@@ -60,12 +237,17 @@
       font-size: 16px;        /* increased word size for course code */
       line-height: 1.2;
       color: #0b2b5e;
-      text-decoration: underline;
+      text-decoration: none;
       cursor: pointer;
       margin-bottom: 2px;
       word-break: break-word;
     }
-    .code-link[aria-disabled="true"] { opacity: 1; }
+
+    .code-link:hover,
+    .code-link:focus {
+      text-decoration: none;
+      color: #0b2b5e;
+    }
 
     .course-title {
       font-size: 12px;
@@ -82,7 +264,7 @@
       line-height: 1.2;
       color: #5a2e00;
       background: #fff4df;
-      border: 1px dashed #d59d3e;
+      border: 1px solid #d59d3e;
       border-radius: 6px;
       padding: 4px 8px;
       max-width: 100%;
@@ -112,6 +294,10 @@
 
     @media (max-width: 900px) {
       .tt-header .btn { width: 100%; }
+
+      .master-filters {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -128,7 +314,7 @@
       <section class="timetable-card" aria-labelledby="tt-heading">
         <div class="tt-header">
           <h2 id="tt-heading">Weekly Timetable</h2>
-          <a class="btn" href="">+ Add Class</a>
+          <button type="button" class="btn" id="openMasterScheduleBtn">+ Add Class</button>
         </div>
         <p class="muted" style="margin:6px 0 14px;">
           Time intervals are shown in 1-hour slots from 09:00 to 22:00.
@@ -161,25 +347,169 @@
     <p class="footer-text">© 2026 University Course Registration System</p>
   </main>
 
+  <dialog id="masterScheduleDialog" class="master-dialog" aria-labelledby="masterScheduleTitle">
+    <div class="master-dialog-header">
+      <h3 id="masterScheduleTitle">View Master Class Schedule</h3>
+      <button type="button" class="dialog-close-btn" id="closeMasterScheduleBtn">Close</button>
+    </div>
+    <div class="master-dialog-content">
+      <p>Select a class from the master schedule to add it to your timetable.</p>
+      <div class="master-filters">
+        <div class="master-filter-group">
+          <label for="masterSearchInput">Search</label>
+          <input id="masterSearchInput" type="text" placeholder="Search code, title, venue, lecturer" />
+        </div>
+        <div class="master-filter-group">
+          <label for="masterDayFilter">Day</label>
+          <select id="masterDayFilter">
+            <option value="">All Days</option>
+            <option value="M">Monday</option>
+            <option value="T">Tuesday</option>
+            <option value="W">Wednesday</option>
+            <option value="R">Thursday</option>
+            <option value="F">Friday</option>
+            <option value="S">Saturday</option>
+          </select>
+        </div>
+        <div class="master-filter-group">
+          <label for="masterTypeFilter">Type</label>
+          <select id="masterTypeFilter">
+            <option value="">All Types</option>
+            <option value="Lecture">Lecture</option>
+            <option value="Tutorial">Tutorial</option>
+            <option value="Lab">Lab</option>
+          </select>
+        </div>
+        <button type="button" class="btn-reset-filters" id="resetMasterFiltersBtn">Reset</button>
+      </div>
+      <div class="master-table-wrapper">
+        <table class="master-table" aria-label="Master class schedule">
+          <thead>
+            <tr>
+              <th>Course Code</th>
+              <th>Course Title</th>
+              <th>Day</th>
+              <th>Time</th>
+              <th>Location</th>
+              <th>Type</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="masterScheduleBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </dialog>
+
   <script>
     // Hours 09:00–22:00
     const START = 9, END = 22;
 
     // Data from timetable.html
-    const classes = [
-      { code:"CSC204", title:"Database Systems",        day:"M", start:"09:00", end:"11:00", venue:"Lab 2",         lecturer:"Dr. Lim",          type:"Lab" },
-      { code:"CSC220", title:"Web Development",         day:"T", start:"10:00", end:"12:00", venue:"Lab 3",         lecturer:"Mr. Jonathan Wong",type:"Lab" },
-      { code:"BUS150", title:"Entrepreneurship",        day:"S", start:"10:00", end:"12:00", venue:"Room C2",       lecturer:"Dr. Karen Ho",     type:"Lecture" },
+    let classes = [
+      { code:"CSC204", title:"Database Systems",        day:"M", start:"09:00", end:"12:00", venue:"Lab 2",         lecturer:"Dr. Lim",          type:"Lab" },
+      { code:"CSC220", title:"Web Development",         day:"T", start:"10:00", end:"11:00", venue:"Lab 3",         lecturer:"Mr. Jonathan Wong",type:"Lab" },
+      { code:"BUS150", title:"Entrepreneurship",        day:"S", start:"10:00", end:"13:00", venue:"Room C2",       lecturer:"Dr. Karen Ho",     type:"Lecture" },
       { code:"CSC230", title:"Operating Systems",       day:"F", start:"11:00", end:"13:00", venue:"Auditorium 1",  lecturer:"Dr. Lim",          type:"Lecture" },
       { code:"MAT210", title:"Discrete Mathematics",    day:"M", start:"13:00", end:"15:00", venue:"Room A1",       lecturer:"Prof. Sarah Lee",  type:"Lecture" },
       { code:"ENG205", title:"Technical Communication", day:"R", start:"14:00", end:"16:00", venue:"Online",        lecturer:"Prof. Daniel Ng",  type:"Tutorial" },
-      { code:"CSC201", title:"Data Structures",         day:"W", start:"15:00", end:"17:00", venue:"Room B3",       lecturer:"Dr. Aisha Rahman", type:"Lecture" }
+      { code:"CSC201", title:"Data Structures",         day:"W", start:"15:00", end:"16:00", venue:"Room B3",       lecturer:"Dr. Aisha Rahman", type:"Lecture" }
     ];
 
     const days = ["M","T","W","R","F","S"];
     const ttBody = document.getElementById('tt-body');
+    const openMasterScheduleBtn = document.getElementById("openMasterScheduleBtn");
+    const masterScheduleDialog = document.getElementById("masterScheduleDialog");
+    const masterScheduleBody = document.getElementById("masterScheduleBody");
+    const closeMasterScheduleBtn = document.getElementById("closeMasterScheduleBtn");
+    const masterSearchInput = document.getElementById("masterSearchInput");
+    const masterDayFilter = document.getElementById("masterDayFilter");
+    const masterTypeFilter = document.getElementById("masterTypeFilter");
+    const resetMasterFiltersBtn = document.getElementById("resetMasterFiltersBtn");
+
+    const masterScheduleClasses = [
+      { code:"CSC101", title:"Introduction to Programming", day:"M", start:"16:00", end:"18:00", venue:"Room 101", lecturer:"Dr. Smith", type:"Lecture" },
+      { code:"MATH201", title:"Calculus II", day:"T", start:"13:00", end:"15:00", venue:"Room 202", lecturer:"Prof. Johnson", type:"Lecture" },
+      { code:"ENG150", title:"Engineering Fundamentals", day:"W", start:"10:00", end:"12:00", venue:"Room 303", lecturer:"Dr. Lee", type:"Lecture" },
+      { code:"CSC330", title:"Software Engineering", day:"R", start:"09:00", end:"10:00", venue:"Lab 1", lecturer:"Prof. Ian Cho", type:"Tutorial" },
+      { code:"BUS240", title:"Marketing Analytics", day:"F", start:"15:00", end:"18:00", venue:"Room C5", lecturer:"Dr. Mei Tan", type:"Lecture" },
+      { code:"PHY120", title:"Applied Physics", day:"S", start:"11:00", end:"12:00", venue:"Room D2", lecturer:"Dr. Arjun", type:"Lab" },
+      { code:"CSC140", title:"Computer Organization", day:"M", start:"18:00", end:"20:00", venue:"Room B1", lecturer:"Dr. Kelvin Yu", type:"Lecture" },
+      { code:"CSC255", title:"Object Oriented Design", day:"T", start:"09:00", end:"11:00", venue:"Lab 4", lecturer:"Ms. Connie Lau", type:"Lab" },
+      { code:"CSC275", title:"Human Computer Interaction", day:"W", start:"13:00", end:"14:00", venue:"Room A4", lecturer:"Prof. Nina Choi", type:"Tutorial" },
+      { code:"CSC310", title:"Computer Networks", day:"R", start:"10:00", end:"12:00", venue:"Room C1", lecturer:"Dr. Alan Wong", type:"Lecture" },
+      { code:"CSC315", title:"Information Security", day:"F", start:"09:00", end:"11:00", venue:"Lab 5", lecturer:"Dr. R. Das", type:"Lab" },
+      { code:"CSC340", title:"Machine Learning Basics", day:"S", start:"13:00", end:"16:00", venue:"Room ML2", lecturer:"Prof. Evelyn Ko", type:"Lecture" },
+      { code:"MATH230", title:"Linear Algebra", day:"M", start:"11:00", end:"12:00", venue:"Room M3", lecturer:"Dr. Fong", type:"Lecture" },
+      { code:"MATH260", title:"Probability and Statistics", day:"T", start:"15:00", end:"17:00", venue:"Room M2", lecturer:"Prof. Abdul Karim", type:"Lecture" },
+      { code:"ENG210", title:"Technical Writing", day:"W", start:"09:00", end:"10:00", venue:"Room E1", lecturer:"Ms. Patricia Cheng", type:"Tutorial" },
+      { code:"BUS210", title:"Financial Accounting", day:"R", start:"16:00", end:"18:00", venue:"Room C3", lecturer:"Dr. Simon Ng", type:"Lecture" },
+      { code:"BUS260", title:"Project Management", day:"F", start:"13:00", end:"14:00", venue:"Room C7", lecturer:"Prof. Irene Ho", type:"Tutorial" },
+      { code:"PHY205", title:"Electromagnetism", day:"S", start:"09:00", end:"11:00", venue:"Lab P1", lecturer:"Dr. Raman", type:"Lab" }
+    ];
 
     const timeToHour = t => parseInt(t.split(":")[0], 10);
+    const toCourseKey = c => `${c.code}|${c.day}|${c.start}`;
+    const isCourseAdded = c => classes.some(existing => toCourseKey(existing) === toCourseKey(c));
+
+    function formatTimeRange(start, end) {
+      return `${start} - ${end}`;
+    }
+
+    function getFilteredMasterSchedule() {
+      const query = masterSearchInput.value.trim().toLowerCase();
+      const selectedDay = masterDayFilter.value;
+      const selectedType = masterTypeFilter.value;
+
+      return masterScheduleClasses
+        .map((course, index) => ({ course, index }))
+        .filter(({ course }) => {
+          const matchesQuery = !query ||
+            course.code.toLowerCase().includes(query) ||
+            course.title.toLowerCase().includes(query) ||
+            course.venue.toLowerCase().includes(query) ||
+            course.lecturer.toLowerCase().includes(query);
+
+          const matchesDay = !selectedDay || course.day === selectedDay;
+          const matchesType = !selectedType || course.type === selectedType;
+
+          return matchesQuery && matchesDay && matchesType;
+        });
+    }
+
+    function renderMasterSchedule() {
+      masterScheduleBody.innerHTML = "";
+
+      const filteredCourses = getFilteredMasterSchedule();
+
+      if (filteredCourses.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.innerHTML = '<td colspan="7" class="master-empty">No courses match your search/filter.</td>';
+        masterScheduleBody.appendChild(emptyRow);
+        return;
+      }
+
+      filteredCourses.forEach(({ course, index }) => {
+        const row = document.createElement("tr");
+        const alreadyAdded = isCourseAdded(course);
+
+        row.innerHTML = `
+          <td>${course.code}</td>
+          <td>${course.title}</td>
+          <td>${course.day}</td>
+          <td>${formatTimeRange(course.start, course.end)}</td>
+          <td>${course.venue}</td>
+          <td>${course.type}</td>
+          <td>
+            <button type="button" class="btn-add" data-index="${index}" ${alreadyAdded ? "disabled" : ""}>
+              ${alreadyAdded ? "Added" : "Add"}
+            </button>
+          </td>
+        `;
+
+        masterScheduleBody.appendChild(row);
+      });
+    }
 
     function renderGrid() {
       ttBody.innerHTML = "";
@@ -203,30 +533,39 @@
     function placeClass(c) {
       const startHour = timeToHour(c.start);
       const endHour = timeToHour(c.end);
+      const duration = endHour - startHour;
 
-      for (let h = startHour; h < endHour; h++) {
-        const cell = ttBody.querySelector(`td[data-day="${c.day}"][data-hour="${h}"]`);
-        if (!cell) continue;
+      if (duration <= 0) return;
 
-        const box = document.createElement('div');
-        box.className = 'class-box';
-        box.dataset.code = c.code;
-        box.dataset.day = c.day;
-        box.dataset.hour = h;
+      const startCell = ttBody.querySelector(`td[data-day="${c.day}"][data-hour="${startHour}"]`);
+      if (!startCell) return;
 
-        // Code (bigger), then tag UNDER it, then non-working Drop button
-        box.innerHTML = `
-          <a href="#" class="code-link" aria-disabled="true" role="link" onclick="return false;">${c.code}</a>
-          <div class="course-title">${c.title}</div>
-          <div class="course-location">${c.venue}</div>
-          <span class="section-tag">${c.type}</span>
-          <div class="class-actions">
-            <a href="#" class="btn-drop" aria-disabled="true" role="button" onclick="return false;">Drop</a>
-          </div>
-        `;
+      startCell.rowSpan = duration;
 
-        cell.appendChild(box);
+      for (let h = startHour + 1; h < endHour; h++) {
+        const coveredCell = ttBody.querySelector(`td[data-day="${c.day}"][data-hour="${h}"]`);
+        if (coveredCell) {
+          coveredCell.remove();
+        }
       }
+
+      const box = document.createElement('div');
+      box.className = 'class-box';
+      box.dataset.code = c.code;
+      box.dataset.day = c.day;
+      box.dataset.start = c.start;
+
+      box.innerHTML = `
+        <a href="/course/${c.code}" class="code-link">${c.code}</a>
+        <div class="course-title">${c.title}</div>
+        <div class="course-location">${c.venue}</div>
+        <span class="section-tag">${c.type}</span>
+        <div class="class-actions">
+          <a href="#" class="btn-drop" role="button" data-code="${c.code}" data-day="${c.day}" data-start="${c.start}">Drop</a>
+        </div>
+      `;
+
+      startCell.appendChild(box);
     }
 
     function renderAll() {
@@ -234,7 +573,77 @@
       classes.forEach(placeClass);
     }
 
+    ttBody.addEventListener("click", function (event) {
+      const dropBtn = event.target.closest(".btn-drop");
+      if (!dropBtn) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const code = dropBtn.dataset.code;
+      const day = dropBtn.dataset.day;
+      const start = dropBtn.dataset.start;
+
+      classes = classes.filter(c => !(c.code === code && c.day === day && c.start === start));
+      renderAll();
+      renderMasterSchedule();
+    });
+
+    masterScheduleDialog.addEventListener("click", function (event) {
+      const addBtn = event.target.closest(".btn-add");
+      if (!addBtn) {
+        return;
+      }
+
+      const index = Number(addBtn.dataset.index);
+      const selectedCourse = masterScheduleClasses[index];
+      if (!selectedCourse || isCourseAdded(selectedCourse)) {
+        return;
+      }
+
+      classes.push({ ...selectedCourse });
+      renderAll();
+      renderMasterSchedule();
+    });
+
+    openMasterScheduleBtn.addEventListener("click", function () {
+      renderMasterSchedule();
+      if (typeof masterScheduleDialog.showModal === "function") {
+        masterScheduleDialog.showModal();
+      }
+    });
+
+    closeMasterScheduleBtn.addEventListener("click", function () {
+      masterScheduleDialog.close();
+    });
+
+    masterScheduleDialog.addEventListener("click", function (event) {
+      const rect = masterScheduleDialog.getBoundingClientRect();
+      const isInsideDialog =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+
+      if (!isInsideDialog) {
+        masterScheduleDialog.close();
+      }
+    });
+
+    masterSearchInput.addEventListener("input", renderMasterSchedule);
+    masterDayFilter.addEventListener("change", renderMasterSchedule);
+    masterTypeFilter.addEventListener("change", renderMasterSchedule);
+
+    resetMasterFiltersBtn.addEventListener("click", function () {
+      masterSearchInput.value = "";
+      masterDayFilter.value = "";
+      masterTypeFilter.value = "";
+      renderMasterSchedule();
+    });
+
     renderAll();
+    renderMasterSchedule();
   </script>
 </body>
 </html>

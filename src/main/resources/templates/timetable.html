@@ -7,6 +7,10 @@
   <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
 
   <style>
+    :root {
+      --tt-slot-height: 160px;
+    }
+
     .muted {
       color: #666;
       font-size: 14px;
@@ -156,6 +160,16 @@
       z-index: 1;
     }
 
+    .weekly-timetable table.tt tbody tr {
+      height: var(--tt-slot-height);
+    }
+
+    .weekly-timetable table.tt tbody td {
+      height: var(--tt-slot-height);
+      border-left: none;
+      border-right: none;
+    }
+
     .day-header {
       text-align: center;
       font-weight: bold;
@@ -192,15 +206,21 @@
       overflow: hidden;
     }
 
-    .class-block strong {
+    .class-block .course-code-link {
       display: block;
       font-size: 16px;
       font-weight: 800;
       line-height: 1.2;
       color: #0b2b5e;
-      text-decoration: underline;
+      text-decoration: none;
       margin-bottom: 2px;
       word-break: break-word;
+    }
+
+    .class-block .course-code-link:hover,
+    .class-block .course-code-link:focus {
+      text-decoration: none;
+      color: #0b2b5e;
     }
 
     .class-block .course-title {
@@ -218,7 +238,7 @@
       line-height: 1.2;
       color: #5a2e00;
       background: #fff4df;
-      border: 1px dashed #d59d3e;
+      border: 1px solid #d59d3e;
       border-radius: 6px;
       padding: 4px 8px;
       max-width: 100%;
@@ -464,13 +484,13 @@
     const START = 9;
     const END = 22;
     const classes = [
-      { code: "CSC204", title: "Database Systems", day: "M", start: "09:00", end: "11:00", venue: "Lab 2", lecturer: "Dr. Lim", type: "Lab" },
-      { code: "CSC220", title: "Web Development", day: "T", start: "10:00", end: "12:00", venue: "Lab 3", lecturer: "Mr. Jonathan Wong", type: "Lab" },
-      { code: "BUS150", title: "Entrepreneurship", day: "S", start: "10:00", end: "12:00", venue: "Room C2", lecturer: "Dr. Karen Ho", type: "Lecture" },
+      { code: "CSC204", title: "Database Systems", day: "M", start: "09:00", end: "12:00", venue: "Lab 2", lecturer: "Dr. Lim", type: "Lab" },
+      { code: "CSC220", title: "Web Development", day: "T", start: "10:00", end: "11:00", venue: "Lab 3", lecturer: "Mr. Jonathan Wong", type: "Lab" },
+      { code: "BUS150", title: "Entrepreneurship", day: "S", start: "10:00", end: "13:00", venue: "Room C2", lecturer: "Dr. Karen Ho", type: "Lecture" },
       { code: "CSC230", title: "Operating Systems", day: "F", start: "11:00", end: "13:00", venue: "Auditorium 1", lecturer: "Dr. Lim", type: "Lecture" },
       { code: "MAT210", title: "Discrete Mathematics", day: "M", start: "13:00", end: "15:00", venue: "Room A1", lecturer: "Prof. Sarah Lee", type: "Lecture" },
       { code: "ENG205", title: "Technical Communication", day: "R", start: "14:00", end: "16:00", venue: "Online", lecturer: "Prof. Daniel Ng", type: "Tutorial" },
-      { code: "CSC201", title: "Data Structures", day: "W", start: "15:00", end: "17:00", venue: "Room B3", lecturer: "Dr. Aisha Rahman", type: "Lecture" }
+      { code: "CSC201", title: "Data Structures", day: "W", start: "15:00", end: "16:00", venue: "Room B3", lecturer: "Dr. Aisha Rahman", type: "Lecture" }
     ];
 
     const days = ["M", "T", "W", "R", "F", "S"];
@@ -502,24 +522,37 @@
     function placeClass(course) {
       const startHour = timeToHour(course.start);
       const endHour = timeToHour(course.end);
+      const duration = endHour - startHour;
 
-      for (let hour = startHour; hour < endHour; hour++) {
-        const cell = ttBody.querySelector(`td[data-day="${course.day}"][data-hour="${hour}"]`);
-        if (!cell) {
-          continue;
-        }
-
-        const block = document.createElement("div");
-        block.className = "class-block";
-        block.innerHTML = `
-          <strong>${course.code}</strong>
-          <div class="course-title">${course.title}</div>
-          <div class="venue">${course.venue}</div>
-          <span class="section-tag">${course.type}</span>
-        `;
-
-        cell.appendChild(block);
+      if (duration <= 0) {
+        return;
       }
+
+      const startCell = ttBody.querySelector(`td[data-day="${course.day}"][data-hour="${startHour}"]`);
+      if (!startCell) {
+        return;
+      }
+
+      startCell.className = "";
+      startCell.rowSpan = duration;
+
+      for (let hour = startHour + 1; hour < endHour; hour++) {
+        const coveredCell = ttBody.querySelector(`td[data-day="${course.day}"][data-hour="${hour}"]`);
+        if (coveredCell) {
+          coveredCell.remove();
+        }
+      }
+
+      const block = document.createElement("div");
+      block.className = "class-block";
+      block.innerHTML = `
+        <a href="/course/${course.code}" class="course-code-link">${course.code}</a>
+        <div class="course-title">${course.title}</div>
+        <div class="venue">${course.venue}</div>
+        <span class="section-tag">${course.type}</span>
+      `;
+
+      startCell.appendChild(block);
     }
 
     renderGrid();
@@ -614,9 +647,41 @@
               padding: 8px;
             }
 
-            .class-block strong {
+            #weeklyTable tbody tr {
+              height: 160px;
+            }
+
+            #weeklyTable tbody td {
+              height: 160px;
+              border-left: none;
+              border-right: none;
+            }
+
+            .class-block .course-code-link {
               display: block;
+              font-weight: 800;
+              color: #1e3c72;
+              text-decoration: none;
               margin-bottom: 4px;
+            }
+
+            .class-block .course-code-link:hover,
+            .class-block .course-code-link:focus {
+              text-decoration: none;
+              color: #1e3c72;
+            }
+
+            .class-block .venue {
+              display: inline-block;
+              font-size: 12px;
+              font-weight: 700;
+              line-height: 1.2;
+              color: #5a2e00;
+              background: #fff4df;
+              border: 1px solid #d59d3e;
+              border-radius: 6px;
+              padding: 4px 8px;
+              margin: 2px 0 3px;
             }
 
             .print-controls {
