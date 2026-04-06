@@ -1,4 +1,4 @@
-package org.cityuhk.course_registration_system;
+package org.cityuhk.CourseRegistrationSystem.Controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,5 +11,4 @@ public class IndexController {
     public String index(Model model) { 
         return "index";
     }
-
 }
