@@ -559,11 +559,18 @@
     classes.forEach(placeClass);
 
     document.getElementById("exportBtn").addEventListener("click", function () {
-      const weeklyTable = document.getElementById("weeklyTable").outerHTML;
-      const detailsTable = document.getElementById("detailsTable").outerHTML;
+      const weeklyTableClone = document.getElementById("weeklyTable").cloneNode(true);
+      const detailsTableClone = document.getElementById("detailsTable").cloneNode(true);
+      const weeklyTable = weeklyTableClone.outerHTML;
+      const detailsTable = detailsTableClone.outerHTML;
 
       const exportWindow = window.open("", "_blank");
+      if (!exportWindow) {
+        alert("Unable to open export window. Please allow pop-ups and try again.");
+        return;
+      }
 
+      exportWindow.document.open();
       exportWindow.document.write(`
         <!DOCTYPE html>
         <html lang="en">
@@ -610,6 +617,17 @@
               padding: 10px 12px;
             }
 
+            .visually-hidden {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              padding: 0;
+              margin: -1px;
+              overflow: hidden;
+              clip: rect(0, 0, 0, 0);
+              border: 0;
+            }
+
             table {
               width: 100%;
               border-collapse: collapse;
@@ -631,13 +649,36 @@
               color: #fff;
             }
 
-            .time-col {
+            #weeklyTable {
+              table-layout: fixed;
+            }
+
+            #detailsTable {
+              table-layout: auto;
+            }
+
+            #weeklyTable thead th {
+              background: #1e3c72;
+              color: #fff;
+            }
+
+            #weeklyTable td {
+              text-align: left;
+              vertical-align: top;
+            }
+
+            #weeklyTable .time-col {
               font-weight: bold;
               background: #f8fbff;
               color: #1e3c72;
+              text-align: center;
             }
 
-            .class-block {
+            #weeklyTable .class-block {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
               background: #eef4ff;
               border: 1px solid #cfdff7;
               border-radius: 8px;
@@ -645,6 +686,9 @@
               font-size: 12px;
               line-height: 1.4;
               padding: 8px;
+              height: 100%;
+              text-align: center;
+              gap: 4px;
             }
 
             #weeklyTable tbody tr {
@@ -657,21 +701,29 @@
               border-right: none;
             }
 
-            .class-block .course-code-link {
+            #weeklyTable .class-block .course-code-link {
               display: block;
+              font-size: 15px;
               font-weight: 800;
               color: #1e3c72;
               text-decoration: none;
               margin-bottom: 4px;
             }
 
-            .class-block .course-code-link:hover,
-            .class-block .course-code-link:focus {
+            #weeklyTable .class-block .course-code-link:hover,
+            #weeklyTable .class-block .course-code-link:focus {
               text-decoration: none;
               color: #1e3c72;
             }
 
-            .class-block .venue {
+            #weeklyTable .class-block .course-title {
+              font-size: 12px;
+              font-weight: 700;
+              line-height: 1.25;
+              color: #143a66;
+            }
+
+            #weeklyTable .class-block .venue {
               display: inline-block;
               font-size: 12px;
               font-weight: 700;
@@ -682,6 +734,17 @@
               border-radius: 6px;
               padding: 4px 8px;
               margin: 2px 0 3px;
+            }
+
+            #weeklyTable .section-tag {
+              display: inline-block;
+              font-size: 12px;
+              font-weight: 700;
+              background: #d9ecff;
+              color: #143a66;
+              border: 1px solid #a9ccf5;
+              padding: 2px 8px;
+              border-radius: 999px;
             }
 
             .print-controls {
@@ -730,7 +793,7 @@
             <div><strong>Name:</strong> Isaac Tan</div>
             <div><strong>Academic Term:</strong> Semester 2, 2026</div>
             <div><strong>Programme:</strong> Bachelor of Computer Science</div>
-            <div><strong>Total Courses:</strong> 7 Courses</div>
+            <div><strong>Total Courses:</strong> ${classes.length} Courses</div>
           </div>
 
           <h2>Weekly Timetable</h2>

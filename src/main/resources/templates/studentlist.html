@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Check Student List | University Course Registration</title>
+  <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
+
+  <style>
+    .page-header {
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .muted {
+      color: #5b6b87;
+      font-size: 14px;
+    }
+
+    .info-banner {
+      background: #eef4ff;
+      border: 1px solid #d9e5f7;
+      color: #1e3c72;
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      background: #f8fbff;
+      border: 1px solid #d9e5f7;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .summary-card h3 {
+      margin-bottom: 6px;
+      font-size: 15px;
+      color: #1e3c72;
+    }
+
+    .summary-card p {
+      margin: 0;
+      color: #2f3d59;
+      font-size: 14px;
+    }
+
+    .section-card {
+      margin-top: 20px;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #e5ecf6;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .center-heading {
+      text-align: center;
+    }
+
+    .print-note {
+      color: #667793;
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .course-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .course-panel {
+      border: 1px solid #d9e5f7;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+      will-change: height;
+    }
+
+    .course-panel summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 12px 14px;
+      background: #f8fbff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #d9e5f7;
+    }
+
+    .course-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .expand-icon {
+      font-size: 12px;
+      color: #1e3c72;
+      transition: transform 0.26s ease;
+      display: inline-block;
+    }
+
+    .course-panel[open] .expand-icon {
+      transform: rotate(180deg);
+    }
+
+    .course-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .course-title {
+      font-weight: 800;
+      color: #1e3c72;
+      font-size: 15px;
+    }
+
+    .course-subtitle {
+      font-size: 13px;
+      color: #5d6f8f;
+    }
+
+    .course-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e3c72;
+      background: #e8f0ff;
+      border: 1px solid #bfd4f5;
+      border-radius: 999px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+
+    .course-content {
+      padding: 12px 14px 14px;
+    }
+
+    .course-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .course-actions button {
+      width: auto;
+      min-width: 190px;
+      padding: 9px 14px;
+      font-size: 14px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 3px 10px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .status-active {
+      color: #0f5c2f;
+      background: #e8f9ee;
+      border-color: #9fddb6;
+    }
+
+    .status-pending {
+      color: #7a4a00;
+      background: #fff4df;
+      border-color: #e8c68c;
+    }
+
+    .status-onleave {
+      color: #304f86;
+      background: #eaf2ff;
+      border-color: #b8cff3;
+    }
+
+    @media (max-width: 768px) {
+      .course-panel summary {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .course-actions {
+        justify-content: stretch;
+      }
+
+      .course-actions button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav th:replace="~{nav :: nav}"></nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Check Student List</h1>
+      <p class="muted">Expand each course to review enrolled students and export only that course list.</p>
+    </div>
+
+    <section class="info-banner" aria-label="Student list status">
+      Student lists are grouped by course for Semester 2, 2026.
+    </section>
+
+    <section class="summary-grid" aria-label="Student summary">
+      <article class="summary-card">
+        <h3>Academic Term</h3>
+        <p>Semester 2, 2026</p>
+      </article>
+      <article class="summary-card">
+        <h3>Total Courses</h3>
+        <p id="totalCourses">0 Courses</p>
+      </article>
+      <article class="summary-card">
+        <h3>Total Enrollments</h3>
+        <p id="totalEnrollments">0 Students</p>
+      </article>
+      <article class="summary-card">
+        <h3>Total Instructors</h3>
+        <p id="totalInstructors">0 Teachers</p>
+      </article>
+    </section>
+
+    <section class="section-card" aria-label="Student lists by course">
+      <h2 class="center-heading">Student Lists by Course</h2>
+      <p class="print-note">Each course section has its own Export button for a course-specific printable list.</p>
+      <div id="courseList" class="course-list"></div>
+    </section>
+
+    <p class="footer-text">© 2026 University Course Registration System</p>
+  </main>
+
+  <script>
+    const courseLists = [
+      {
+        code: "CSC204",
+        title: "Database Systems",
+        teacher: "Dr. Lim",
+        day: "Monday",
+        time: "09:00 - 12:00",
+        students: [
+          { id: "S2301001", name: "Isaac Tan", programme: "BSc Computer Science", year: "Year 2", email: "isaac.tan@cityu.edu.hk", status: "Active" },
+          { id: "S2301024", name: "Chloe Wong", programme: "BSc Computer Science", year: "Year 2", email: "chloe.wong@cityu.edu.hk", status: "Active" },
+          { id: "S2400561", name: "Mei Lin", programme: "BSc Computer Science", year: "Year 1", email: "mei.lin@cityu.edu.hk", status: "Pending" }
+        ]
+      },
+      {
+        code: "CSC230",
+        title: "Operating Systems",
+        teacher: "Dr. Lim",
+        day: "Friday",
+        time: "11:00 - 13:00",
+        students: [
+          { id: "S2200903", name: "Priya Sharma", programme: "BSc Computer Science", year: "Year 3", email: "priya.sharma@cityu.edu.hk", status: "Active" },
+          { id: "S2100402", name: "Yuki Sato", programme: "BSc Computer Science", year: "Year 4", email: "yuki.sato@cityu.edu.hk", status: "Active" },
+          { id: "S2201210", name: "Marcus Lee", programme: "BSc Computer Science", year: "Year 3", email: "marcus.lee@cityu.edu.hk", status: "On Leave" }
+        ]
+      },
+      {
+        code: "CSC220",
+        title: "Web Development",
+        teacher: "Mr. Jonathan Wong",
+        day: "Tuesday",
+        time: "10:00 - 11:00",
+        students: [
+          { id: "S2300877", name: "Fatima Noor", programme: "BSc Data Science", year: "Year 2", email: "fatima.noor@cityu.edu.hk", status: "Active" },
+          { id: "S2300768", name: "Daniel Ng", programme: "BSc Data Science", year: "Year 2", email: "daniel.ng@cityu.edu.hk", status: "Pending" }
+        ]
+      },
+      {
+        code: "ENG205",
+        title: "Technical Communication",
+        teacher: "Prof. Daniel Ng",
+        day: "Thursday",
+        time: "14:00 - 16:00",
+        students: [
+          { id: "S2201143", name: "Aarav Kumar", programme: "BSc Computer Science", year: "Year 3", email: "aarav.kumar@cityu.edu.hk", status: "Active" },
+          { id: "S2400329", name: "Kevin Ho", programme: "BSc Information Systems", year: "Year 1", email: "kevin.ho@cityu.edu.hk", status: "Pending" }
+        ]
+      }
+    ];
+
+    const courseList = document.getElementById("courseList");
+    const totalCourses = document.getElementById("totalCourses");
+    const totalEnrollments = document.getElementById("totalEnrollments");
+    const totalInstructors = document.getElementById("totalInstructors");
+
+    function statusClass(status) {
+      if (status === "Active") return "status-pill status-active";
+      if (status === "Pending") return "status-pill status-pending";
+      return "status-pill status-onleave";
+    }
+
+    function buildStudentTableRows(students) {
+      return students.map((student) => `
+        <tr>
+          <td>${student.id}</td>
+          <td>${student.name}</td>
+          <td>${student.programme}</td>
+          <td>${student.year}</td>
+          <td>${student.email}</td>
+          <td><span class="${statusClass(student.status)}">${student.status}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    function buildCourseTable(course) {
+      return `
+        <div class="table-wrapper">
+          <table aria-label="Student list for ${course.code}">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Programme</th>
+                <th>Year</th>
+                <th>Email</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${buildStudentTableRows(course.students)}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderSummary() {
+      const enrollmentCount = courseLists.reduce((sum, course) => sum + course.students.length, 0);
+      const instructorCount = new Set(courseLists.map((course) => course.teacher)).size;
+
+      totalCourses.textContent = `${courseLists.length} Courses`;
+      totalEnrollments.textContent = `${enrollmentCount} Enrollments`;
+      totalInstructors.textContent = `${instructorCount} Teachers`;
+    }
+
+    function renderCoursePanels() {
+      courseList.innerHTML = "";
+
+      courseLists.forEach((course, index) => {
+        const panel = document.createElement("details");
+        panel.className = "course-panel";
+        panel.dataset.index = index;
+        panel.innerHTML = `
+          <summary>
+            <div class="course-meta">
+              <span class="course-title">${course.code} - ${course.title}</span>
+              <span class="course-subtitle">${course.teacher} | ${course.day} | ${course.time}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="course-count">${course.students.length} Students</span>
+              <span class="expand-icon" aria-hidden="true">&#9660;</span>
+            </div>
+          </summary>
+          <div class="course-content">
+            <div class="course-actions">
+              <button type="button" class="export-course-btn" data-index="${index}">Export ${course.code} List</button>
+            </div>
+            ${buildCourseTable(course)}
+          </div>
+        `;
+
+        courseList.appendChild(panel);
+      });
+
+      addCoursePanelAnimations();
+    }
+
+    function addCoursePanelAnimations() {
+      const panels = document.querySelectorAll(".course-panel");
+
+      panels.forEach((panel) => {
+        const summary = panel.querySelector("summary");
+        const content = panel.querySelector(".course-content");
+
+        let animation = null;
+        let isClosing = false;
+
+        summary.addEventListener("click", function (event) {
+          event.preventDefault();
+
+          const startHeight = `${panel.offsetHeight}px`;
+          const isOpen = panel.open;
+
+          panel.style.overflow = "hidden";
+
+          if (animation) {
+            animation.cancel();
+          }
+
+          if (isOpen) {
+            isClosing = true;
+            const endHeight = `${summary.offsetHeight}px`;
+            animation = panel.animate(
+              {
+                height: [startHeight, endHeight]
+              },
+              {
+                duration: 260,
+                easing: "ease"
+              }
+            );
+          } else {
+            panel.open = true;
+            const endHeight = `${summary.offsetHeight + content.offsetHeight}px`;
+            animation = panel.animate(
+              {
+                height: [startHeight, endHeight]
+              },
+              {
+                duration: 260,
+                easing: "ease"
+              }
+            );
+          }
+
+          animation.onfinish = function () {
+            panel.open = !isClosing;
+            animation = null;
+            isClosing = false;
+            panel.style.height = "";
+            panel.style.overflow = "";
+          };
+
+          animation.oncancel = function () {
+            animation = null;
+            isClosing = false;
+          };
+        });
+      });
+    }
+
+    function exportCourseList(course) {
+      const exportWindow = window.open("", "_blank");
+      const courseTable = buildCourseTable(course);
+
+      exportWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Exported ${course.code} Student List</title>
+          <style>
+            * { box-sizing: border-box; }
+
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 28px;
+              color: #333;
+              background: #fff;
+            }
+
+            h1, h2 {
+              color: #1e3c72;
+              text-align: center;
+              margin-bottom: 12px;
+            }
+
+            p {
+              color: #555;
+              text-align: center;
+              margin-top: 0;
+            }
+
+            .meta {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+              gap: 10px;
+              margin: 18px 0 26px;
+            }
+
+            .meta div {
+              background: #f4f7fb;
+              border: 1px solid #d9e5f7;
+              border-radius: 8px;
+              padding: 10px 12px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 14px;
+              table-layout: fixed;
+            }
+
+            th, td {
+              border: 1px solid #ccc;
+              padding: 10px 8px;
+              text-align: left;
+              vertical-align: middle;
+              word-break: break-word;
+            }
+
+            th {
+              background: #1e3c72;
+              color: #fff;
+            }
+
+            .status-pill {
+              display: inline-block;
+              font-size: 11px;
+              font-weight: 700;
+              border-radius: 999px;
+              padding: 3px 8px;
+              border: 1px solid;
+              white-space: nowrap;
+            }
+
+            .status-active { color: #0f5c2f; background: #e8f9ee; border-color: #9fddb6; }
+            .status-pending { color: #7a4a00; background: #fff4df; border-color: #e8c68c; }
+            .status-onleave { color: #304f86; background: #eaf2ff; border-color: #b8cff3; }
+
+            .print-controls {
+              text-align: center;
+              margin-bottom: 18px;
+            }
+
+            .print-controls button {
+              background: #1e3c72;
+              color: #fff;
+              border: none;
+              padding: 10px 16px;
+              border-radius: 8px;
+              cursor: pointer;
+              margin: 0 6px;
+            }
+
+            .footer {
+              margin-top: 22px;
+              font-size: 12px;
+              color: #888;
+              text-align: center;
+            }
+
+            @media print {
+              .print-controls { display: none; }
+              body { padding: 10px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-controls">
+            <button onclick="window.print()">Print Student List</button>
+            <button onclick="window.close()">Close</button>
+          </div>
+
+          <h1>Export Student List</h1>
+          <p>Generated from Check Student List</p>
+
+          <div class="meta">
+            <div><strong>Academic Term:</strong> Semester 2, 2026</div>
+            <div><strong>Course:</strong> ${course.code} ${course.title}</div>
+            <div><strong>Teacher:</strong> ${course.teacher}</div>
+            <div><strong>Class Time:</strong> ${course.day} ${course.time}</div>
+            <div><strong>Total Students:</strong> ${course.students.length}</div>
+          </div>
+
+          <h2>${course.code} Student List</h2>
+          ${courseTable}
+
+          <div class="footer">© 2026 University Course Registration System</div>
+        </body>
+        </html>
+      `);
+
+      exportWindow.document.close();
+    }
+
+    courseList.addEventListener("click", function (event) {
+      const button = event.target.closest(".export-course-btn");
+      if (!button) {
+        return;
+      }
+
+      const index = Number(button.dataset.index);
+      const course = courseLists[index];
+      if (!course) {
+        return;
+      }
+
+      exportCourseList(course);
+    });
+
+    renderSummary();
+    renderCoursePanels();
+  </script>
+</body>
+</html>
