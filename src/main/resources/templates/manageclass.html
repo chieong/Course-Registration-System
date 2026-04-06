@@ -1,313 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Manage Classes | University Course Registration</title>
   <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
-  <style>
-    /* Page-local styles only; styles.css is not modified */
-
-    :root {
-      --tt-slot-height: 160px;
-    }
-
-    /* Layout */
-    .layout {
-      display: block;
-      margin-top: 16px;
-    }
-
-    .tt-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-    }
-    .tt-header h2 { margin: 0; }
-
-    .tt-header .btn {
-      display: inline-block; width: 100%; text-align: center; padding: 10px 12px;
-      border-radius: 8px; background: #1e3c72; color: #fff; font-weight: 600; text-decoration: none;
-      width: auto;
-      white-space: nowrap;
-    }
-    .tt-header .btn:hover { background: #162d56; }
-
-    .master-dialog {
-      width: min(1100px, 94vw);
-      max-height: 90vh;
-      border: 1px solid #d9e5f7;
-      border-radius: 12px;
-      padding: 0;
-      overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      margin: 0;
-    }
-
-    .master-dialog::backdrop {
-      background: rgba(11, 21, 38, 0.35);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-    }
-
-    .master-dialog-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-bottom: 1px solid #d9e5f7;
-      background: #f7faff;
-    }
-
-    .master-dialog-header h3 {
-      margin: 0;
-      font-size: 18px;
-      color: #1e3c72;
-    }
-
-    .dialog-close-btn {
-      background: #1e3c72;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .dialog-close-btn:hover {
-      background: #162d56;
-    }
-
-    .master-dialog-content {
-      padding: 14px 16px 16px;
-      background: #fff;
-      max-height: min(74vh, 760px);
-      overflow: auto;
-    }
-
-    .master-dialog-content p {
-      margin: 0 0 12px;
-      color: #4d5f81;
-      font-size: 14px;
-    }
-
-    .master-filters {
-      display: grid;
-      grid-template-columns: 1.8fr 1fr 1fr auto;
-      gap: 10px;
-      margin-bottom: 12px;
-      align-items: end;
-    }
-
-    .master-filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .master-filter-group label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #2c3f64;
-    }
-
-    .master-filter-group input,
-    .master-filter-group select {
-      height: 36px;
-      border: 1px solid #c7d6ed;
-      border-radius: 8px;
-      padding: 0 10px;
-      font-size: 13px;
-      color: #20375e;
-      background: #fff;
-    }
-
-    .master-filter-group input:focus,
-    .master-filter-group select:focus {
-      outline: none;
-      border-color: #2a5298;
-      box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
-    }
-
-    .btn-reset-filters {
-      height: 36px;
-      border: 1px solid #a9bfdc;
-      background: #f4f8ff;
-      color: #1f437f;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 0 12px;
-      cursor: pointer;
-    }
-
-    .btn-reset-filters:hover {
-      background: #e8f0ff;
-    }
-
-    .master-empty {
-      text-align: center;
-      color: #667b9e;
-      font-style: italic;
-    }
-
-    .master-table-wrapper {
-      overflow-x: auto;
-    }
-
-    table.master-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      font-size: 14px;
-    }
-
-    table.master-table th,
-    table.master-table td {
-      border: 1px solid #d9e5f7;
-      padding: 10px 8px;
-      text-align: left;
-      vertical-align: middle;
-      word-break: break-word;
-    }
-
-    table.master-table th {
-      background: #1e3c72;
-      color: #fff;
-    }
-
-    .btn-add {
-      background: #2a5298;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-add:hover {
-      background: #1e3c72;
-    }
-
-    .btn-add:disabled {
-      background: #9fb2d6;
-      cursor: not-allowed;
-    }
-
-    /* Timetable wrapper */
-    .timetable-card { background: #fff; border: 1px solid #d9e5f7; border-radius: 10px; padding: 14px; }
-    .muted { color: #5b6b87; }
-    .table-wrapper { overflow-x: auto; }
-    table.tt { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; }
-    table.tt th, table.tt td { border: 1px solid #d9e5f7; padding: 8px; vertical-align: top; text-align: left; }
-    table.tt thead th { background: #1e3c72; color: #fff; position: sticky; top: 0; z-index: 1; }
-    table.tt .time { width: 80px; background: #f7faff; font-weight: 600; white-space: nowrap; }
-    table.tt tbody tr { height: var(--tt-slot-height); }
-    table.tt tbody td { height: var(--tt-slot-height); border-left: none; border-right: none; }
-    table.tt tbody td.has-class {
-      padding: 0;
-      background: #eef7ff;
-    }
-
-    /* Class boxes: code bigger, tag UNDER code */
-    .class-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      background: #eef7ff; border: none; color: #0b2b5e;
-      border-radius: 0; padding: 12px 8px; margin-bottom: 0;
-      text-align: center;
-      gap: 4px;
-      height: 100%;
-      overflow: hidden;
-      min-height: 100%;
-    }
-    .code-link {
-      display: block;
-      font-weight: 800;
-      font-size: 16px;        /* increased word size for course code */
-      line-height: 1.2;
-      color: #0b2b5e;
-      text-decoration: none;
-      cursor: pointer;
-      margin-bottom: 2px;
-      word-break: break-word;
-    }
-
-    .code-link:hover,
-    .code-link:focus {
-      text-decoration: none;
-      color: #0b2b5e;
-    }
-
-    .course-title {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.25;
-      color: #143a66;
-      max-width: 100%;
-      word-break: break-word;
-    }
-
-    .course-location {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.2;
-      color: #5a2e00;
-      background: #fff4df;
-      border: 1px solid #d59d3e;
-      border-radius: 6px;
-      padding: 4px 8px;
-      max-width: 100%;
-      word-break: break-word;
-      margin-bottom: 3px;
-    }
-
-    .section-tag {
-      display: inline-block;
-      font-size: 12px; font-weight: 700;
-      background: #d9ecff; color: #143a66; border: 1px solid #a9ccf5;
-      padding: 2px 8px; border-radius: 999px; white-space: nowrap;
-      margin-bottom: 4px;
-    }
-
-    .class-actions { margin-top: 0; }
-    .btn-drop {
-      background: #b3261e; color: #fff; border: none;
-      padding: 4px 8px; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 700;
-      text-decoration: none; display: inline-block;
-      line-height: 1;
-    }
-    .btn-drop[aria-disabled="true"] { opacity: 1; }
-
-    .legend { font-size: 12px; color: #5b6b87; margin-top: 8px; }
-    .legend strong { color: #2b3d63; }
-
-    @media (max-width: 900px) {
-      .tt-header .btn { width: 100%; }
-
-      .master-filters {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 <body>
-    <nav th:replace="~{nav :: nav}">
+    <nav th:replace="~{fragments/nav :: nav}">
     </nav>
 
   <main class="container">
@@ -325,27 +25,7 @@
           Time intervals are shown in 1-hour slots from 09:00 to 22:00.
         </p>
 
-        <div class="table-wrapper">
-          <table class="tt" aria-describedby="tt-desc">
-            <caption id="tt-desc" class="visually-hidden">Student timetable showing classes by day and hour.</caption>
-            <thead>
-              <tr>
-                <th class="time">Time</th>
-                <th>M</th>
-                <th>T</th>
-                <th>W</th>
-                <th>R</th>
-                <th>F</th>
-                <th>S</th>
-              </tr>
-            </thead>
-            <tbody id="tt-body"></tbody>
-          </table>
-        </div>
-
-        <div class="legend">
-          <p><strong>Legend:</strong> M = Monday, T = Tuesday, W = Wednesday, R = Thursday, F = Friday, S = Saturday</p>
-        </div>
+        <div th:replace="~{fragments/timetable-grid :: timetable(tableId='weeklyTable', tableBodyId='tt-body', showDayHeaders=true, showTimeCol=true)}"></div>
       </section>
     </div>
 
@@ -409,6 +89,7 @@
   <script>
     // Hours 09:00–22:00
     const START = 9, END = 22;
+    const SLOT_HEIGHT = 160;
 
     // Data from timetable.html
     let classes = [
@@ -418,7 +99,11 @@
       { code:"CSC230", title:"Operating Systems",       day:"F", start:"11:00", end:"13:00", venue:"Auditorium 1",  lecturer:"Dr. Lim",          type:"Lecture" },
       { code:"MAT210", title:"Discrete Mathematics",    day:"M", start:"13:00", end:"15:00", venue:"Room A1",       lecturer:"Prof. Sarah Lee",  type:"Lecture" },
       { code:"ENG205", title:"Technical Communication", day:"R", start:"14:00", end:"16:00", venue:"Online",        lecturer:"Prof. Daniel Ng",  type:"Tutorial" },
-      { code:"CSC201", title:"Data Structures",         day:"W", start:"15:00", end:"16:00", venue:"Room B3",       lecturer:"Dr. Aisha Rahman", type:"Lecture" }
+      { code:"CSC201", title:"Data Structures",         day:"W", start:"15:00", end:"16:00", venue:"Room B3",       lecturer:"Dr. Aisha Rahman", type:"Lecture" },
+      { code:"CSC360", title:"Distributed Systems",     day:"T", start:"17:00", end:"21:00", venue:"Room N4",       lecturer:"Dr. Eric Chan",    type:"Lecture" },
+      { code:"ART120", title:"Visual Communication",    day:"W", start:"09:00", end:"11:00", venue:"Studio 2",      lecturer:"Ms. Alice Cheng",  type:"Tutorial" },
+      { code:"PHY300", title:"Quantum Computing Intro", day:"F", start:"18:00", end:"22:00", venue:"Lab Q1",        lecturer:"Prof. K. Raman",   type:"Lab" },
+      { code:"BUS330", title:"Innovation Strategy",     day:"R", start:"17:00", end:"22:00", venue:"Room C9",       lecturer:"Dr. Olivia Ng",    type:"Lecture" }
     ];
 
     const days = ["M","T","W","R","F","S"];
@@ -450,7 +135,13 @@
       { code:"ENG210", title:"Technical Writing", day:"W", start:"09:00", end:"10:00", venue:"Room E1", lecturer:"Ms. Patricia Cheng", type:"Tutorial" },
       { code:"BUS210", title:"Financial Accounting", day:"R", start:"16:00", end:"18:00", venue:"Room C3", lecturer:"Dr. Simon Ng", type:"Lecture" },
       { code:"BUS260", title:"Project Management", day:"F", start:"13:00", end:"14:00", venue:"Room C7", lecturer:"Prof. Irene Ho", type:"Tutorial" },
-      { code:"PHY205", title:"Electromagnetism", day:"S", start:"09:00", end:"11:00", venue:"Lab P1", lecturer:"Dr. Raman", type:"Lab" }
+      { code:"PHY205", title:"Electromagnetism", day:"S", start:"09:00", end:"11:00", venue:"Lab P1", lecturer:"Dr. Raman", type:"Lab" },
+      { code:"HIS110", title:"World History", day:"M", start:"20:00", end:"21:00", venue:"Room H1", lecturer:"Mr. Peter Lam", type:"Lecture" },
+      { code:"CSC370", title:"Cloud Platform Ops", day:"T", start:"17:00", end:"21:00", venue:"Lab Cloud", lecturer:"Dr. Eva Ho", type:"Lab" },
+      { code:"DES205", title:"Design Thinking Studio", day:"W", start:"18:00", end:"22:00", venue:"Studio D4", lecturer:"Ms. Nora Kwan", type:"Tutorial" },
+      { code:"CHE301", title:"Advanced Materials", day:"R", start:"12:00", end:"17:00", venue:"Lab C2", lecturer:"Dr. Ivan Zhou", type:"Lab" },
+      { code:"ECO240", title:"Global Economics", day:"F", start:"09:00", end:"11:00", venue:"Room E9", lecturer:"Prof. Tan Wei", type:"Lecture" },
+      { code:"MUS130", title:"Music Theory", day:"S", start:"20:00", end:"22:00", venue:"Room M5", lecturer:"Ms. Chloe Yip", type:"Lecture" }
     ];
 
     const timeToHour = t => parseInt(t.split(":")[0], 10);
@@ -521,12 +212,13 @@
       for (let h = START; h <= END; h++) {
         const tr = document.createElement('tr');
         const timeCell = document.createElement('td');
-        timeCell.className = "time";
+        timeCell.className = "time-col";
         timeCell.textContent = String(h).padStart(2, "0") + ":00";
         tr.appendChild(timeCell);
 
         for (const d of days) {
           const td = document.createElement('td');
+          td.className = "empty-slot";
           td.dataset.day = d;
           td.dataset.hour = h;
           tr.appendChild(td);
@@ -545,7 +237,9 @@
       const startCell = ttBody.querySelector(`td[data-day="${c.day}"][data-hour="${startHour}"]`);
       if (!startCell) return;
 
+      startCell.className = "";
       startCell.rowSpan = duration;
+      startCell.style.height = `${duration * SLOT_HEIGHT}px`;
       startCell.classList.add("has-class");
 
       for (let h = startHour + 1; h < endHour; h++) {
@@ -556,19 +250,17 @@
       }
 
       const box = document.createElement('div');
-      box.className = 'class-box';
+      box.className = 'class-block';
       box.dataset.code = c.code;
       box.dataset.day = c.day;
       box.dataset.start = c.start;
 
       box.innerHTML = `
-        <a href="/course/${c.code}" class="code-link">${c.code}</a>
+        <a href="/course/${c.code}" class="course-code-link">${c.code}</a>
         <div class="course-title">${c.title}</div>
-        <div class="course-location">${c.venue}</div>
+        <div class="venue">${c.venue}</div>
         <span class="section-tag">${c.type}</span>
-        <div class="class-actions">
-          <a href="#" class="btn-drop" role="button" data-code="${c.code}" data-day="${c.day}" data-start="${c.start}">Drop</a>
-        </div>
+        <button type="button" class="btn-drop" data-code="${c.code}" data-day="${c.day}" data-start="${c.start}">Drop</button>
       `;
 
       startCell.appendChild(box);
@@ -584,8 +276,6 @@
       if (!dropBtn) {
         return;
       }
-
-      event.preventDefault();
 
       const code = dropBtn.dataset.code;
       const day = dropBtn.dataset.day;

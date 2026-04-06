@@ -1,315 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Check Timetable | University Course Registration</title>
   <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
-
-  <style>
-    :root {
-      --tt-slot-height: 160px;
-    }
-
-    .muted {
-      color: #666;
-      font-size: 14px;
-    }
-
-    .page-header {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .info-banner {
-      background: #eef4ff;
-      border: 1px solid #d9e5f7;
-      color: #1e3c72;
-      padding: 14px 16px;
-      border-radius: 10px;
-      margin-bottom: 25px;
-      text-align: center;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-bottom: 25px;
-    }
-
-    .summary-card {
-      background: #f8fbff;
-      border: 1px solid #d9e5f7;
-      border-radius: 12px;
-      padding: 18px;
-      text-align: center;
-    }
-
-    .summary-card h3 {
-      margin-bottom: 8px;
-      font-size: 16px;
-    }
-
-    .summary-card p {
-      margin: 0;
-      color: #333;
-      font-size: 15px;
-    }
-
-    .section-card {
-      margin-top: 25px;
-      padding: 24px;
-      background: #fff;
-      border: 1px solid #e5ecf6;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-    }
-
-    .action-row {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-
-    .action-row button {
-      width: auto;
-      min-width: 200px;
-      padding: 12px 20px;
-    }
-
-    .secondary-btn {
-      background: #2a5298;
-    }
-
-    .secondary-btn:hover {
-      background: #1e3c72;
-    }
-
-    .details-toggle {
-      margin-top: 20px;
-    }
-
-    .details-toggle summary {
-      list-style: none;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 16px;
-      color: #1e3c72;
-      padding: 14px 18px;
-      border-radius: 10px;
-      background: #eef4ff;
-      border: 1px solid #d9e5f7;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .details-toggle summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .details-toggle summary::after {
-      content: "▼";
-      font-size: 12px;
-      transition: transform 0.3s ease;
-    }
-
-    .details-toggle[open] summary::after {
-      transform: rotate(180deg);
-    }
-
-    .details-content {
-      margin-top: 15px;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-    }
-
-    .weekly-timetable {
-      margin-top: 20px;
-      overflow-x: auto;
-    }
-
-    .weekly-timetable table.tt {
-      width: 100%;
-      min-width: 0;
-      table-layout: fixed;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .weekly-timetable table.tt th,
-    .weekly-timetable table.tt td {
-      text-align: left;
-      vertical-align: top;
-      padding: 8px;
-      border: 1px solid #d9e5f7;
-    }
-
-    .weekly-timetable table.tt thead th {
-      text-align: center;
-      background: #1e3c72;
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    .weekly-timetable table.tt tbody tr {
-      height: var(--tt-slot-height);
-    }
-
-    .weekly-timetable table.tt tbody td {
-      height: var(--tt-slot-height);
-      border-left: none;
-      border-right: none;
-    }
-
-    .day-header {
-      text-align: center;
-      font-weight: bold;
-      width: 90px;
-    }
-
-    .time-col {
-      width: 80px;
-      font-weight: 600;
-      background: #f7faff;
-      color: #1e3c72;
-      text-align: center;
-      position: relative;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-    }
-
-    .class-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      background: #eef7ff;
-      border: 1px solid #b9d7ff;
-      border-radius: 10px;
-      color: #0b2b5e;
-      font-size: 13px;
-      line-height: 1.4;
-      padding: 8px 6px;
-      height: 100%;
-      text-align: center;
-      gap: 4px;
-      overflow: hidden;
-    }
-
-    .class-block .course-code-link {
-      display: block;
-      font-size: 16px;
-      font-weight: 800;
-      line-height: 1.2;
-      color: #0b2b5e;
-      text-decoration: none;
-      margin-bottom: 2px;
-      word-break: break-word;
-    }
-
-    .class-block .course-code-link:hover,
-    .class-block .course-code-link:focus {
-      text-decoration: none;
-      color: #0b2b5e;
-    }
-
-    .class-block .course-title {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.25;
-      color: #143a66;
-      max-width: 100%;
-      word-break: break-word;
-    }
-
-    .class-block .venue {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.2;
-      color: #5a2e00;
-      background: #fff4df;
-      border: 1px solid #d59d3e;
-      border-radius: 6px;
-      padding: 4px 8px;
-      max-width: 100%;
-      word-break: break-word;
-      margin-bottom: 3px;
-    }
-
-    .section-tag {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 700;
-      background: #d9ecff;
-      color: #143a66;
-      border: 1px solid #a9ccf5;
-      padding: 2px 8px;
-      border-radius: 999px;
-      white-space: nowrap;
-      margin-bottom: 4px;
-    }
-
-    .empty-slot {
-      background: #fcfdff;
-      color: #bbb;
-    }
-
-    .legend {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .legend span {
-      background: #f8fbff;
-      border: 1px solid #d9e5f7;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 13px;
-      color: #1e3c72;
-    }
-
-    .print-note {
-      margin-top: 10px;
-      color: #666;
-      font-size: 13px;
-      text-align: center;
-    }
-
-    .center-heading {
-      text-align: center;
-    }
-
-    @media (max-width: 768px) {
-      .action-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .action-row button {
-        width: 100%;
-      }
-
-      .weekly-timetable table {
-        width: 100%;
-      }
-    }
-  </style>
 </head>
 <body>
-  <nav th:replace="~{nav :: nav}">
+  <nav th:replace="~{fragments/nav :: nav}">
   </nav>
 
   <main class="container">
@@ -360,32 +58,7 @@
         Export opens a printable HTML timetable in a new tab.
       </p>
 
-      <div class="weekly-timetable">
-        <table id="weeklyTable" class="tt" aria-label="Weekly timetable" aria-describedby="tt-desc">
-          <caption id="tt-desc" class="visually-hidden">Student timetable showing classes by day and hour.</caption>
-          <thead>
-            <tr>
-              <th class="time-col">Time</th>
-              <th class="day-header">M</th>
-              <th class="day-header">T</th>
-              <th class="day-header">W</th>
-              <th class="day-header">R</th>
-              <th class="day-header">F</th>
-              <th class="day-header">S</th>
-            </tr>
-          </thead>
-          <tbody id="tt-body"></tbody>
-        </table>
-      </div>
-
-      <div class="legend" aria-label="Legend">
-        <span>M = Monday</span>
-        <span>T = Tuesday</span>
-        <span>W = Wednesday</span>
-        <span>R = Thursday</span>
-        <span>F = Friday</span>
-        <span>S = Saturday</span>
-      </div>
+      <div th:replace="~{fragments/timetable-grid :: timetable(tableId='weeklyTable', tableBodyId='tt-body', showDayHeaders=true, showTimeCol=true)}"></div>
     </section>
 
     <section class="section-card">
@@ -483,6 +156,7 @@
   <script>
     const START = 9;
     const END = 22;
+    const SLOT_HEIGHT = 160;
     const classes = [
       { code: "CSC204", title: "Database Systems", day: "M", start: "09:00", end: "12:00", venue: "Lab 2", lecturer: "Dr. Lim", type: "Lab" },
       { code: "CSC220", title: "Web Development", day: "T", start: "10:00", end: "11:00", venue: "Lab 3", lecturer: "Mr. Jonathan Wong", type: "Lab" },
@@ -535,6 +209,7 @@
 
       startCell.className = "";
       startCell.rowSpan = duration;
+      startCell.style.height = `${duration * SLOT_HEIGHT}px`;
 
       for (let hour = startHour + 1; hour < endHour; hour++) {
         const coveredCell = ttBody.querySelector(`td[data-day="${course.day}"][data-hour="${hour}"]`);
@@ -693,12 +368,17 @@
 
             #weeklyTable tbody tr {
               height: 160px;
+              min-height: 160px;
+              max-height: 160px;
             }
 
             #weeklyTable tbody td {
               height: 160px;
+              min-height: 160px;
+              max-height: 160px;
               border-left: none;
               border-right: none;
+              overflow: hidden;
             }
 
             #weeklyTable .class-block .course-code-link {

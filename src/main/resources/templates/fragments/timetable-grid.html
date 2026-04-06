@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<!-- Timetable Fragment
+     Parameters:
+     - tableId: ID for the main table element (e.g., "weeklyTable")
+     - tableBodyId: ID for the tbody element (e.g., "tt-body")
+     - showDayHeaders: boolean to show day column headers (M, T, W, R, F, S)
+     - showTimeCol: boolean to show time column
+     Example: <div th:replace="~{fragments/timetable-grid :: timetable(tableId='weeklyTable', tableBodyId='tt-body', showDayHeaders=true, showTimeCol=true)}"></div>
+-->
+
+<div th:fragment="timetable (tableId, tableBodyId, showDayHeaders, showTimeCol)">
+  <div class="weekly-timetable">
+    <table th:id="${tableId}" class="tt" aria-label="Weekly timetable" aria-describedby="tt-desc">
+      <caption id="tt-desc" class="visually-hidden">Student timetable showing classes by day and hour.</caption>
+      <thead th:if="${showDayHeaders}">
+        <tr>
+          <th class="time-col" th:if="${showTimeCol}">Time</th>
+          <th class="day-header">M</th>
+          <th class="day-header">T</th>
+          <th class="day-header">W</th>
+          <th class="day-header">R</th>
+          <th class="day-header">F</th>
+          <th class="day-header">S</th>
+        </tr>
+      </thead>
+      <tbody th:id="${tableBodyId}"></tbody>
+    </table>
+  </div>
+
+  <div class="legend" aria-label="Legend">
+    <span>M = Monday</span>
+    <span>T = Tuesday</span>
+    <span>W = Wednesday</span>
+    <span>R = Thursday</span>
+    <span>F = Friday</span>
+    <span>S = Saturday</span>
+  </div>
+</div>
+
+</html>
