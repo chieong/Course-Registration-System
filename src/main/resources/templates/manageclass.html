@@ -216,6 +216,10 @@
     table.tt .time { width: 80px; background: #f7faff; font-weight: 600; white-space: nowrap; }
     table.tt tbody tr { height: var(--tt-slot-height); }
     table.tt tbody td { height: var(--tt-slot-height); border-left: none; border-right: none; }
+    table.tt tbody td.has-class {
+      padding: 0;
+      background: #eef7ff;
+    }
 
     /* Class boxes: code bigger, tag UNDER code */
     .class-box {
@@ -224,12 +228,13 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      background: #eef7ff; border: 1px solid #b9d7ff; color: #0b2b5e;
-      border-radius: 10px; padding: 8px 6px; margin-bottom: 0;
+      background: #eef7ff; border: none; color: #0b2b5e;
+      border-radius: 0; padding: 12px 8px; margin-bottom: 0;
       text-align: center;
       gap: 4px;
       height: 100%;
       overflow: hidden;
+      min-height: 100%;
     }
     .code-link {
       display: block;
@@ -541,6 +546,7 @@
       if (!startCell) return;
 
       startCell.rowSpan = duration;
+      startCell.classList.add("has-class");
 
       for (let h = startHour + 1; h < endHour; h++) {
         const coveredCell = ttBody.querySelector(`td[data-day="${c.day}"][data-hour="${h}"]`);
