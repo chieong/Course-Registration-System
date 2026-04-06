@@ -1,0 +1,119 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 28px;
+  color: #333;
+  background: #fff;
+}
+
+h1,
+h2 {
+  color: #1e3c72;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+p {
+  color: #555;
+  text-align: center;
+  margin-top: 0;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 18px 0 26px;
+}
+
+.meta div {
+  background: #f4f7fb;
+  border: 1px solid #d9e5f7;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  table-layout: fixed;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 10px 8px;
+  text-align: left;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+th {
+  background: #1e3c72;
+  color: #fff;
+}
+
+.status-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 8px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.status-active {
+  color: #0f5c2f;
+  background: #e8f9ee;
+  border-color: #9fddb6;
+}
+
+.status-pending {
+  color: #7a4a00;
+  background: #fff4df;
+  border-color: #e8c68c;
+}
+
+.status-onleave {
+  color: #304f86;
+  background: #eaf2ff;
+  border-color: #b8cff3;
+}
+
+.print-controls {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.print-controls button {
+  background: #1e3c72;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0 6px;
+}
+
+.footer {
+  margin-top: 22px;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+}
+
+@media print {
+  .print-controls {
+    display: none;
+  }
+
+  body {
+    padding: 10px;
+  }
+}

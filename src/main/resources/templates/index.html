@@ -5,13 +5,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
 </head>
-<body>
+<body class="home-page">
     <header>
     </header>
     <nav th:replace="~{fragments/nav :: nav}">
     </nav>
-    <div style="padding: 3vh;">
-        <h1 style="text-align: center;">Welcome to Course Registration System</h1>
+    <div class="container">
+        <h1>Welcome to Course Registration System</h1>
         <a th:href="@{/ViewMasterClassSchedule}">View Master Class Schedule</a></p>
         <a th:href="@{/Timetable}">View Timetable</a></p>
         <a th:href="@{/manageclass}">Manage Class</a></p>

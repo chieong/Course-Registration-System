@@ -5,10 +5,24 @@
   box-sizing: border-box;
 }
 
+/* =========================
+   DESIGN TOKENS
+========================= */
+:root {
+  --color-primary: #1e3c72;
+  --color-primary-dark: #16325c;
+  --color-primary-mid: #2a5298;
+  --color-primary-soft: #cdddfc;
+  --color-text: #333;
+  --color-text-muted: #666;
+  --color-page-bg: #f4f7fb;
+  --tt-slot-height: 160px;
+}
+
 body {
   font-family: Arial, sans-serif;
-  background: #f4f7fb;
-  color: #333;
+  background: var(--color-page-bg);
+  color: var(--color-text);
   line-height: 1.6;
   min-height: 100vh;
 }
@@ -17,7 +31,7 @@ body {
    NAVBAR
 ========================= */
 nav {
-  background: #1e3c72;
+  background: var(--color-primary);
   padding: 15px 30px;
   display: flex;
   justify-content: center;
@@ -34,7 +48,11 @@ nav a {
 }
 
 nav a:hover {
-  color: #cdddfc;
+  color: var(--color-primary-soft);
+}
+
+.nav-spacer {
+  margin-left: auto;
 }
 
 /* =========================
@@ -53,7 +71,7 @@ nav a:hover {
 h1,
 h2,
 h3 {
-  color: #1e3c72;
+  color: var(--color-primary);
   margin-bottom: 15px;
 }
 
@@ -63,7 +81,7 @@ p {
 }
 
 a {
-  color: #2a5298;
+  color: var(--color-primary-mid);
   text-decoration: none;
 }
 
@@ -103,7 +121,7 @@ a:hover {
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: #2a5298;
+  border-color: var(--color-primary-mid);
   box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
 }
 
@@ -115,7 +133,7 @@ button {
   display: inline-block;
   width: 100%;
   padding: 12px;
-  background: #1e3c72;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -126,7 +144,7 @@ button {
 
 .login-btn:hover,
 button:hover {
-  background: #16325c;
+  background: var(--color-primary-dark);
 }
 
 /* =========================
@@ -137,7 +155,11 @@ button:hover {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-mid)
+  );
   padding: 20px;
 }
 
@@ -159,7 +181,7 @@ button:hover {
 .login-container h1 {
   text-align: center;
   margin-bottom: 10px;
-  color: #1e3c72;
+  color: var(--color-primary);
   font-size: 28px;
 }
 
@@ -181,6 +203,14 @@ button:hover {
   text-align: center;
   font-size: 12px;
   color: #999;
+}
+
+.timetable-note {
+  margin: 6px 0 14px;
+}
+
+.is-hidden {
+  display: none;
 }
 
 /* =========================
@@ -207,14 +237,14 @@ button:hover {
   display: inline-block;
   margin: 10px;
   padding: 10px 18px;
-  background: #2a5298;
+  background: var(--color-primary-mid);
   color: #fff;
   border-radius: 8px;
   transition: background 0.3s ease;
 }
 
 .home-page .links a:hover {
-  background: #1e3c72;
+  background: var(--color-primary);
   text-decoration: none;
 }
 
@@ -239,7 +269,7 @@ button:hover {
 
 .greeting-box h1 {
   font-size: 30px;
-  color: #1e3c72;
+  color: var(--color-primary);
 }
 
 /* =========================
@@ -265,7 +295,7 @@ table td {
 }
 
 table th {
-  background: #1e3c72;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -330,7 +360,7 @@ li {
   cursor: pointer;
   font-weight: bold;
   font-size: 14px;
-  color: #1e3c72;
+  color: var(--color-primary);
   background: #eef4ff;
   border: 1px solid #d9e5f7;
   padding: 0 16px;
@@ -383,11 +413,8 @@ li {
 }
 
 /* =========================
-   TIMETABLE STYLES
+  TIMETABLE STYLES
 ========================= */
-:root {
-  --tt-slot-height: 160px;
-}
 
 .muted {
   color: #666;
