@@ -1,21 +1,27 @@
-<!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>Getting Started: Serving Web Content</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home | University Course Registration</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
 </head>
-<body class="home-page">
-    <header>
-    </header>
-    <nav th:replace="~{fragments/nav :: nav}">
-    </nav>
-    <div class="container">
-        <h1>Welcome to Course Registration System</h1>
-        <a th:href="@{/ViewMasterClassSchedule}">View Master Class Schedule</a></p>
-        <a th:href="@{/timetable}">View Timetable</a></p>
-        <a th:href="@{/manageplan}">Manage Plan</a></p>
-        <a th:href="@{/studentlist}">Check Student List</a></p>
-    </div>
+<body>
+    <nav th:replace="~{fragments/nav :: nav}"></nav>
+
+    <main class="container">
+        <header class="page-header">
+            <h1>Welcome to Course Registration System</h1>
+        </header>
+
+        <section class="links" aria-label="Home page quick links">
+            <center>
+            <a th:href="@{/ViewMasterClassSchedule}">View Master Class Schedule</a></p>
+            <a th:href="@{/timetable}">View Timetable</a></p>
+            <a th:href="@{/manageplan}">Manage Plan</a></p>
+            <a th:href="@{/studentlist}">View Student List</a>
+            </center>
+        </section>
+    </main>
 </body>
 </html>
