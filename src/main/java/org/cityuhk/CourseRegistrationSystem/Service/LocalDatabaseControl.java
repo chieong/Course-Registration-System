@@ -10,7 +10,8 @@ public class LocalDatabaseControl implements ICourseRepository, IRegistrationRec
 	}
 
 	public ArrayList<Course> getAllCourse() {
-
+		// TODO - implement LocalDatabaseControl.getAllCourse
+		throw new UnsupportedOperationException();
 	}
 
 	/**

@@ -5,7 +5,8 @@ public class SessionManager {
 	 * @param sessionId
 	 */
 	public boolean validateSession(int sessionId) {
-
+		// TODO - implement SessionManager.validateSession
+		throw new UnsupportedOperationException();
 	}
 
 	/**
