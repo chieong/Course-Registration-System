@@ -43,7 +43,7 @@ public class Student extends User implements IAcademic, IStudent {
 		return department;
 	}
 
-
+	
 	//getter
 	//add when needed
 
