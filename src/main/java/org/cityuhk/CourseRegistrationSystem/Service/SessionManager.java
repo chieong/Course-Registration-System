@@ -1,8 +1,12 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+<<<<<<< HEAD
 
 import java.util.ArrayList;
 
 public class SessionManager {
+=======
+public class SessionManager { //assigning a session to a logged in account so the system knows which account requires a specific operation(e.g. add class)
+>>>>>>> de9e70d762dff4e4e3821bc806d62dd3f551769e
 
 	private static SessionManager instance = new SessionManager();
 	private ArrayList<LoginSession> loginSessions;
@@ -15,6 +19,7 @@ public class SessionManager {
 	public static SessionManager getInstance() {
 		return instance;
 	}
+
 
 	/**
 	 * Return the userEID belongs to the sessionId, return null if
