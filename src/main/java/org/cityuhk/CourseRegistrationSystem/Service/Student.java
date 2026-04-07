@@ -42,7 +42,7 @@ public class Student extends User implements IAcademic, IStudent {
 	public String getDepartment() {
 		return department;
 	}
-
+	
 	
 	//getter
 	//add when needed

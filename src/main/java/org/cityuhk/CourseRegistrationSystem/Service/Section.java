@@ -1,6 +1,5 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 import java.util.ArrayList;
-import java.time.LocalDate;
 
 public class Section {
 	// A section under a course like lab, lecture..etc
@@ -15,30 +14,26 @@ public class Section {
 	private int waitlistCount;
 	private ArrayList<IStudent> enRolledStudent;
 	private ArrayList<IStudent> waitlistedStudent;
-	private 
-	
-
-	/**
-	 * 
-	 * @param Student
-	 */
-	public void enrollStudent(IStudent Student) {
-		// TODO - implement Section.enrollStudent
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * 
-	 * @param Student
-	 */
-	public void waitlistStudent(IStudent Student) {
-		// TODO - implement Section.waitlistStudent
-		throw new UnsupportedOperationException();
-	}
 
 	//getter
 	public int getSectionID() {
 		return sectionId;
+	}
+
+	public int getEnrolledCount() {
+		return enrolledCount;
+	}
+
+	public int getCapacity() {
+		return capacity;
+	}
+
+	public void IncremenEnrolledCount() {
+		enrolledCount++;
+	}
+
+	public Course getCourse() {
+		return course;
 	}
 
 }
