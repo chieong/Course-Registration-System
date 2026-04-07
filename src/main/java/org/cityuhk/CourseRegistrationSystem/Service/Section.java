@@ -1,6 +1,9 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+import java.util.ArrayList;
+
 public class Section {
 
+	
 	private int sectionId;
 	private int capacity;
 	private int enrolledCount;
@@ -11,6 +14,7 @@ public class Section {
 	private int waitlistCount;
 	private ArrayList<IStudent> enRolledStudent;
 	private ArrayList<IStudent> waitlistedStudent;
+	
 
 	/**
 	 * 
