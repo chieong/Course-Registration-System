@@ -13,9 +13,8 @@ public class CourseRegistrationSystem {
 	private IRegistrationPeriodRepository registrationPeriodRepo;
 
 
-	
 	private CourseRegistrationSystem() {
-
+		instance=new CourseRegistrationSystem();
 	}
 
 	public static CourseRegistrationSystem getInstance() { //CourseRegistrationSystem is a singleton
