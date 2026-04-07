@@ -10,7 +10,13 @@ public class CourseRegistrationSystem {
 	private RegistrationPlanManager registrationPlanManager;
 	private ICourseRepository courseRepo;
 	private IUserRepository userRepo;
-	private IResgistrationPeriodRepository registrationPeriodRepo;
+	private IRegistrationPeriodRepository registrationPeriodRepo;
+
+
+	
+	private CourseRegistrationSystem() {
+
+	}
 
 	public static CourseRegistrationSystem getInstance() { //CourseRegistrationSystem is a singleton
 		return instance;
@@ -32,7 +38,7 @@ public class CourseRegistrationSystem {
 	 * @param sectionId
 	 */
 	public void addSection(String courseCode, int sectionId) {
-		courseRepo.getCourseById
+		
 	}
 
 	/**
@@ -102,7 +108,7 @@ public class CourseRegistrationSystem {
 	 * @param exclusiveCourseCode
 	 * @param sessionId
 	 */
-	public void addCourse(String courseCode, String courseTitle, int credits, String description, ArrayList<String> exclusiveCourseCode, int sessionId) {
+	public void addCourse(String courseCode, String courseTitle, int credits, String description, ArrayList<String> prerequisiteCourseCode, ArrayList<String> exclusiveCourseCode, int sessionId) {
 		// TODO - implement CourseRegistrationSystem.addCourse
 		throw new UnsupportedOperationException();
 	}
@@ -116,7 +122,7 @@ public class CourseRegistrationSystem {
 	 * @param exclusiveCourseCode
 	 * @param sessionId
 	 */
-	public void modifyCourse(String courseCode, String courseTitle, int credits, String description, ArrayList<String> exclusiveCourseCode, int sessionId) {
+	public void modifyCourse(String courseCode, String courseTitle, int credits, String description, ArrayList<String> prerequisiteCourseCode, ArrayList<String> exclusiveCourseCode, int sessionId) {
 		// TODO - implement CourseRegistrationSystem.modifyCourse
 		throw new UnsupportedOperationException();
 	}
@@ -203,11 +209,6 @@ public class CourseRegistrationSystem {
 	 */
 	public void deleteUser(String UserEID) {
 		// TODO - implement CourseRegistrationSystem.deleteUser
-		throw new UnsupportedOperationException();
-	}
-
-	private CourseRegistrationSystem() {
-		// TODO - implement CourseRegistrationSystem.CourseRegistrationSystem
 		throw new UnsupportedOperationException();
 	}
 
