@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class CourseRegistrationSystem {
 
-	private static CourseRegistrationSystem instance;
+	private static CourseRegistrationSystem instance=new CourseRegistrationSystem();
 	private RegistrationManager registrationManager;
 	private RegistrationPlanManager registrationPlanManager;
 	private ICourseRepository courseRepo;
@@ -14,7 +14,6 @@ public class CourseRegistrationSystem {
 
 
 	private CourseRegistrationSystem() {
-		instance=new CourseRegistrationSystem();
 	}
 
 	public static CourseRegistrationSystem getInstance() { //CourseRegistrationSystem is a singleton
