@@ -5,11 +5,11 @@ public abstract class User {
 	private String name;
 
 	public String getUserEID() {
-
+		return UserEID;
 	}
 
 	public String getUserName() {
-
+		return name;
 	}
 
 }
