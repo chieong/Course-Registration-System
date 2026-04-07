@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Manage Courses | University Course Registration</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
+</head>
+<body>
+	<nav th:replace="~{fragments/nav :: nav}"></nav>
+
+	<main class="container">
+		<header class="page-header">
+			<h1>Manage Courses</h1>
+			<p class="muted">Add, edit, and remove courses from the course catalogue.</p>
+		</header>
+
+		<section class="info-banner" aria-label="Course management message">
+			Academic Year 2025/2026 — Semester 2. Changes made here update the course catalogue immediately.
+		</section>
+
+		<section class="summary-grid" aria-label="Catalogue statistics">
+			<article class="summary-card">
+				<h3>Total Courses</h3>
+				<p id="statTotal">—</p>
+			</article>
+			<article class="summary-card">
+				<h3>Core Courses</h3>
+				<p id="statCore">—</p>
+			</article>
+			<article class="summary-card">
+				<h3>Elective Courses</h3>
+				<p id="statElective">—</p>
+			</article>
+			<article class="summary-card">
+				<h3>Lab Courses</h3>
+				<p id="statLab">—</p>
+			</article>
+		</section>
+
+		<section class="section-card mc-filter-section" aria-label="Course filters">
+			<h2>Filters</h2>
+			<div class="top-filter-area">
+				<div class="top-filter-row mc-filter-row">
+					<div class="form-group course-field">
+						<label for="mcSearch">Search Course</label>
+						<input id="mcSearch" type="text" placeholder="Course code or title" />
+					</div>
+					<div class="form-group term-field">
+						<label for="mcCategory">Category</label>
+						<select id="mcCategory">
+							<option value="">All Categories</option>
+							<option value="Core">Core</option>
+							<option value="Elective">Elective</option>
+							<option value="Lab">Lab</option>
+						</select>
+					</div>
+					<div class="form-group term-field">
+						<label for="mcDept">Department</label>
+						<select id="mcDept">
+							<option value="">All Departments</option>
+							<option value="Computer Science">Computer Science</option>
+							<option value="Information Systems">Information Systems</option>
+							<option value="Mathematics">Mathematics</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section-card" aria-label="Course catalogue table">
+			<div class="split-title">
+				<h2>Course Catalogue</h2>
+				<button type="button" id="addCourseBtn" class="mc-header-btn">+ Add Course</button>
+			</div>
+
+			<div class="table-wrapper">
+				<table aria-label="All courses table">
+					<thead>
+						<tr>
+							<th>Code</th>
+							<th>Title</th>
+							<th>Category</th>
+							<th>Credits</th>
+							<th>Department</th>
+							<th>Day</th>
+							<th>Time</th>
+							<th>Location</th>
+							<th>Enrollment</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody id="courseTableBody">
+						<tr class="empty-row">
+							<td colspan="10">Loading courses…</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<p class="footer-text">© 2026 University Course Registration System</p>
+	</main>
+
+	<!-- Add / Edit Course Dialog -->
+	<dialog id="courseDialog" class="master-dialog">
+		<div class="master-dialog-header">
+			<h3 id="dialogTitle">Add New Course</h3>
+			<button type="button" class="dialog-close-btn" id="closeDialogBtn">Close</button>
+		</div>
+		<div class="master-dialog-content">
+			<form id="courseForm" novalidate>
+				<div class="mc-form-grid">
+					<div class="form-group">
+						<label for="fCode">Course Code</label>
+						<input id="fCode" type="text" placeholder="e.g. CSC302" />
+					</div>
+					<div class="form-group">
+						<label for="fTitle">Course Title</label>
+						<input id="fTitle" type="text" placeholder="e.g. Data Structures II" />
+					</div>
+					<div class="form-group">
+						<label for="fCategory">Category</label>
+						<select id="fCategory">
+							<option value="">Select category</option>
+							<option value="Core">Core</option>
+							<option value="Elective">Elective</option>
+							<option value="Lab">Lab</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="fCredits">Credits</label>
+						<input id="fCredits" type="number" min="1" max="6" placeholder="e.g. 3" />
+					</div>
+					<div class="form-group">
+						<label for="fDept">Department</label>
+						<select id="fDept">
+							<option value="">Select department</option>
+							<option value="Computer Science">Computer Science</option>
+							<option value="Information Systems">Information Systems</option>
+							<option value="Mathematics">Mathematics</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="fDay">Day</label>
+						<select id="fDay">
+							<option value="">Select day</option>
+							<option value="Monday">Monday</option>
+							<option value="Tuesday">Tuesday</option>
+							<option value="Wednesday">Wednesday</option>
+							<option value="Thursday">Thursday</option>
+							<option value="Friday">Friday</option>
+							<option value="Saturday">Saturday</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="fStartTime">Start Time</label>
+						<input id="fStartTime" type="time" />
+					</div>
+					<div class="form-group">
+						<label for="fEndTime">End Time</label>
+						<input id="fEndTime" type="time" />
+					</div>
+					<div class="form-group">
+						<label for="fLocation">Location</label>
+						<input id="fLocation" type="text" placeholder="e.g. Room A101" />
+					</div>
+					<div class="form-group">
+						<label for="fMaxEnroll">Max Enrollment</label>
+						<input id="fMaxEnroll" type="number" min="1" placeholder="e.g. 30" />
+					</div>
+					<div class="form-group">
+						<label for="fEnrolled">Currently Enrolled</label>
+						<input id="fEnrolled" type="number" min="0" placeholder="e.g. 0" />
+					</div>
+				</div>
+				<p class="mc-form-error is-hidden" id="formError" role="alert"></p>
+				<div class="action-row">
+					<button type="submit" id="saveBtn">Add Course</button>
+					<button type="button" class="secondary-btn" id="cancelDialogBtn">Cancel</button>
+				</div>
+			</form>
+		</div>
+	</dialog>
+
+	<!-- Delete Confirmation Dialog -->
+	<dialog id="deleteDialog" class="mc-confirm-dialog">
+		<div class="master-dialog-header">
+			<h3>Delete Course</h3>
+			<button type="button" class="dialog-close-btn" id="closeDeleteBtn">Close</button>
+		</div>
+		<div class="master-dialog-content">
+			<p id="deleteMsg">Are you sure you want to delete this course? This action cannot be undone.</p>
+			<div class="mc-confirm-actions">
+				<button type="button" class="danger-btn" id="confirmDeleteBtn">Delete</button>
+				<button type="button" class="secondary-btn" id="cancelDeleteBtn">Cancel</button>
+			</div>
+		</div>
+	</dialog>
+
+	<script th:src="@{/js/managecourse.js}" defer></script>
+</body>
+</html>
