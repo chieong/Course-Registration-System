@@ -37,8 +37,8 @@ public class CourseRegistrationSystem {
 	 * @param courseCode
 	 * @param sectionId
 	 */
-	public void addSection(String courseCode, int sectionId) {
-		
+	public void addSection(String courseCode, int sectionId, int sessionId) {
+
 	}
 
 	/**
@@ -46,7 +46,7 @@ public class CourseRegistrationSystem {
 	 * @param courseCode
 	 * @param sectionId
 	 */
-	public void dropSection(String courseCode, int sectionId) {
+	public void dropSection(String courseCode, int sectionId, int sessionId) {
 
 	}
 
@@ -66,7 +66,7 @@ public class CourseRegistrationSystem {
 	 * @param sessionId
 	 */
 	public int submitPlan(ArrayList<String> courseCode, ArrayList<Integer> sectionIds, int sessionId) {
-
+		
 	}
 
 	/**
