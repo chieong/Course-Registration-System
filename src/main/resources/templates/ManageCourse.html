@@ -73,6 +73,10 @@
 				<h2>Course Catalogue</h2>
 				<button type="button" id="addCourseBtn" class="mc-header-btn">+ Add Course</button>
 			</div>
+			<div id="mcActionMessage" class="mu-notification is-hidden" role="status" aria-live="polite" hidden>
+				<span id="mcActionMessageText"></span>
+				<button type="button" id="mcActionMessageClose" class="mu-notification-close" aria-label="Dismiss">&#x2715;</button>
+			</div>
 
 			<div class="table-wrapper">
 				<table aria-label="All courses table">
@@ -86,13 +90,15 @@
 							<th>Day</th>
 							<th>Time</th>
 							<th>Location</th>
+							<th>Waitlist Size</th>
+							<th>Current Waitlist</th>
 							<th>Enrollment</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
 					<tbody id="courseTableBody">
 						<tr class="empty-row">
-							<td colspan="10">Loading courses…</td>
+							<td colspan="12">Loading courses...</td>
 						</tr>
 					</tbody>
 				</table>
@@ -168,6 +174,10 @@
 					<div class="form-group">
 						<label for="fMaxEnroll">Max Enrollment</label>
 						<input id="fMaxEnroll" type="number" min="1" placeholder="e.g. 30" />
+					</div>
+					<div class="form-group">
+						<label for="fWaitlistSize">Waitlist Size</label>
+						<input id="fWaitlistSize" type="number" min="0" placeholder="e.g. 10" />
 					</div>
 					<div class="form-group">
 						<label for="fEnrolled">Currently Enrolled</label>

@@ -238,13 +238,23 @@
     els.notification.classList.add("is-visible");
   }
 
-  function showSuccess(message) {
+  function showMessage(message, type) {
     els.notificationText.textContent = message;
+    els.notification.classList.remove("mu-notification-success", "mu-notification-info");
+    els.notification.classList.add(type === "info" ? "mu-notification-info" : "mu-notification-success");
     showNotification();
     clearTimeout(state.notificationTimer);
     state.notificationTimer = setTimeout(function () {
       hideNotification();
     }, 4000);
+  }
+
+  function showSuccess(message) {
+    showMessage(message, "success");
+  }
+
+  function showInfo(message) {
+    showMessage(message, "info");
   }
 
   function showFormError(message) {
@@ -292,9 +302,15 @@
     openModal(els.dialog);
   }
 
-  function closeDialog() {
+  function closeDialog(options) {
+    const shouldNotifyCancel = !!(options && options.notifyCancel);
+    const message = options && options.message;
+
     if (els.dialog.open) {
       closeModal(els.dialog);
+      if (shouldNotifyCancel) {
+        showInfo(message || (state.editingId ? "User modification cancelled." : "User creation cancelled."));
+      }
     }
   }
 
@@ -317,10 +333,16 @@
     openModal(els.deleteDialog);
   }
 
-  function closeDeleteDialog() {
+  function closeDeleteDialog(options) {
+    const shouldNotifyCancel = !!(options && options.notifyCancel);
+    const message = options && options.message;
+
     state.deletingId = null;
     if (els.deleteDialog.open) {
       closeModal(els.deleteDialog);
+      if (shouldNotifyCancel) {
+        showInfo(message || "User removal cancelled.");
+      }
     }
   }
 
@@ -375,6 +397,18 @@
       password: els.password.value
     };
 
+    const isEdit = !!state.editingId;
+    const saveConfirmed = window.confirm(
+      isEdit
+        ? "Are you sure you want to save changes to this user account?"
+        : "Are you sure you want to create this user account?"
+    );
+
+    if (!saveConfirmed) {
+      showInfo(isEdit ? "User modification cancelled." : "User creation cancelled.");
+      return;
+    }
+
     if (state.editingId) {
       const index = state.users.findIndex((u) => u.id === state.editingId);
       if (index >= 0) {
@@ -389,7 +423,6 @@
       state.users.push({ id: nextId, ...payload, password: "" });
     }
 
-    const isEdit = !!state.editingId;
     closeDialog();
     renderAll();
     showSuccess(isEdit ? "User account updated successfully." : "New user account created successfully.");
@@ -398,6 +431,32 @@
   function confirmDelete() {
     if (state.deletingId == null) {
       return;
+    }
+
+    const userToDelete = state.users.find((u) => u.id === state.deletingId);
+    if (!userToDelete) {
+      closeDeleteDialog();
+      return;
+    }
+
+    const firstConfirm = window.confirm(
+      `Confirm removing user \"${userToDelete.username}\"?`
+    );
+
+    if (!firstConfirm) {
+      showInfo("User removal cancelled.");
+      return;
+    }
+
+    if (userToDelete.role === "Student") {
+      const secondConfirm = window.confirm(
+        `Double confirmation: remove student account \"${userToDelete.username}\" permanently?`
+      );
+
+      if (!secondConfirm) {
+        showInfo("User removal cancelled.");
+        return;
+      }
     }
 
     state.users = state.users.filter((u) => u.id !== state.deletingId);
@@ -436,10 +495,18 @@
     els.form.addEventListener("submit", saveUser);
     els.tableBody.addEventListener("click", onTableClick);
 
-    els.closeDialogBtn.addEventListener("click", closeDialog);
-    els.cancelDialogBtn.addEventListener("click", closeDialog);
-    els.closeDeleteBtn.addEventListener("click", closeDeleteDialog);
-    els.cancelDeleteBtn.addEventListener("click", closeDeleteDialog);
+    els.closeDialogBtn.addEventListener("click", function () {
+      closeDialog({ notifyCancel: true });
+    });
+    els.cancelDialogBtn.addEventListener("click", function () {
+      closeDialog({ notifyCancel: true });
+    });
+    els.closeDeleteBtn.addEventListener("click", function () {
+      closeDeleteDialog({ notifyCancel: true });
+    });
+    els.cancelDeleteBtn.addEventListener("click", function () {
+      closeDeleteDialog({ notifyCancel: true });
+    });
     els.confirmDeleteBtn.addEventListener("click", confirmDelete);
 
     els.dialog.addEventListener("close", clearFormError);
