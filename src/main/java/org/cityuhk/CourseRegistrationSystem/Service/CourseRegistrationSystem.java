@@ -1,4 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+
+import java.util.ArrayList;
+
+
 public class CourseRegistrationSystem {
 
 	private CourseRegistrationSystem instance;
@@ -10,7 +14,7 @@ public class CourseRegistrationSystem {
 
 	/**
 	 * 
-	 * @param userEID
+	 * @param userEID 
 	 * @param password
 	 */
 	public int newSession(String userEID, String password) {
@@ -24,7 +28,7 @@ public class CourseRegistrationSystem {
 	 * @param sectionId
 	 */
 	public void addSection(String courseCode, int sectionId) {
-
+		courseRepo.getCourseById
 	}
 
 	/**
