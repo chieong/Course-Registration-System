@@ -8,7 +8,7 @@ public class SessionManager {
 	 * @param sessionId
 	 * @param userEID
 	 */
-	public boolean validateSession(int sessionId, String userEID) {
+	public String getSessionUserEID(int sessionId) {
 
 	}
 
