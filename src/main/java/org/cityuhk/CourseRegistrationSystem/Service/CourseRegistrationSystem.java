@@ -5,12 +5,16 @@ import java.util.ArrayList;
 
 public class CourseRegistrationSystem {
 
-	private CourseRegistrationSystem instance;
+	private static CourseRegistrationSystem instance;
 	private RegistrationManager registrationManager;
 	private RegistrationPlanManager registrationPlanManager;
 	private ICourseRepository courseRepo;
 	private IUserRepository userRepo;
 	private IResgistrationPeriodRepository registrationPeriodRepo;
+
+	public static CourseRegistrationSystem getInstance() { //CourseRegistrationSystem is a singleton
+		return instance;
+	}
 
 	/**
 	 * 
@@ -205,10 +209,6 @@ public class CourseRegistrationSystem {
 	private CourseRegistrationSystem() {
 		// TODO - implement CourseRegistrationSystem.CourseRegistrationSystem
 		throw new UnsupportedOperationException();
-	}
-
-	private CourseRegistrationSystem getInstance() {
-
 	}
 
 	/**
