@@ -75,15 +75,6 @@ public class RegistrationManager {
 
 	}
 
-	/**
-	 * 
-	 * @param user
-	 */
-	public void getTimeTable(IAcademic user) {
-		// TODO - implement RegistrationManager.getTimeTable
-		
-
-		throw new UnsupportedOperationException();
-	}
+	
 
 }

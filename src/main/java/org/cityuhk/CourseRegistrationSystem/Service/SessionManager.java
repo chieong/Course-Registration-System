@@ -54,4 +54,17 @@ public class SessionManager {
 		}
 	}
 
+	/**
+	 * 
+	 * @param user
+	 */
+	public void getTimeTable(IAcademic user) {
+		// TODO - implement RegistrationManager.getTimeTable
+		// TimeTable is stored at section(ArrayList<IStudent> enRolledStudent), but should it?
+		// if we wanted to know one user's timetable,
+		// we have to loop through all section's enrolled students
+
+		throw new UnsupportedOperationException();
+	}
+
 }
