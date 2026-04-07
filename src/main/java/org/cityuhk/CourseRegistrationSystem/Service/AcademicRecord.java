@@ -1,3 +1,4 @@
+package org.cityuhk.CourseRegistrationSystem.Service;
 public class AcademicRecord {
 
 	private int recordId;

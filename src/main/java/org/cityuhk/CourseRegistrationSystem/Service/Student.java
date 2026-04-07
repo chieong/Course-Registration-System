@@ -1,3 +1,4 @@
+package org.cityuhk.CourseRegistrationSystem.Service;
 public class Student extends User implements IAcademic, IStudent {
 
 	private int studentId;

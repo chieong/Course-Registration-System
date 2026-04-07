@@ -1,3 +1,4 @@
+package org.cityuhk.CourseRegistrationSystem.Service;
 public class Instructor extends User implements IStaff, IAcademic {
 
 	private int staffId;

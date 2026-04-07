@@ -1,3 +1,4 @@
+package org.cityuhk.CourseRegistrationSystem.Service;
 public class CourseRegistrationSystem {
 
 	private CourseRegistrationSystem instance;

@@ -1,3 +1,4 @@
+package org.cityuhk.CourseRegistrationSystem.Service;
 public interface IStudent {
 
 	/**

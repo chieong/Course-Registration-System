@@ -1,3 +1,4 @@
+package org.cityuhk.CourseRegistrationSystem.Service;
 public class LocalDatabaseControl implements ICourseRepository, IRegistrationRecordRepository, IRegistrationPlanRepository, IRegistrationPeriodRepository, ICredentialRepository, IUserRepository {
 
 	/**
