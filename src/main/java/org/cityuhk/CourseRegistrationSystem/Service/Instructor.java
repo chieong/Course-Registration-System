@@ -1,4 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+
+import java.util.ArrayList;
 public class Instructor extends User implements IStaff, IAcademic {
 
 	private int staffId;
