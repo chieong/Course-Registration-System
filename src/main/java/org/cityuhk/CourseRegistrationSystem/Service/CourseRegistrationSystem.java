@@ -1,24 +1,26 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
+
 import java.util.ArrayList;
 
 
 public class CourseRegistrationSystem {
 
 	private static CourseRegistrationSystem instance=new CourseRegistrationSystem();
-	private RegistrationManager registrationManager;
-	private RegistrationPlanManager registrationPlanManager;
-	private ICourseRepository courseRepo;
+	private RegistrationManager registrationManager; 
+	private RegistrationPlanManager registrationPlanManager;  
+	private ICourseRepository courseRepo; 
 	private IUserRepository userRepo;
 	private IRegistrationPeriodRepository registrationPeriodRepo;
-
 
 	private CourseRegistrationSystem() {
 	}
 
+
 	public static CourseRegistrationSystem getInstance() { //CourseRegistrationSystem is a singleton
 		return instance;
 	}
+
 
 	/**
 	 * Return null if the userEID or password is incorrect
@@ -29,6 +31,16 @@ public class CourseRegistrationSystem {
 		SessionManager sm = SessionManager.getInstance();
 		String session = sm.createNewSession(userEID, password);
 		return session;
+	}
+
+	/**
+	 * Return null if the session is expired
+	 * @param sessionId
+	 */
+	public String getEIDBySession(String sessionId){
+		SessionManager sm = SessionManager.getInstance();
+		String eid = sm.getSessionUserEID(sessionId);
+		return eid;
 	}
 
 	/**

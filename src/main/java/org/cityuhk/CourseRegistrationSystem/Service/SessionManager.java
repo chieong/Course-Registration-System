@@ -19,7 +19,9 @@ public class SessionManager {
 		return instance;
 	}
 
-
+	public void SetCredentialDB(ICredentialRepository CDB){
+		credentialDB=CDB;
+	}
 	/**
 	 * Return the userEID belongs to the sessionId, return null if
 	 * @param sessionId
@@ -53,5 +55,7 @@ public class SessionManager {
 			return null;
 		}
 	}
+
+	
 
 }
