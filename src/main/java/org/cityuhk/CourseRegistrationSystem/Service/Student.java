@@ -1,6 +1,5 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,29 +30,19 @@ public class Student extends User implements IAcademic, IStudent {
 
 	// Stores the student's registered classes (their timetable), not implemented yet
 	private Set<Course> Allcourse = new HashSet<>();
+	// should be deleted later
 
 	@Override
 	public boolean validateSemesterCreditCount(int newCredit) {
-		int currentCredits = 0;
-        for (Course r : Allcourse) {
-            currentCredits += r.getCredits(); // each record has a credit value
-        }
-        // e.g. current=12, new=4, max=18 → 12+4=16 ≤ 18 → true ✅
-        // e.g. current=16, new=4, max=18 → 16+4=20 > 18  → false ❌
-        return (currentCredits + newCredit) <= maxSemesterCredit;
+		
+        return (newCredit >=minSemesterCredit && newCredit <= maxSemesterCredit);
 	}
 
 	@Override
 	public String getDepartment() {
 		return department;
-
 	}
 
-	@Override
-	public ArrayList<Section> getTimeTable() {
-
-		return timeTable;
-	}
 
 	//getter
 	//add when needed

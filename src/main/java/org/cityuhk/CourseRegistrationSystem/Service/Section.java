@@ -1,5 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 import java.util.ArrayList;
+import java.time.LocalDate;
 
 public class Section {
 	// A section under a course like lab, lecture..etc
@@ -14,6 +15,7 @@ public class Section {
 	private int waitlistCount;
 	private ArrayList<IStudent> enRolledStudent;
 	private ArrayList<IStudent> waitlistedStudent;
+	private 
 	
 
 	/**
