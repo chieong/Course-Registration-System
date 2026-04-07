@@ -2,7 +2,7 @@ package org.cityuhk.CourseRegistrationSystem.Service;
 import java.util.ArrayList;
 
 public class Section {
-
+	// A section under a course like lab, lecture..etc
 	
 	private int sectionId;
 	private int capacity;
@@ -32,6 +32,11 @@ public class Section {
 	public void waitlistStudent(IStudent Student) {
 		// TODO - implement Section.waitlistStudent
 		throw new UnsupportedOperationException();
+	}
+
+	//getter
+	public int getSectionID() {
+		return sectionId;
 	}
 
 }

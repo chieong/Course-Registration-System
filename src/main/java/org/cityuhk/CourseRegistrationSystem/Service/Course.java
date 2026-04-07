@@ -23,11 +23,22 @@ public class Course { //for creating a course
 		this.sections = new ArrayList<>();
 	}
 
+
+
 	
 	//getter
 	public int getCredits() {
 
 		return credits;
+	}
+
+	public Section SearchSectionID(int sectionId) {
+		for (Section section : sections) {
+			if (section.getSectionID() == sectionId) {
+				return section;
+			}
+		}
+		return null;
 	}
 
 
