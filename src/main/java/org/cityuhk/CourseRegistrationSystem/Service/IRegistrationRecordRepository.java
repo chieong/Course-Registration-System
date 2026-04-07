@@ -1,4 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+
+import java.util.ArrayList;
 public interface IRegistrationRecordRepository {
 
 	/**
@@ -17,6 +19,6 @@ public interface IRegistrationRecordRepository {
 	 * 
 	 * @param sectionId
 	 */
-	void pollNextFromWaitlist(id sectionId);
+	void pollNextFromWaitlist(int sectionId);
 
 }

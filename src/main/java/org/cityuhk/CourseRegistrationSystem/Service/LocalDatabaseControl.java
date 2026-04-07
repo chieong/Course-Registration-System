@@ -1,4 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+
+import java.util.ArrayList;
 public class LocalDatabaseControl implements ICourseRepository, IRegistrationRecordRepository, IRegistrationPlanRepository, IRegistrationPeriodRepository, ICredentialRepository, IUserRepository {
 
 	/**
