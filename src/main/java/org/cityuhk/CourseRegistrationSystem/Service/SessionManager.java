@@ -1,7 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
-public class SessionManager {
+public class SessionManager { //assigning a session to a logged in account so the system knows which account requires a specific operation(e.g. add class)
 
 	private SessionManager instance;
+
 
 	/**
 	 * 
@@ -9,7 +10,7 @@ public class SessionManager {
 	 * @param userEID
 	 */
 	public String getSessionUserEID(int sessionId) {
-
+		
 	}
 
 	/**
