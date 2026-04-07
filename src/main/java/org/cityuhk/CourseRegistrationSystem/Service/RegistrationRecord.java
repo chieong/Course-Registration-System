@@ -1,7 +1,6 @@
 public class RegistrationRecord {
 
-	private int studentId;
-	private int classId;
+	private Student student;
 	private int timestamp;
 	private RegistrationOperation operation;
 

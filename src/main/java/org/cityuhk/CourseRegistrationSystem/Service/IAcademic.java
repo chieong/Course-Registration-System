@@ -2,6 +2,6 @@ public interface IAcademic {
 
 	String getDepartment();
 
-	TimeTable getTimeTable();
+	ArrayList<RegistrationRecord> getTimeTable();
 
 }

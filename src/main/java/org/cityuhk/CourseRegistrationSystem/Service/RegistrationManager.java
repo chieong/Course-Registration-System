@@ -3,31 +3,28 @@ public class RegistrationManager {
 	/**
 	 * 
 	 * @param student
-	 * @param session
+	 * @param section
 	 */
-	public void registerSection(IStudent student, Session session) {
-		// TODO - implement RegistrationManager.registerSection
-		throw new UnsupportedOperationException();
+	public void registerSection(IStudent student, Section section) {
+
 	}
 
 	/**
 	 * 
 	 * @param student
-	 * @param session
+	 * @param section
 	 */
-	public void dropSection(IStudent student, Session session) {
-		// TODO - implement RegistrationManager.dropSection
-		throw new UnsupportedOperationException();
+	public void dropSection(IStudent student, Section section) {
+
 	}
 
 	/**
 	 * 
 	 * @param student
-	 * @param session
+	 * @param section
 	 */
-	public void joinSectionWaitlist(IStudent student, Session session) {
-		// TODO - implement RegistrationManager.joinSectionWaitlist
-		throw new UnsupportedOperationException();
+	public void joinSectionWaitlist(IStudent student, Section section) {
+
 	}
 
 	/**

@@ -1,7 +1,7 @@
 public class RegistrationOperation {
 
-	private int sectionId;
-	private int studentId;
+	private Section section;
+	private IStudent student;
 	private RegistrationOpType operationType;
 
 }

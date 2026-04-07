@@ -6,5 +6,7 @@ public class Course {
 	private String description;
 	private ArrayList<String> ExclusiveCourseCode;
 	private ArrayList<String> PrerequisiteCourses;
+	private ArrayList<Section> sections;
+	private String term;
 
 }

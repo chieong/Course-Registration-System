@@ -1,5 +1,12 @@
 public class CourseRegistrationSystem {
 
+	private CourseRegistrationSystem instance;
+	private RegistrationManager registrationManager;
+	private RegistrationPlanManager registrationPlanManager;
+	private ICourseRepository courseRepo;
+	private IUserRepository userRepo;
+	private IResgistrationPeriodRepository registrationPeriodRepo;
+
 	/**
 	 * 
 	 * @param userEID
@@ -12,54 +19,47 @@ public class CourseRegistrationSystem {
 
 	/**
 	 * 
-	 * @param studentId
 	 * @param courseCode
 	 * @param sectionId
 	 */
-	public void addSection(String studentId, String courseCode, int sectionId) {
+	public void addSection(String courseCode, int sectionId) {
 
 	}
 
 	/**
 	 * 
-	 * @param studentId
 	 * @param courseCode
 	 * @param sectionId
 	 */
-	public void dropSection(String studentId, String courseCode, int sectionId) {
+	public void dropSection(String courseCode, int sectionId) {
 
 	}
 
 	/**
 	 * 
-	 * @param stduentId
 	 * @param coursecode
 	 * @param sectionId
 	 */
-	public void joinSectionWaitlist(String stduentId, String coursecode, int sectionId) {
+	public void joinSectionWaitlist(String coursecode, int sectionId) {
 
 	}
 
 	/**
 	 * 
-	 * @param studentId
 	 * @param courseCode
 	 * @param sectionIds
 	 * @param sessionId
 	 */
-	public int submitPlan(String studentId, ArrayList<String> courseCode, ArrayList<Integer> sectionIds, int sessionId) {
-		// TODO - implement CourseRegistrationSystem.submitPlan
-		throw new UnsupportedOperationException();
+	public int submitPlan(ArrayList<String> courseCode, ArrayList<Integer> sectionIds, int sessionId) {
+
 	}
 
 	/**
 	 * 
-	 * @param studentId
 	 * @param sessionId
 	 */
-	public ArrayList<RegistrationPlan> getPlanByStudentId(String studentId, int sessionId) {
-		// TODO - implement CourseRegistrationSystem.getPlanByStudentId
-		throw new UnsupportedOperationException();
+	public ArrayList<RegistrationPlan> getPlanByStudentId(int sessionId) {
+
 	}
 
 	public ArrayList<Course> getSectionList() {
@@ -69,23 +69,19 @@ public class CourseRegistrationSystem {
 
 	/**
 	 * 
-	 * @param userId
 	 * @param sessionId
 	 */
-	public TimeTable checkTimeTable(int userId, int sessionId) {
-		// TODO - implement CourseRegistrationSystem.checkTimeTable
-		throw new UnsupportedOperationException();
+	public TimeTable checkTimeTable(int sessionId) {
+
 	}
 
 	/**
 	 * 
-	 * @param staffId
 	 * @param classId
 	 * @param sessionId
 	 */
-	public ArrayList<Student> checkStudentList(int staffId, int classId, int sessionId) {
-		// TODO - implement CourseRegistrationSystem.checkStudentList
-		throw new UnsupportedOperationException();
+	public ArrayList<Student> checkStudentList(int classId, int sessionId) {
+
 	}
 
 	/**
@@ -198,6 +194,24 @@ public class CourseRegistrationSystem {
 	 */
 	public void deleteUser(String UserEID) {
 		// TODO - implement CourseRegistrationSystem.deleteUser
+		throw new UnsupportedOperationException();
+	}
+
+	private CourseRegistrationSystem() {
+		// TODO - implement CourseRegistrationSystem.CourseRegistrationSystem
+		throw new UnsupportedOperationException();
+	}
+
+	private CourseRegistrationSystem getInstance() {
+
+	}
+
+	/**
+	 * 
+	 * @param studentId
+	 */
+	public boolean isRegistrationPeriodOpen(int studentId) {
+		// TODO - implement CourseRegistrationSystem.isRegistrationPeriodOpen
 		throw new UnsupportedOperationException();
 	}
 

@@ -3,14 +3,12 @@ public abstract class User {
 	private String UserEID;
 	private String name;
 
-	public void getUserEID() {
-		// TODO - implement User.getUserEID
-		throw new UnsupportedOperationException();
+	public String getUserEID() {
+
 	}
 
-	public void getUserName() {
-		// TODO - implement User.getUserName
-		throw new UnsupportedOperationException();
+	public String getUserName() {
+
 	}
 
 }
