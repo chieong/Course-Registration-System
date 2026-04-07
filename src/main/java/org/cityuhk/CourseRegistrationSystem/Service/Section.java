@@ -7,7 +7,7 @@ public class Section {
 	private int waitlistCapacity;
 	private String type;
 	private String venue;
-	private String courseCode;
+	private Course course;
 	private int waitlistCount;
 	private ArrayList<IStudent> enRolledStudent;
 	private ArrayList<IStudent> waitlistedStudent;

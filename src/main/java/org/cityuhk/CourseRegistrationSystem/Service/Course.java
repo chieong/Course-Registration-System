@@ -24,7 +24,11 @@ public class Course { //for creating a course
 	}
 
 	
+	//getter
+	public int getCredits() {
 
+		return credits;
+	}
 
 
 }
