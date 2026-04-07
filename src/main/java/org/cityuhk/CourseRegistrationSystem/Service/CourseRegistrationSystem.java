@@ -21,13 +21,14 @@ public class CourseRegistrationSystem {
 	}
 
 	/**
-	 * 
+	 * Return null if the userEID or password is incorrect
 	 * @param userEID 
 	 * @param password
 	 */
-	public int newSession(String userEID, String password) {
-		// TODO - implement CourseRegistrationSystem.newSession
-		throw new UnsupportedOperationException();
+	public String newSession(String userEID, String password) {
+		SessionManager sm = SessionManager.getInstance();
+		String session = sm.createNewSession(userEID, password);
+		return session;
 	}
 
 	/**
@@ -64,7 +65,7 @@ public class CourseRegistrationSystem {
 	 * @param sessionId
 	 */
 	public int submitPlan(ArrayList<String> courseCode, ArrayList<Integer> sectionIds, int sessionId) {
-		
+
 	}
 
 	/**
