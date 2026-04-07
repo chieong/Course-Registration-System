@@ -15,9 +15,8 @@ public class Section {
 	private int waitlistCount;
 	private ArrayList<IStudent> enRolledStudent;
 	private ArrayList<IStudent> waitlistedStudent;
-	private 
 	
-
+	
 	/**
 	 * 
 	 * @param Student
