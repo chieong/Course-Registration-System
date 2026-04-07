@@ -28,8 +28,24 @@ public class Section {
 		return capacity;
 	}
 
+	public int getWaitlistCount() {
+		return waitlistCount;
+	}
+
+	public int getWaitlistCapacity() {
+		return waitlistCapacity;
+	}
+
 	public void IncremenEnrolledCount() {
 		enrolledCount++;
+	}
+
+	public void decrementEnrolledCount() {
+		enrolledCount--;
+	}
+
+	public void incrementWaitlistCount() {
+		waitlistCount++;
 	}
 
 	public Course getCourse() {
