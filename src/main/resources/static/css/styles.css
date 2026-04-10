@@ -368,7 +368,7 @@ li {
 }
 
 .more-filters-inline summary::after {
-  content: "▼";
+  content: "\25BE";
   font-size: 12px;
   transition: transform 0.3s ease;
 }
@@ -506,7 +506,7 @@ li {
 }
 
 .details-toggle summary::after {
-  content: "▼";
+  content: "\25BE";
   font-size: 12px;
   transition: transform 0.3s ease;
 }
@@ -1823,4 +1823,116 @@ input[readonly] {
   .mu-notification {
     transition: none;
   }
+}
+/* =========================
+   PLAN CAROUSEL
+========================= */
+.plan-carousel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 6px 0 8px;
+  background: #f8fbff;
+  padding: 6px 8px;
+  border: 1px solid #d9e5f7;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(30, 60, 114, 0.08);
+  max-width: calc(100vw - 24px);
+}
+
+.plan-carousel-placeholder {
+  height: 0;
+}
+
+.plan-carousel.is-pinned-top {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  top: auto;
+  z-index: 1000;
+  margin: 0;
+}
+
+.plan-carousel button {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.carousel-nav {
+  background: #eef4ff;
+  border: 1px solid #d9e5f7;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #1e3c72;
+  transition: background 0.15s;
+}
+
+.carousel-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.carousel-nav:not(:disabled):hover {
+  background: #dde8f8;
+}
+
+.carousel-add-btn {
+  margin-left: 0;
+  background: none;
+  border: 1px solid #2a5298;
+  border-radius: 6px;
+  padding: 2px 6px;
+  min-width: 68px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 12px;
+  color: #2a5298;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: background 0.15s;
+}
+
+.carousel-add-btn:hover {
+  background: #eef4ff;
+}
+
+.plan-pager {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.plan-page-btn {
+  background: #fff;
+  border: 1px solid #d9e5f7;
+  color: #1e3c72;
+  border-radius: 6px;
+  padding: 2px 8px;
+  min-width: 32px;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.plan-page-btn:hover {
+  background: #eef4ff;
+}
+
+.plan-page-btn.active {
+  background: #2a5298;
+  border-color: #2a5298;
+  color: #fff;
 }

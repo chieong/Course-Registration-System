@@ -3,7 +3,6 @@
 		const waitlistBody = document.getElementById("waitlistBody");
 		const creditValue = document.getElementById("creditValue");
 		const creditStatus = document.getElementById("creditStatus");
-		const clearPlanBtn = document.getElementById("clearPlanBtn");
 		const submitPlanBtn = document.getElementById("submitPlanBtn");
 		const undoPlanBtn = document.getElementById("undoPlanBtn");
 		const previewTimetableBody = document.getElementById("previewTimetableBody");
@@ -15,9 +14,28 @@
 		const previewDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 		const previewStartHour = 9;
 		const previewEndHour = 22;
-		let lastSavedPlanSignature = "";
+		const prevPlanBtn = document.getElementById("prevPlanBtn");
+		const nextPlanBtn = document.getElementById("nextPlanBtn");
+		const addPlanBtn = document.getElementById("addPlanBtn");
+		const removePlanBtn = document.getElementById("removePlanBtn");
+		const planPager = document.getElementById("planPager");
+		const planCarousel = document.querySelector(".plan-carousel");
+
 		const initialSelectedHTML = selectedPlanBody.innerHTML;
 		const initialWaitlistHTML = waitlistBody.innerHTML;
+
+		const emptySelectedHTML = '<tr class="empty-row" id="emptyPlanRow"><td colspan="5">No courses selected yet.</td></tr>';
+		const emptyWaitlistHTML = '<tr class="empty-row" id="emptyWaitlistRow"><td colspan="4">No waitlisted courses yet.</td></tr>';
+
+		const plans = [{
+			name: "Plan 1",
+			selectedHTML: initialSelectedHTML,
+			waitlistHTML: initialWaitlistHTML,
+			initialSelectedHTML,
+			initialWaitlistHTML,
+			savedSignature: "",
+		}];
+		let currentPlanIndex = 0;
 
 		function getSelectedRows() {
 			return Array.from(selectedPlanBody.querySelectorAll("tr[data-code]"));
@@ -50,7 +68,7 @@
 		}
 
 		function hasUnsavedPlanChanges() {
-			return getCurrentPlanSignature() !== lastSavedPlanSignature;
+			return getCurrentPlanSignature() !== plans[currentPlanIndex].savedSignature;
 		}
 
 		function updateCreditStatus(totalCredits) {
@@ -153,6 +171,129 @@
 				const rowText = row.textContent.toLowerCase();
 				row.style.display = !query || rowText.includes(query) ? "" : "none";
 			});
+		}
+
+		function refreshAvailableCourseButtons() {
+			Array.from(availableCoursesBody.querySelectorAll("tr")).forEach((row) => {
+				const button = row.querySelector("button[data-code]");
+				if (!button) return;
+				setCourseButtonState(button.dataset.code, row.dataset.availability || "open");
+			});
+			getSelectedRows().forEach((row) => {
+				if (row.dataset.code) setCourseButtonState(row.dataset.code, "added");
+			});
+			getWaitlistedRows().forEach((row) => {
+				if (row.dataset.code) setCourseButtonState(row.dataset.code, "waitlisted");
+			});
+		}
+
+		function saveCurrentPlanState() {
+			plans[currentPlanIndex].selectedHTML = selectedPlanBody.innerHTML;
+			plans[currentPlanIndex].waitlistHTML = waitlistBody.innerHTML;
+		}
+
+		function updateCarousel() {
+			prevPlanBtn.disabled = currentPlanIndex === 0;
+			nextPlanBtn.disabled = currentPlanIndex === plans.length - 1;
+			renderPlanPager();
+		}
+
+		function renderPlanPager() {
+			if (!planPager) return;
+
+			planPager.innerHTML = "";
+			const maxVisiblePages = 5;
+			const totalPlans = plans.length;
+
+			let startIndex = 0;
+			let endIndex = totalPlans;
+
+			if (totalPlans > maxVisiblePages) {
+				startIndex = Math.max(0, currentPlanIndex - Math.floor(maxVisiblePages / 2));
+				endIndex = Math.min(totalPlans, startIndex + maxVisiblePages);
+
+				if (endIndex - startIndex < maxVisiblePages) {
+					startIndex = Math.max(0, endIndex - maxVisiblePages);
+				}
+			}
+
+			for (let index = startIndex; index < endIndex; index += 1) {
+				const pageBtn = document.createElement("button");
+				pageBtn.type = "button";
+				pageBtn.className = "plan-page-btn";
+				pageBtn.dataset.planIndex = String(index);
+				pageBtn.textContent = String(index + 1);
+				if (index === currentPlanIndex) {
+					pageBtn.classList.add("active");
+					pageBtn.setAttribute("aria-current", "page");
+				}
+				planPager.appendChild(pageBtn);
+			}
+		}
+
+		function switchToPlan(index) {
+			saveCurrentPlanState();
+			currentPlanIndex = index;
+			const plan = plans[currentPlanIndex];
+			selectedPlanBody.innerHTML = plan.selectedHTML;
+			waitlistBody.innerHTML = plan.waitlistHTML;
+			refreshAvailableCourseButtons();
+			toggleEmptyState();
+			toggleWaitlistEmptyState();
+			recalculateCredits();
+			renderPreviewTimetable();
+			updateCarousel();
+		}
+
+		function addNewPlan() {
+			saveCurrentPlanState();
+			plans.push({
+				name: `Plan ${plans.length + 1}`,
+				selectedHTML: emptySelectedHTML,
+				waitlistHTML: emptyWaitlistHTML,
+				initialSelectedHTML: emptySelectedHTML,
+				initialWaitlistHTML: emptyWaitlistHTML,
+				savedSignature: "",
+			});
+			currentPlanIndex = plans.length - 1;
+			selectedPlanBody.innerHTML = emptySelectedHTML;
+			waitlistBody.innerHTML = emptyWaitlistHTML;
+			refreshAvailableCourseButtons();
+			toggleEmptyState();
+			toggleWaitlistEmptyState();
+			recalculateCredits();
+			renderPreviewTimetable();
+			updateCarousel();
+		}
+
+		function removeCurrentPlan() {
+			if (plans.length === 1) {
+				window.alert("You must have at least one plan.");
+				return;
+			}
+			const confirmed = window.confirm(`Remove "${plans[currentPlanIndex].name}"? This cannot be undone.`);
+			if (!confirmed) return;
+			plans.splice(currentPlanIndex, 1);
+			if (currentPlanIndex >= plans.length) {
+				currentPlanIndex = plans.length - 1;
+			}
+			const plan = plans[currentPlanIndex];
+			selectedPlanBody.innerHTML = plan.selectedHTML;
+			waitlistBody.innerHTML = plan.waitlistHTML;
+			refreshAvailableCourseButtons();
+			toggleEmptyState();
+			toggleWaitlistEmptyState();
+			recalculateCredits();
+			renderPreviewTimetable();
+			updateCarousel();
+		}
+
+		function initPinnedPlanCarousel() {
+			if (!planCarousel) return;
+			planCarousel.classList.add("is-pinned-top");
+			planCarousel.style.left = "";
+			planCarousel.style.top = "";
+			planCarousel.style.width = "";
 		}
 
 		function formatHour(hour) {
@@ -466,23 +607,6 @@
 			removeWaitlistedCourse(courseCode);
 		});
 
-		clearPlanBtn.addEventListener("click", () => {
-			getSelectedRows().forEach((row) => {
-				resetCourseButtonState(row.dataset.code);
-				row.remove();
-			});
-
-			getWaitlistedRows().forEach((row) => {
-				resetCourseButtonState(row.dataset.code);
-				row.remove();
-			});
-
-			toggleEmptyState();
-			toggleWaitlistEmptyState();
-			recalculateCredits();
-			renderPreviewTimetable();
-		});
-
 		submitPlanBtn.addEventListener("click", () => {
 			const totalCredits = Number(creditValue.textContent || 0);
 
@@ -496,7 +620,7 @@
 				if (!proceed) return;
 			}
 
-			lastSavedPlanSignature = getCurrentPlanSignature();
+			plans[currentPlanIndex].savedSignature = getCurrentPlanSignature();
 			window.alert("Study plan submitted successfully.");
 		});
 
@@ -511,24 +635,7 @@
 			availableCourseSearch.addEventListener("input", filterAvailableCourses);
 		}
 
-		Array.from(availableCoursesBody.querySelectorAll("tr")).forEach((row) => {
-			const button = row.querySelector("button[data-code]");
-			if (!button) return;
-
-			setCourseButtonState(button.dataset.code, row.dataset.availability || "open");
-		});
-
-		getSelectedRows().forEach((row) => {
-			if (row.dataset.code) {
-				setCourseButtonState(row.dataset.code, "added");
-			}
-		});
-
-		getWaitlistedRows().forEach((row) => {
-			if (row.dataset.code) {
-				setCourseButtonState(row.dataset.code, "waitlisted");
-			}
-		});
+		refreshAvailableCourseButtons();
 
 		undoPlanBtn.addEventListener("click", () => {
 			if (!hasUnsavedPlanChanges()) return;
@@ -536,31 +643,42 @@
 			const confirmed = window.confirm("Undo all changes and restore the original plan?");
 			if (!confirmed) return;
 
-			selectedPlanBody.innerHTML = initialSelectedHTML;
-			waitlistBody.innerHTML = initialWaitlistHTML;
-
-			Array.from(availableCoursesBody.querySelectorAll("tr")).forEach((row) => {
-				const button = row.querySelector("button[data-code]");
-				if (!button) return;
-				setCourseButtonState(button.dataset.code, row.dataset.availability || "open");
-			});
-
-			getSelectedRows().forEach((row) => {
-				if (row.dataset.code) setCourseButtonState(row.dataset.code, "added");
-			});
-
-			getWaitlistedRows().forEach((row) => {
-				if (row.dataset.code) setCourseButtonState(row.dataset.code, "waitlisted");
-			});
-
+			const plan = plans[currentPlanIndex];
+			selectedPlanBody.innerHTML = plan.initialSelectedHTML;
+			waitlistBody.innerHTML = plan.initialWaitlistHTML;
+			refreshAvailableCourseButtons();
 			toggleEmptyState();
 			toggleWaitlistEmptyState();
 			recalculateCredits();
 			renderPreviewTimetable();
 		});
 
-		lastSavedPlanSignature = getCurrentPlanSignature();
+		plans[currentPlanIndex].savedSignature = getCurrentPlanSignature();
+		updateCarousel();
 		toggleEmptyState();
 		toggleWaitlistEmptyState();
 		recalculateCredits();
 		renderPreviewTimetable();
+		initPinnedPlanCarousel();
+
+		prevPlanBtn.addEventListener("click", () => {
+			if (currentPlanIndex > 0) switchToPlan(currentPlanIndex - 1);
+		});
+
+		nextPlanBtn.addEventListener("click", () => {
+			if (currentPlanIndex < plans.length - 1) switchToPlan(currentPlanIndex + 1);
+		});
+
+		addPlanBtn.addEventListener("click", addNewPlan);
+
+		removePlanBtn.addEventListener("click", removeCurrentPlan);
+
+		if (planPager) {
+			planPager.addEventListener("click", (event) => {
+				const button = event.target.closest(".plan-page-btn");
+				if (!button) return;
+				const targetIndex = Number(button.dataset.planIndex);
+				if (!Number.isInteger(targetIndex) || targetIndex === currentPlanIndex) return;
+				switchToPlan(targetIndex);
+			});
+		}

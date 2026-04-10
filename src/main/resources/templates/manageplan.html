@@ -288,6 +288,12 @@
 
 				<aside class="right-card" aria-label="Current semester plan">
 					<h2>Current Plan</h2>
+					<div class="plan-carousel">
+						<button type="button" class="carousel-nav" id="prevPlanBtn" aria-label="Previous plan">&#x2039; Prev</button>
+						<div class="plan-pager" id="planPager" aria-label="Plan pages"></div>
+						<button type="button" class="carousel-nav" id="nextPlanBtn" aria-label="Next plan">Next &#x203A;</button>
+						<button type="button" class="carousel-add-btn" id="addPlanBtn">+ New Plan</button>
+					</div>
 					<p class="muted">Courses selected for this term.</p>
 
 					<div class="table-wrapper">
@@ -374,7 +380,7 @@
 					<div class="button-row">
 						<button type="button" class="secondary-btn" id="submitPlanBtn">Submit Plan</button>
 						<button type="button" class="secondary-btn" id="undoPlanBtn">Undo All Changes</button>
-						<button type="button" class="danger-btn" id="clearPlanBtn">Clear Plan</button>
+							<button type="button" class="danger-btn" id="removePlanBtn">Remove Plan</button>
 					</div>
 
 					<div class="waitlist-card" aria-label="Current waitlist">
