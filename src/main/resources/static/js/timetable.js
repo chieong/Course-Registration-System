@@ -1,5 +1,5 @@
 const START = 9;
-const END = 22;
+const END = 21;
 const SLOT_HEIGHT = 160;
 const classes = [
   { code: "CSC204", title: "Database Systems", day: "M", start: "09:00", end: "12:00", venue: "Lab 2", lecturer: "Dr. Lim", type: "Lab" },
