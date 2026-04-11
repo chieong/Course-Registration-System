@@ -1,4 +1,4 @@
-package org;
+package org.cityuhk.CourseRegistrationSystem;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
