@@ -1,4 +1,4 @@
-package org.cityuhk.course_registration_system;
+package org.cityuhk.CourseRegistrationSystem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
