@@ -1,5 +1,9 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 import java.util.ArrayList;
+
+import org.springframework.stereotype.Service;
+
+@Service
 public class SessionManager { 
 //assigning a session to a logged in account so the system knows which account requires a specific operation(e.g. add class)
 // some operation need specific permissions, for example, only logged in students can add/drop section, only logged in admins can manage users

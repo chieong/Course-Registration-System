@@ -2,23 +2,35 @@ package org.cityuhk.CourseRegistrationSystem.Service;
 
 import java.util.ArrayList;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 public class CourseRegistrationSystem {
 
-	private static CourseRegistrationSystem instance=new CourseRegistrationSystem();
-	private RegistrationManager registrationManager;
-	private RegistrationPlanManager registrationPlanManager;
-	private ICourseRepository courseRepo;
-	private IUserRepository userRepo;
-	private IRegistrationPeriodRepository registrationPeriodRepo;
+	private final ICourseRepository courseRepository;
+	private final IRegistrationPeriodRepository registrationPeriodRepo;
+	private final IUserRepository userRepository;
+	private final RegistrationManager registrationManager;
+	private final RegistrationPlanManager registrationPlanManager;
+	private final SessionManager sessionManager;
 
 
-	private CourseRegistrationSystem() {
-	}
-
-	public static CourseRegistrationSystem getInstance() { //CourseRegistrationSystem is a singleton
-		return instance;
-	}
+        @Autowired
+        private CourseRegistrationSystem(
+                ICourseRepository courseRepository,
+                IRegistrationPeriodRepository registrationPeriodRepo,
+                IUserRepository userRepository,
+                RegistrationManager registrationManager,
+                RegistrationPlanManager registrationPlanManager,
+                SessionManager sessionManager
+                ) {
+            this.courseRepository = courseRepository;
+            this.registrationManager = registrationManager;
+            this.registrationPeriodRepo = registrationPeriodRepo;
+            this.registrationPlanManager = registrationPlanManager;
+            this.userRepository = userRepository;
+            this.sessionManager = sessionManager;
+        }
 
 	/**
 	 * Return null if the userEID or password is incorrect
@@ -26,8 +38,7 @@ public class CourseRegistrationSystem {
 	 * @param password
 	 */
 	public String newSession(String userEID, String password) {
-		SessionManager sm = SessionManager.getInstance();
-		String session = sm.createNewSession(userEID, password);
+		String session = sessionManager.createNewSession(userEID, password);
 		return session;
 	}
 
