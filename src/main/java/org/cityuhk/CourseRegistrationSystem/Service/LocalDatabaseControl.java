@@ -67,7 +67,7 @@ public class LocalDatabaseControl implements ICourseRepository, IRegistrationRec
 	 * 
 	 * @param sectionId
 	 */
-	public void pollNextFromWaitlist(id sectionId) {
+	public void pollNextFromWaitlist(int sectionId) {
 		// TODO - implement LocalDatabaseControl.pollNextFromWaitlist
 		throw new UnsupportedOperationException();
 	}
@@ -112,8 +112,8 @@ public class LocalDatabaseControl implements ICourseRepository, IRegistrationRec
 		// TODO - implement LocalDatabaseControl.getAllRegistrationPeriod
 		throw new UnsupportedOperationException();
 	}
-
-	public boolean validateCredential() {
+	
+	public boolean validateCredential(String username, String password) {
 		// TODO - implement LocalDatabaseControl.validateCredential
 		throw new UnsupportedOperationException();
 	}
@@ -154,5 +154,7 @@ public class LocalDatabaseControl implements ICourseRepository, IRegistrationRec
 		// TODO - implement LocalDatabaseControl.deleteUser
 		throw new UnsupportedOperationException();
 	}
+
+
 
 }
