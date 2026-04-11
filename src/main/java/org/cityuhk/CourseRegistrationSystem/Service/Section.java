@@ -17,7 +17,13 @@ public class Section {
 	private ArrayList<IStudent> waitlistedStudent;
 	
 	public void enrollStudent(IStudent Student) {
-
+		if (hasSpace()) {
+			enrolledStudent.add(Student);
+			incrementEnrollment();
+		} else {
+			//TODO - throw exception or add to waitlist
+			throw new UnsupportedOperationException("Section is full.");
+		}
 	}
 
 	public void dropStudent(IStudent Student) {
@@ -25,13 +31,14 @@ public class Section {
 		enrolledStudent.remove(Student);
 	}
 
-	/**
-	 * 
-	 * @param Student
-	 */
 	public void waitlistStudent(IStudent Student) {
-		// TODO - implement Section.waitlistStudent
-		throw new UnsupportedOperationException();
+		if (waitlistCount < waitlistCapacity) {
+			waitlistedStudent.add(Student);
+			waitlistCount++;
+		} else {
+			//TODO - throw exception
+			throw new UnsupportedOperationException("Waitlist is full.");
+		}
 	}
 
 	//getter
@@ -40,23 +47,19 @@ public class Section {
 	}
 
 	public boolean hasSpace() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'hasSpace'");
+		return enrolledCount < capacity;
 	}
 
     public void incrementEnrollment() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'incrementEnrollment'");
+		enrolledCount++;
     }
 
     public void decrementEnrollment() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'decrementEnrollment'");
+        enrolledCount--;
     }
 
     public void notifyWaitlist() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'notifyWaitlist'");
+
     }
 
     public void removeFromWaitlist(Student student) {
