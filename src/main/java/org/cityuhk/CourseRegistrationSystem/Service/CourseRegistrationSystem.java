@@ -37,6 +37,8 @@ public class CourseRegistrationSystem {
 	 * @param sectionId
 	 */
 	public void addSection(String courseCode, int sectionId, int sessionId) {
+		//add todo
+		throw new UnsupportedOperationException();
 
 	}
 
@@ -46,6 +48,8 @@ public class CourseRegistrationSystem {
 	 * @param sectionId
 	 */
 	public void dropSection(String courseCode, int sectionId, int sessionId) {
+		//add todo
+		throw new UnsupportedOperationException();
 
 	}
 
@@ -55,7 +59,8 @@ public class CourseRegistrationSystem {
 	 * @param sectionId
 	 */
 	public void joinSectionWaitlist(String coursecode, int sectionId) {
-
+		//add todo
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -89,7 +94,7 @@ public class CourseRegistrationSystem {
 	 * 
 	 * @param sessionId
 	 */
-	public TimeTable checkTimeTable(int sessionId) {
+	public ArrayList<RegistrationRecord> checkTimeTable(int sessionId) {
 		// TODO - implement CourseRegistrationSystem.getSectionList
 		throw new UnsupportedOperationException();
 

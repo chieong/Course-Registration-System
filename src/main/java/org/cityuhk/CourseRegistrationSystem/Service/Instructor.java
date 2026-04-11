@@ -6,6 +6,10 @@ public class Instructor extends User implements IStaff, IAcademic {
 	private int staffId;
 	private String department;
 
+	public Instructor(String userEID, String name) {
+		super(userEID, name);
+	}
+
 	public void getStaffId() {
 		// TODO - implement Instructor.getStaffId
 		throw new UnsupportedOperationException();
