@@ -1,4 +1,4 @@
-package org;
+package org.cityuhk.CourseRegistrationSystem;
 
 import org.cityuhk.CourseRegistrationSystem.Service.Term;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
