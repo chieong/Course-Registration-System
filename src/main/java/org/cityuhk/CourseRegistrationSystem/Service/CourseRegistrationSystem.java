@@ -19,7 +19,7 @@ public class CourseRegistrationSystem {
 
 
         @Autowired
-        private CourseRegistrationSystem(
+        public CourseRegistrationSystem(
                 ICourseRepository courseRepository,
                 IRegistrationPeriodRepository registrationPeriodRepo,
                 IUserRepository userRepository,
