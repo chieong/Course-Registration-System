@@ -13,17 +13,16 @@ public class Section {
 	private String venue;
 	private Course course;
 	private int waitlistCount;
-	private ArrayList<IStudent> enRolledStudent;
+	private ArrayList<IStudent> enrolledStudent;
 	private ArrayList<IStudent> waitlistedStudent;
 	
-	
-	/**
-	 * 
-	 * @param Student
-	 */
 	public void enrollStudent(IStudent Student) {
-		// TODO - implement Section.enrollStudent
-		throw new UnsupportedOperationException();
+
+	}
+
+	public void dropStudent(IStudent Student) {
+		waitlistedStudent.remove(Student);
+		enrolledStudent.remove(Student);
 	}
 
 	/**
@@ -39,5 +38,30 @@ public class Section {
 	public int getSectionID() {
 		return sectionId;
 	}
+
+	public boolean hasSpace() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'hasSpace'");
+	}
+
+    public void incrementEnrollment() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'incrementEnrollment'");
+    }
+
+    public void decrementEnrollment() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'decrementEnrollment'");
+    }
+
+    public void notifyWaitlist() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'notifyWaitlist'");
+    }
+
+    public void removeFromWaitlist(Student student) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'removeFromWaitlist'");
+    }
 
 }
