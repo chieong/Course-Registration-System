@@ -10,7 +10,7 @@ public class RegistrationRecord {
 		this.student = student;
 		this.section = section;
 		this.timestamp = timestamp;
-		this.state = new PendingState(); // Initialize with a default state
+		this.state = new RSPendingState(); // Initialize with a default state
 	}
 
 	public void setState(RegistrationState state) {

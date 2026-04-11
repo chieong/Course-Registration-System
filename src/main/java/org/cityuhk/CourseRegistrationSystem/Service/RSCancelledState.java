@@ -4,18 +4,17 @@ public class RSCancelledState implements RegistrationState {
     
     @Override
     public void confirm(RegistrationRecord record) {
-        throw new IllegalStateException("Cannot confirm a cancelled registration.");
+        //do nothing, cannot confirm a cancelled record
     }
 
     @Override
     public void drop(RegistrationRecord record) {
-        // Already dropped/cancelled.
-        throw new IllegalStateException("Cancelled records cannot be dropped again.");
+        //do nothing, cannot drop a cancelled record
     }
 
     @Override
     public void waitlist(RegistrationRecord record) {
-        throw new IllegalStateException("Cancelled records cannot be moved to waitlist.");
+        //do nothing, cannot waitlist a cancelled record
     }
 
     @Override
