@@ -27,7 +27,7 @@ public class SessionManager {
 	 */
 	public String getSessionUserEID(String sessionId) {
 		for (LoginSession session : loginSessions) {
-			if (session.getSessionId() == sessionId) {
+			if (session.getSessionId().equals(sessionId)) {
 				if (session.isExpired()) {
 					loginSessions.remove(session); 
 					return null;
