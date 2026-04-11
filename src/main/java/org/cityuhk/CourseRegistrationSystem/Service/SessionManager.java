@@ -11,7 +11,7 @@ public class SessionManager {
 	private ArrayList<LoginSession> loginSessions;
 	private ICredentialRepository credentialDB;
 
-	private SessionManager() {
+	protected SessionManager() {
 		loginSessions = new ArrayList<>();
 	}
 
