@@ -1,10 +1,13 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 
+@Service
 public class CourseRegistrationSystem {
 
 	private final ICourseRepository courseRepository;
@@ -37,9 +40,8 @@ public class CourseRegistrationSystem {
 	 * @param userEID 
 	 * @param password
 	 */
-	public String newSession(String userEID, String password) {
-		String session = sessionManager.createNewSession(userEID, password);
-		return session;
+	public UUID newSession(String userEID, String password) {
+		return sessionManager.createNewSession(userEID, password);
 	}
 
 	/**

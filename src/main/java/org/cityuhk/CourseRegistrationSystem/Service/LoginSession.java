@@ -10,7 +10,7 @@ public class LoginSession {
 	private LocalDateTime validUtil;
 
 	public LoginSession(String userEID) {
-		this.sessionId =  UUID.fromString(userEID);
+		this.sessionId =  UUID.randomUUID();
 		this.userEID = userEID;
 
 	}
@@ -18,8 +18,8 @@ public class LoginSession {
 		return LocalDateTime.now().isAfter(validUtil);
 	}
 
-	public String getSessionId() {
-		return sessionId.toString();
+	public UUID getSessionId() {
+		return sessionId;
 	}
 	
 	public String getUserEID() {
