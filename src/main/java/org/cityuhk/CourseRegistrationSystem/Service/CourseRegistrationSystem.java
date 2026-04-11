@@ -1,9 +1,11 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
+import org.cityuhk.CourseRegistrationSystem.Exception.UnauthorizedAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 
 @Service
@@ -45,9 +47,17 @@ public class CourseRegistrationSystem {
     /**
      * @param courseCode
      * @param sectionId
+     * @throws UnauthorizedAccess 
      */
-    public void addSection(String courseCode, int sectionId, UUID sessionId) {
-
+    public void addSection(String courseCode, int sectionId, UUID sessionId) throws UnauthorizedAccess {
+        User user = userRepository.getUser(sessionManager.getSessionUserEID(sessionId));
+        Course course = courseRepository.getCourseById(courseCode);
+        Section section = course.SearchSectionID(sectionId);
+        if (user instanceof Student student) {
+            registrationManager.addSection(student, section);
+            return;
+        }
+        throw new UnauthorizedAccess();
     }
 
     /**
