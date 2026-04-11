@@ -1,6 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 public interface IStaff {
 
-	void getStaffId();
+	public int getStaffId();
 
 }
