@@ -6,11 +6,38 @@ public class Instructor extends User implements IStaff, IAcademic {
 	private int staffId;
 	private String department;
 
-	public Instructor(String userEID, String name) {
-		super(userEID, name);
+	public Instructor(InstructorBuilder builder) {
+		super(builder);
+		this.staffId = builder.staffId;
+		this.department = builder.department;
 	}
 
-	public void getStaffId() {
+	public static class InstructorBuilder extends User.Builder<InstructorBuilder> {
+		private int staffId;
+		private String department;
+
+		public InstructorBuilder withStaffId(int staffId) {
+			this.staffId = staffId;
+			return self();
+		}
+
+		public InstructorBuilder withDepartment(String department) {
+			this.department = department;
+			return self();
+		}
+
+		@Override
+		protected InstructorBuilder self() {
+			return this;
+		}
+
+		@Override
+		public User build() {
+			return new Instructor(this);
+		}
+	}
+
+	public int getStaffId() {
 		// TODO - implement Instructor.getStaffId
 		throw new UnsupportedOperationException();
 	}
