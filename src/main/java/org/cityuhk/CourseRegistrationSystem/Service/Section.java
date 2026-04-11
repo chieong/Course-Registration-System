@@ -58,13 +58,9 @@ public class Section {
         enrolledCount--;
     }
 
-    public void notifyWaitlist() {
-
-    }
-
     public void removeFromWaitlist(Student student) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'removeFromWaitlist'");
+		waitlistedStudent.remove(student);
+		waitlistCount--;
     }
 
 }

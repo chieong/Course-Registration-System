@@ -1,6 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
-public class CancelledState implements RegistrationState {
+public class RSCancelledState implements RegistrationState {
     
     @Override
     public void confirm(RegistrationRecord record) {
@@ -10,7 +10,7 @@ public class CancelledState implements RegistrationState {
     @Override
     public void drop(RegistrationRecord record) {
         // Already dropped/cancelled.
-        System.out.println("Registration is already in cancelled state.");
+        throw new IllegalStateException("Cancelled records cannot be dropped again.");
     }
 
     @Override

@@ -1,19 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
-public class ConfirmedState implements RegistrationState {
+public class RSConfirmedState implements RegistrationState {
     @Override
     public void confirm(RegistrationRecord record) {
-        // TODO : bro what why would you confirm a confirmed record
+        throw new IllegalStateException("Already confirmed.");
     }
 
     @Override
     public void drop(RegistrationRecord record) {
-        // Business Logic: Free up a seat in the section
         record.getSection().decrementEnrollment();
-        record.setState(new CancelledState());
-        
-        // Trigger logic to notify the next person on the waitlist
-        record.getSection().notifyWaitlist();
+        record.setState(new RSCancelledState());
     }
 
     @Override
@@ -22,5 +18,7 @@ public class ConfirmedState implements RegistrationState {
     }
 
     @Override
-    public String getStatusName() { return "CONFIRMED"; }
+    public String getStatusName() { 
+        return "CONFIRMED"; 
+    }
 }
