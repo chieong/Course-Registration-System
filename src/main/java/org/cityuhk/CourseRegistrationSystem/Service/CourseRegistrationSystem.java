@@ -13,7 +13,7 @@ public class CourseRegistrationSystem {
 	private IUserRepository userRepo;
 	private IRegistrationPeriodRepository registrationPeriodRepo;
 
-	private CourseRegistrationSystem() {
+	protected CourseRegistrationSystem() {
 	}
 
 
