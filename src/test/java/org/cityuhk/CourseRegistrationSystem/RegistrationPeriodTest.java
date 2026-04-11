@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 public class RegistrationPeriodTest {
     @Test
-    void registrationPeriodCanBeInstantiated() {
+    void registrationPeriodTest() { // registrationPeriodCanBeInstantiated()
         RegistrationPeriod rp = new RegistrationPeriod();
         assertNotNull(rp);
 }
