@@ -1,8 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.cityuhk.CourseRegistrationSystem.Service.Student;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 public class StudentTest {
@@ -14,9 +13,15 @@ public class StudentTest {
 	}
 	
 	@Test
-	void FailedvalidateSemesterCreditCountTest() {
+	void FailedvalidateSemesterCreditCountTestByExceedingMaxCredit() {
 		Student stu=new Student(null,null,0,5,20,null,0,null,0);
-		assertEquals(false,stu.validateSemesterCreditCount(3));
+		assertEquals(false,stu.validateSemesterCreditCount(23));
+	}
+
+	@Test
+	void FailedvalidateSemesterCreditCountTestByExceedingMinCredit() {
+		Student stu=new Student(null,null,0,5,20,null,0,null,0);
+		assertEquals(false,stu.validateSemesterCreditCount(2));
 	}
 	
 	@Test
@@ -24,4 +29,7 @@ public class StudentTest {
 		Student stu=new Student(null,null,0,5,20,null,0,"Clash Royale",0);
 		assertEquals("Clash Royale",stu.getDepartment());
 	}
+
+	
+
 }

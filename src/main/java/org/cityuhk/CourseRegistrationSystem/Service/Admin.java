@@ -7,7 +7,7 @@ public class Admin extends User implements IStaff {
 		super(userEID, name);
 	}
 
-	public void getStaffId() {
+	public int getStaffId() {
 		// TODO - implement Admin.getStaffId
 		throw new UnsupportedOperationException();
 	}

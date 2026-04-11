@@ -9,6 +9,6 @@ public class CheckTimetableController {
 
     @GetMapping("/Timetable")
     public String checkTimetable(Model model) {
-        return "Timetable"; // resolves to templates/check-timetable.html
+        return "Timetable";
     }
 }
