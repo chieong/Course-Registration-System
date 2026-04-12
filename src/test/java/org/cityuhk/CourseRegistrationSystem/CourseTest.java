@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Course;
-import org.cityuhk.CourseRegistrationSystem.Service.Section;
+import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.junit.jupiter.api.Test;
 
 public class CourseTest {
@@ -23,7 +23,7 @@ public class CourseTest {
     	Section s=new Section(9,0,0,0,null,null,null,0,null,null);
     	sec.add(s);
     	Course c=new Course(null,null,0,null,null,null,null,sec);
-    	assertEquals(s,c.SearchSectionID(9));
+    	assertEquals(s,c.getSection(9));
     }
     
     @Test
@@ -32,7 +32,7 @@ public class CourseTest {
     	Section s=new Section(9,0,0,0,null,null,null,0,null,null);
     	sec.add(s);
     	Course c=new Course(null,null,0,null,null,null,null,sec);
-    	assertEquals(null,c.SearchSectionID(10));
+    	assertEquals(null,c.getSection(10));
     }
 }
 
