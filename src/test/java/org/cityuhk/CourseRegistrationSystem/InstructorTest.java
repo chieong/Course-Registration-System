@@ -1,7 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Instructor;
-import org.cityuhk.CourseRegistrationSystem.Service.User;
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
+import org.cityuhk.CourseRegistrationSystem.Model.User;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;

@@ -1,6 +1,9 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
 import java.util.ArrayList;
+
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+
 public interface IRegistrationPeriodRepository {
 
 	/**

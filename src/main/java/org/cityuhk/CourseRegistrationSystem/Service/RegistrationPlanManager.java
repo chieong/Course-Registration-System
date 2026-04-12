@@ -1,6 +1,11 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
 import java.util.ArrayList;
+
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.springframework.stereotype.Service;
+
+@Service
 public class RegistrationPlanManager {
 
 	/**

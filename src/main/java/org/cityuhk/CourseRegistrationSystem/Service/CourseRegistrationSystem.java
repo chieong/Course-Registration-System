@@ -3,6 +3,9 @@ package org.cityuhk.CourseRegistrationSystem.Service;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

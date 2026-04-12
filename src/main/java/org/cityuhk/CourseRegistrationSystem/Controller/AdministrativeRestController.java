@@ -2,6 +2,7 @@ package org.cityuhk.CourseRegistrationSystem.Controller;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Service.AdministrativeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +20,7 @@ public class AdministrativeRestController {
 
     private final AdministrativeService administrativeService;
 
+    @Autowired
     public AdministrativeRestController(AdministrativeService administrativeService) {
         this.administrativeService = administrativeService;
     }

@@ -45,6 +45,24 @@ public class Section {
 
     public Section() {}
 
+    /** Legacy 10-arg constructor used in tests. */
+    public Section(
+            int sectionId,
+            int enrollCapacity,
+            int waitlistCapacity,
+            int minStudents,
+            String typeStr,
+            String venue,
+            Course course,
+            int extraParam,
+            Set<Student> enrolledStudents,
+            Set<Student> waitlistedStudents) {
+        this.sectionId = sectionId;
+        this.enrollCapacity = enrollCapacity;
+        this.waitlistCapacity = waitlistCapacity;
+        this.venue = venue;
+    }
+
     public Section(
             int sectionId,
             int enrollCapacity,
@@ -74,6 +92,14 @@ public class Section {
     // getter
     public int getSectionID() {
         return sectionId;
+    }
+
+    public void enrollStudent(Student student) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void waitlistStudent(Student student) {
+        throw new UnsupportedOperationException();
     }
 
     // public Course getCourse() {

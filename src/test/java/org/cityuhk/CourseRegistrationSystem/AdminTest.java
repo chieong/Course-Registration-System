@@ -1,8 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Admin;
-import org.cityuhk.CourseRegistrationSystem.Service.Admin.AdminBuilder;
-import org.cityuhk.CourseRegistrationSystem.Service.User;
+import org.cityuhk.CourseRegistrationSystem.Model.Admin;
+import org.cityuhk.CourseRegistrationSystem.Model.Admin.AdminBuilder;
+import org.cityuhk.CourseRegistrationSystem.Model.User;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import org.junit.jupiter.api.Test;

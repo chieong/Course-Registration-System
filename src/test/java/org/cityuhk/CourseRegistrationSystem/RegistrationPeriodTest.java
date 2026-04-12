@@ -1,6 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-import org.cityuhk.CourseRegistrationSystem.Service.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 

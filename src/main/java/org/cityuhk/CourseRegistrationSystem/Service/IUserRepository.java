@@ -1,4 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+
+import org.cityuhk.CourseRegistrationSystem.Model.User;
+
 public interface IUserRepository {
 
 	/**

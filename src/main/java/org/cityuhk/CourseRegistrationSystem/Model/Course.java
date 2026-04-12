@@ -10,7 +10,9 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -45,6 +47,26 @@ public class Course { // for creating a course
     private String term;
 
     public Course() {}
+
+    /** Constructor without a generated ID; used in tests and ad-hoc construction. */
+    public Course(
+            String courseCode,
+            String title,
+            int credits,
+            String description,
+            String term,
+            Set<Course> prerequisiteCourses,
+            Set<Course> exclusiveCourses,
+            Collection<Section> sections) {
+        this.courseCode = courseCode;
+        this.title = title;
+        this.credits = credits;
+        this.description = description;
+        this.term = term;
+        this.prerequisiteCourses = prerequisiteCourses;
+        this.exclusiveCourses = exclusiveCourses;
+        this.sections = sections != null ? new HashSet<>(sections) : null;
+    }
 
     public Course(
             int courseId,

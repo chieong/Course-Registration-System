@@ -1,6 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-import org.cityuhk.CourseRegistrationSystem.Service.AcademicRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.AcademicRecord;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 

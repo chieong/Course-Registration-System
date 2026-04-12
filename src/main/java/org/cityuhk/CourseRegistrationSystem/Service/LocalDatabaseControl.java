@@ -1,6 +1,14 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
 import java.util.ArrayList;
+
+import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.User;
+import org.springframework.stereotype.Service;
+
+@Service
 public class LocalDatabaseControl implements ICourseRepository, IRegistrationRecordRepository, IRegistrationPlanRepository, IRegistrationPeriodRepository, ICredentialRepository, IUserRepository {
 
 	/**

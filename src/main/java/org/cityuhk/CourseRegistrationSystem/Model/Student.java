@@ -133,6 +133,10 @@ public class Student extends User
 
     // should be deleted later
 
+    public boolean validateSemesterCreditCount(int additional) {
+        return (additional >= minSemesterCredit && additional <= maxSemesterCredit);
+    }
+
     // @Override
     public boolean validateSemesterCreditCount(int additional, Semester semester) {
 

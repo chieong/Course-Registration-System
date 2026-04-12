@@ -1,4 +1,9 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
+
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
+import org.springframework.stereotype.Service;
+
+@Service
 public class RegistrationManager {
 
 	/**
