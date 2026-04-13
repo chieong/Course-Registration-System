@@ -30,9 +30,20 @@ public class RegistrationController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime semesterStart,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime semesterEnd) {
         try {
-            Semester semester = new Semester(semesterStart, semesterEnd);
-            registrationService.addSection(studentId, sectionId, LocalDateTime.now(), semester);
+            registrationService.addSection(studentId, sectionId, LocalDateTime.now());
             return ResponseEntity.ok("Registration added successfully");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PostMapping("/drop")
+    public ResponseEntity<String> dropRegistration(
+            @RequestParam Integer studentId,
+            @RequestParam Integer sectionId) {
+        try {
+            registrationService.dropSection(studentId, sectionId, LocalDateTime.now());
+            return ResponseEntity.ok("Registration dropped successfully");
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }

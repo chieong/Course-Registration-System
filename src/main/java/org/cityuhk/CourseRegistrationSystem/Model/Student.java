@@ -21,10 +21,6 @@ public class Student extends User
 // implements IAcademic, IStudent
 {
 
-    protected Student() {
-        // Required by JPA for entity instantiation.
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer studentId;
@@ -167,16 +163,20 @@ public class Student extends User
     }
 
     public boolean hasCredits(int additional) {
-        return additional <= maxSemesterCredit;
+        return (additional) > maxSemesterCredit;
     }
 
-    public RegistrationRecord addSection(Section section, LocalDateTime timestamp, int enrolled, Semester semester) {
+    public RegistrationRecord addSection(Section section, LocalDateTime timestamp, int enrolled) {
         if (!section.canEnroll(this, enrolled)) {
-            throw new RuntimeException("Enrollment conditions not met");
+            throw new RuntimeException();
         }
         return new RegistrationRecord(this, section, timestamp);
     }
 
+    public RegistrationRecord dropSection(Section section, LocalDateTime timestamp) {
+        return new RegistrationRecord(this, section, timestamp);
+    }
     // getter
     // add when needed
 }
+
