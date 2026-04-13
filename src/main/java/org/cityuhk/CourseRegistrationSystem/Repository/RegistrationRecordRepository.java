@@ -14,9 +14,8 @@ public interface RegistrationRecordRepository extends JpaRepository<Registration
     int countEnrolled(@Param("sectionId") Integer sectionId);
 
     @Query("select case when count(e) > 0 then true else false end from RegistrationRecord e " +
-           "where e.student.studentId = :studentId and e.section.sectionId = :sectionId and e.timestamp = :timestamp")
-    boolean exists(@Param("studentId") Integer studentId, @Param("sectionId") Integer sectionId,
-                   @Param("timestamp") LocalDateTime timestamp);
+           "where e.student.studentId = :studentId and e.section.sectionId = :sectionId")
+    boolean exists(@Param("studentId") Integer studentId, @Param("sectionId") Integer sectionId);
 
     @Query("select e from RegistrationRecord e " +
            "where e.student.studentId = :studentId and e.timestamp between :start and :end")

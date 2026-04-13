@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 /** which student is enrolled to which section */
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"student_id", "session_id"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"student_student_id", "section_section_id"})})
 public class RegistrationRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

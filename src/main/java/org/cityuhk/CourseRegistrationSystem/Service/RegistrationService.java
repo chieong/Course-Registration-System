@@ -54,7 +54,7 @@ public class RegistrationService {
         if (!existingSection.isPresent()) {
             throw new RuntimeException("Section not found");
         }
-        if (registrationRecordRepository.exists(studentId, sectionId, timestamp)) {
+        if (registrationRecordRepository.exists(studentId, sectionId)) {
             throw new RuntimeException("Already enrolled");
         }
         Student student = existingStudent.get();
