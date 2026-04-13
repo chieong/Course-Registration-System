@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem;
+package org.cityuhk.CourseRegistrationSystem.Service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
