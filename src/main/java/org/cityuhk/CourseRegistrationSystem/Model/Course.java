@@ -32,17 +32,17 @@ public class Course { // for creating a course
             name = "course_prerequisite",
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "prerequisite_id"))
-    private Set<Course> prerequisiteCourses;
+        private Set<Course> prerequisiteCourses = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
             name = "course_exclusive",
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "exclusivve_id"))
-    private Set<Course> exclusiveCourses;
+        private Set<Course> exclusiveCourses = new HashSet<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private Set<Section> sections;
+    private Set<Section> sections = new HashSet<>();
 
     private String term;
 
@@ -63,9 +63,9 @@ public class Course { // for creating a course
         this.credits = credits;
         this.description = description;
         this.term = term;
-        this.prerequisiteCourses = prerequisiteCourses;
-        this.exclusiveCourses = exclusiveCourses;
-        this.sections = sections != null ? new HashSet<>(sections) : null;
+        this.prerequisiteCourses = prerequisiteCourses != null ? new HashSet<>(prerequisiteCourses) : new HashSet<>();
+        this.exclusiveCourses = exclusiveCourses != null ? new HashSet<>(exclusiveCourses) : new HashSet<>();
+        this.sections = sections != null ? new HashSet<>(sections) : new HashSet<>();
     }
 
     public Course(
@@ -82,14 +82,78 @@ public class Course { // for creating a course
         this.title = title;
         this.credits = credits;
         this.description = description;
-        this.prerequisiteCourses = prerequisiteCourses;
-        this.sections = sections;
+        this.prerequisiteCourses = prerequisiteCourses != null ? new HashSet<>(prerequisiteCourses) : new HashSet<>();
+        this.sections = sections != null ? new HashSet<>(sections) : new HashSet<>();
         this.term = term;
     }
 
     // getter
+    public Integer getCourseId() {
+        return courseId;
+    }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public int getCredits() {
         return credits;
+    }
+
+    public void setCredits(int credits) {
+        this.credits = credits;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Set<Course> getPrerequisiteCourses() {
+        return prerequisiteCourses;
+    }
+
+    public void setPrerequisiteCourses(Set<Course> prerequisiteCourses) {
+        this.prerequisiteCourses = prerequisiteCourses != null ? prerequisiteCourses : new HashSet<>();
+    }
+
+    public Set<Course> getExclusiveCourses() {
+        return exclusiveCourses;
+    }
+
+    public void setExclusiveCourses(Set<Course> exclusiveCourses) {
+        this.exclusiveCourses = exclusiveCourses != null ? exclusiveCourses : new HashSet<>();
+    }
+
+    public Set<Section> getSections() {
+        return sections;
+    }
+
+    public void setSections(Set<Section> sections) {
+        this.sections = sections != null ? sections : new HashSet<>();
+    }
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
     }
 
     public Section getSection(int sectionId) {
