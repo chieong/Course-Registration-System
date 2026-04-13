@@ -27,13 +27,24 @@ public class AdministrativeService {
 
     @Transactional
     public Admin createUser(AdminUserRequest request) {
+        if (request.getUserEID() == null || request.getUserEID().isBlank()) {
+            throw new RuntimeException("User EID is required");
+        }
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new RuntimeException("Name is required");
+        }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             throw new RuntimeException("Password is required");
         }
 
+        String normalizedUserEID = request.getUserEID().trim();
+        if (adminRepository.findByUserEID(normalizedUserEID).isPresent()) {
+            throw new RuntimeException("User EID already exists");
+        }
+
         Admin admin = (Admin) new Admin.AdminBuilder()
-                .withUserEID(request.getUserEID())
-                .withName(request.getName())
+                .withUserEID(normalizedUserEID)
+                .withName(request.getName().trim())
                 .withPassword(passwordEncoder.encode(request.getPassword()))
                 .build();
 
@@ -45,6 +56,20 @@ public class AdministrativeService {
         Admin existingAdmin = adminRepository.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
 
+        if (request.getUserEID() == null || request.getUserEID().isBlank()) {
+            throw new RuntimeException("User EID is required");
+        }
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new RuntimeException("Name is required");
+        }
+
+        String normalizedUserEID = request.getUserEID().trim();
+        adminRepository.findByUserEID(normalizedUserEID).ifPresent(admin -> {
+            if (admin.getStaffId() != existingAdmin.getStaffId()) {
+                throw new RuntimeException("User EID already exists");
+            }
+        });
+
         String encodedPassword = existingAdmin.getPassword();
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -52,8 +77,8 @@ public class AdministrativeService {
 
         Admin updatedAdmin = (Admin) new Admin.AdminBuilder()
                 .withStaffId(existingAdmin.getStaffId())
-                .withUserEID(request.getUserEID())
-                .withName(request.getName())
+            .withUserEID(normalizedUserEID)
+            .withName(request.getName().trim())
                 .withPassword(encodedPassword)
                 .build();
 

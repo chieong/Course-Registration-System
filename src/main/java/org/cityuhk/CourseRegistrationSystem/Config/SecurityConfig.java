@@ -38,17 +38,27 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(AdminRepository adminRepository, StudentRepository studentRepository) {
         return username -> adminRepository.findByUserEID(username)
-                .map(admin -> User.builder()
-                        .username(admin.getUserEID())
-                        .password(admin.getPassword())
-                        .roles("ADMIN")
-                        .build())
+                .map(admin -> {
+                    if (admin.getPassword() == null || admin.getPassword().isBlank()) {
+                        throw new UsernameNotFoundException("User has no password set");
+                    }
+                    return User.builder()
+                            .username(admin.getUserEID())
+                            .password(admin.getPassword())
+                            .roles("ADMIN")
+                            .build();
+                })
                 .or(() -> studentRepository.findByUserEID(username)
-                        .map(student -> User.builder()
-                                .username(student.getUserEID())
-                                .password(student.getPassword())
-                                .roles("STUDENT")
-                                .build()))
+                        .map(student -> {
+                            if (student.getPassword() == null || student.getPassword().isBlank()) {
+                                throw new UsernameNotFoundException("User has no password set");
+                            }
+                            return User.builder()
+                                    .username(student.getUserEID())
+                                    .password(student.getPassword())
+                                    .roles("STUDENT")
+                                    .build();
+                        }))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 

@@ -4,7 +4,10 @@ import java.util.Optional;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface AdminRepository extends JpaRepository<Admin, Integer> {
-	Optional<Admin> findByUserEID(String userEID);
+	@Query("select a from Admin a where lower(a.UserEID) = lower(:userEID)")
+	Optional<Admin> findByUserEID(@Param("userEID") String userEID);
 }
