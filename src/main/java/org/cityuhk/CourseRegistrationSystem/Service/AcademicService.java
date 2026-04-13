@@ -21,9 +21,10 @@ public class AcademicService {
         if (user == null || !(user instanceof IAcademic)) {
             throw new RuntimeException("User not found or not an academic");
         }
+        return new ByteArrayResource(getTimetable((IAcademic) user).getBytes());
     }
 
     public String getTimetable (IAcademic academic) {
-        
+        return "Bruh";
     }
 }

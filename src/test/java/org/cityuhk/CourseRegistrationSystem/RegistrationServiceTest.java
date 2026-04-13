@@ -45,7 +45,7 @@ public class RegistrationServiceTest {
         when(studentRepo.findById(1)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.addSection(1, 10, LocalDateTime.now(), createTestSemester()));
+                () -> service.addSection(1, 10, LocalDateTime.now()));
         assertTrue(ex.getMessage().contains("Student not found"));
         verify(studentRepo).findById(1);
     }
@@ -73,7 +73,7 @@ public class RegistrationServiceTest {
         when(sectionRepo.findById(10)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.addSection(1, 10, LocalDateTime.now(), createTestSemester()));
+                () -> service.addSection(1, 10, LocalDateTime.now()));
         assertTrue(ex.getMessage().contains("Section not found"));
         verify(sectionRepo).findById(10);
     }
@@ -104,7 +104,7 @@ public class RegistrationServiceTest {
         when(recordRepo.exists(1, 10)).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.addSection(1, 10, timestamp, createTestSemester()));
+                () -> service.addSection(1, 10, timestamp));
         assertTrue(ex.getMessage().contains("Already enrolled"));
         verify(recordRepo).exists(1, 10);
     }
@@ -136,7 +136,7 @@ public class RegistrationServiceTest {
         when(recordRepo.countEnrolled(10)).thenReturn(5);
 
         try {
-            service.addSection(1, 10, timestamp, createTestSemester());
+            service.addSection(1, 10, timestamp);
         } catch (Exception e) {
             // Expected if section.canEnroll() fails, but we verify countEnrolled was called
         }
@@ -696,8 +696,8 @@ public class RegistrationServiceTest {
 
             @Override
             public Optional<RegistrationRecord> findById(Integer id) {
-                Optional.of(student);
-                
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'findById'");
             }
 
             @Override
@@ -846,7 +846,7 @@ public class RegistrationServiceTest {
         RegistrationRecordRepository recordRepo = new stubrecordRepo();
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
-        service.addSection(1, 10, timestamp, semester);
+        service.addSection(1, 10, timestamp );
 
         assertTrue(saveCalled.get(), "Expected save(...) to be called");
         assertNotNull(savedRecord.get(), "Expected saved RegistrationRecord");
