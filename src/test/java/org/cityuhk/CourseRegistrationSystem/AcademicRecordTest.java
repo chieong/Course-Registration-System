@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 public class AcademicRecordTest {
     @Test
-    void AcademicRecordTest() {
+    public void AcademicRecordTest() {
         AcademicRecord ar = new AcademicRecord();
         assertNotNull(ar);
     }

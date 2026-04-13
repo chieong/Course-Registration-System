@@ -8,8 +8,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
-
 import java.time.LocalDateTime;
 
 /** which student is enrolled to which section */
@@ -36,9 +34,6 @@ public class RegistrationRecord {
         this.timestamp = timestamp;
     }
 
-    public boolean within(Semester semester) {
-        return timestamp.isBefore(semester.start()) && timestamp.isAfter(semester.end());
-    }
 
     public int addCredits(int sum) {
         return section.addCredits(sum);

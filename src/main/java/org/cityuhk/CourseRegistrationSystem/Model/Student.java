@@ -14,8 +14,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
-
 @Entity
 public class Student extends User
 // implements IAcademic, IStudent
@@ -131,20 +129,12 @@ public class Student extends User
         }
     }
 
-    // should be deleted later
-
-    public boolean validateSemesterCreditCount(int additional) {
-        return (additional >= minSemesterCredit && additional <= maxSemesterCredit);
-    }
-
     // @Override
-    public boolean validateSemesterCreditCount(int additional, Semester semester) {
+    public boolean validateSemesterCreditCount(int additional) {
 
         int sum = additional;
         for (RegistrationRecord record : registrationRecords) {
-            if (record.within(semester)) {
-                sum = record.addCredits(sum);
-            }
+            sum = record.addCredits(sum);
         }
         return (sum >= minSemesterCredit && sum <= maxSemesterCredit);
     }

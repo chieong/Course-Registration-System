@@ -3,7 +3,6 @@ package org.cityuhk.CourseRegistrationSystem.Controller;
 import java.time.LocalDateTime;
 
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,9 +25,7 @@ public class RegistrationController {
     @PostMapping("/add")
     public ResponseEntity<String> addRegistration(
             @RequestParam Integer studentId,
-            @RequestParam Integer sectionId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime semesterStart,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime semesterEnd) {
+            @RequestParam Integer sectionId) {
         try {
             registrationService.addSection(studentId, sectionId, LocalDateTime.now());
             return ResponseEntity.ok("Registration added successfully");

@@ -16,7 +16,6 @@ import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordReposit
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,10 +34,6 @@ public class RegistrationServiceTest {
 
     
 
-    private Semester createTestSemester() {
-        LocalDateTime now = LocalDateTime.now();
-        return new Semester(now, now.plusDays(120));
-    }
 
     @Test
     void addSectionThrowsWhenStudentNotFoundTest() {
@@ -223,7 +218,6 @@ public class RegistrationServiceTest {
         };
 
         LocalDateTime timestamp = LocalDateTime.now();
-        Semester semester = new Semester(timestamp.minusDays(1), timestamp.plusDays(120));
 
         AtomicBoolean saveCalled = new AtomicBoolean(false);
         AtomicReference<RegistrationRecord> savedRecord = new AtomicReference<>();

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 // Service class for managing Student entities.
@@ -73,7 +72,7 @@ public class RegistrationService {
         if (!existingSection.isPresent()) {
             throw new RuntimeException("Section not found");
         }
-        if (!registrationRecordRepository.exists(studentId, sectionId, timestamp)) {
+        if (!registrationRecordRepository.exists(studentId, sectionId)) {
             throw new RuntimeException("Not enrolled");
         }
         Student student = existingStudent.get();
