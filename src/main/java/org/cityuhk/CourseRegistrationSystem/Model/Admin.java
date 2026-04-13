@@ -14,6 +14,10 @@ public class Admin extends User
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int staffId;
 
+    protected Admin() {
+        // Required by JPA for entity instantiation.
+    }
+
     public Admin(AdminBuilder builder) {
         super(builder);
         this.staffId = builder.staffId;

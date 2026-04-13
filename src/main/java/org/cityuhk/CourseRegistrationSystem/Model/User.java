@@ -8,6 +8,10 @@ public abstract class User {
     private String UserEID;
     private String name;
 
+    protected User() {
+        // Required by JPA for entity instantiation.
+    }
+
     public User(Builder<?> builder) {
         this.UserEID = builder.userEID;
         this.name = builder.name;
