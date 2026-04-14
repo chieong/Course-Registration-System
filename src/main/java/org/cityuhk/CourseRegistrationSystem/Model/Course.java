@@ -116,4 +116,12 @@ public class Course { // for creating a course
     public int addCredits(int sum) {
         return sum + credits;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
 }
