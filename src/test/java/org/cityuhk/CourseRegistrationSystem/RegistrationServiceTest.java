@@ -185,7 +185,6 @@ public class RegistrationServiceTest {
         String row = "MON    10:00        CS101        A1       LEC               Y1234";
         when(record.toTimetableRow(any(), any())).thenReturn(row);
 
-        // optional but safe for Collections.sort(records)
         when(record.compareTo(any(RegistrationRecord.class))).thenReturn(0);
 
         List<RegistrationRecord> records = new ArrayList<>();
@@ -202,9 +201,9 @@ public class RegistrationServiceTest {
         String content = Files.readString(output);
         assertTrue(content.contains("STUDENT TIMETABLE"));
         assertTrue(content.contains("Student ID: 1"));
-        assertTrue(content.contains(row)); // confirms writer.write(row) happened
+        assertTrue(content.contains(row)); 
 
-        verify(record).toTimetableRow(any(), any()); // confirms loop line executed
+        verify(record).toTimetableRow(any(), any()); 
 
         Files.deleteIfExists(output);
     }
