@@ -50,10 +50,10 @@ public class RegistrationController {
             byte[] fileBytes = Files.readAllBytes(exportedFile);
             Files.deleteIfExists(exportedFile);
 
-            String filename = "student-" + studentId + "-timetable.csv";
+                String filename = "student-" + studentId + "-timetable.txt";
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                    .contentType(MediaType.parseMediaType("text/csv"))
+                    .contentType(MediaType.TEXT_PLAIN)
                     .body(fileBytes);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage().getBytes());

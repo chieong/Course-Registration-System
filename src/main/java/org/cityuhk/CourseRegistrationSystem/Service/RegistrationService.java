@@ -11,10 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.io.BufferedWriter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,32 +81,60 @@ public class RegistrationService {
         }
 
         List<RegistrationRecord> records = registrationRecordRepository.findByStudentId(studentId);
+        records.sort(Comparator
+                .comparing((RegistrationRecord r) -> {
+                    Section s = r.getSection();
+                    return s != null ? s.getStartTime() : null;
+                }, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(r -> {
+                    Section s = r.getSection();
+                    return s != null ? s.getEndTime() : null;
+                }, Comparator.nullsLast(Comparator.naturalOrder())));
+
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
         try {
-            Path outputPath = Files.createTempFile("student-" + studentId + "-timetable-", ".csv");
+            Path outputPath = Files.createTempFile("student-" + studentId + "-timetable-", ".txt");
             try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
-                writer.write("studentId,sectionId,courseCode,courseTitle,sectionType,venue,startTime,endTime,registeredAt");
+                writer.write("STUDENT TIMETABLE");
+                writer.newLine();
+                writer.write("Student ID: " + studentId);
+                writer.newLine();
+                writer.write("Generated At: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+                writer.newLine();
+                writer.newLine();
+
+                String header = String.format("%-6s %-13s %-12s %-8s %-18s %-22s", "DAY", "TIME", "COURSE", "SEC", "TYPE", "VENUE");
+                writer.write(header);
+                writer.newLine();
+                writer.write("----------------------------------------------------------------------");
                 writer.newLine();
 
                 for (RegistrationRecord record : records) {
                     Section section = record.getSection();
+                    if (section == null) {
+                        continue;
+                    }
+
                     String courseCode = section.getCourse() != null ? section.getCourse().getCourseCode() : "";
-                    String courseTitle = section.getCourse() != null ? section.getCourse().getTitle() : "";
                     String sectionType = section.getType() != null ? section.getType().name() : "";
                     String venue = section.getVenue() != null ? section.getVenue() : "";
-                    String startTime = section.getStartTime() != null ? section.getStartTime().toString() : "";
-                    String endTime = section.getEndTime() != null ? section.getEndTime().toString() : "";
-                    String registeredAt = record.getTimestamp() != null ? record.getTimestamp().toString() : "";
 
-                    writer.write(studentId + ","
-                            + section.getSectionID() + ","
-                            + csvEscape(courseCode) + ","
-                            + csvEscape(courseTitle) + ","
-                            + csvEscape(sectionType) + ","
-                            + csvEscape(venue) + ","
-                            + csvEscape(startTime) + ","
-                            + csvEscape(endTime) + ","
-                            + csvEscape(registeredAt));
+                    String day = section.getStartTime() != null ? section.getStartTime().format(dayFormatter) : "N/A";
+                    String timeRange = (section.getStartTime() != null && section.getEndTime() != null)
+                            ? section.getStartTime().format(timeFormatter) + "-" + section.getEndTime().format(timeFormatter)
+                            : "N/A";
+
+                    String row = String.format(
+                            "%-6s %-13s %-12s %-8s %-18s %-22s",
+                            day,
+                            timeRange,
+                            trimToWidth(courseCode, 12),
+                            section.getSectionID(),
+                            trimToWidth(sectionType, 18),
+                            trimToWidth(venue, 22));
+                    writer.write(row);
                     writer.newLine();
                 }
             }
@@ -114,11 +144,13 @@ public class RegistrationService {
         }
     }
 
-    private String csvEscape(String value) {
+    private String trimToWidth(String value, int width) {
         if (value == null) {
             return "";
         }
-        String escaped = value.replace("\"", "\"\"");
-        return "\"" + escaped + "\"";
+        if (value.length() <= width) {
+            return value;
+        }
+        return value.substring(0, Math.max(0, width - 3)) + "...";
     }
 }
