@@ -90,11 +90,11 @@ public class RegistrationServiceTest {
 
         when(studentRepo.findById(1)).thenReturn(Optional.of(student));
         when(sectionRepo.findById(10)).thenReturn(Optional.of(section));
-        when(recordRepo.exists(1, 10, timestamp)).thenReturn(true);
+        when(recordRepo.exists(1, 10)).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> service.addSection(1, 10, timestamp, createTestSemester()));
         assertTrue(ex.getMessage().contains("Already enrolled"));
-        verify(recordRepo).exists(1, 10, timestamp);
+        verify(recordRepo).exists(1, 10);
     }
 }
