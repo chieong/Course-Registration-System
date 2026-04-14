@@ -94,6 +94,26 @@ public class Section {
         return sectionId;
     }
 
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public String getVenue() {
+        return venue;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
     public void enrollStudent(Student student) {
         throw new UnsupportedOperationException();
     }

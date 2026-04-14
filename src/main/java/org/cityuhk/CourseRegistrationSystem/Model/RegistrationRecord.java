@@ -36,6 +36,18 @@ public class RegistrationRecord {
         this.timestamp = timestamp;
     }
 
+    public Student getStudent() {
+        return student;
+    }
+
+    public Section getSection() {
+        return section;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
     public boolean within(Semester semester) {
         return timestamp.isBefore(semester.start()) && timestamp.isAfter(semester.end());
     }
