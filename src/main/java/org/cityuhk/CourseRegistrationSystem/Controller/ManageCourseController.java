@@ -5,10 +5,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class ManageClassesController {
+public class ManageCourseController {
 
-    @GetMapping("/manageclass")
-    public String manageClasses(Model model) {
-        return "manageclass"; // resolves to templates/manage-classes.html
+    @GetMapping("/ManageCourse") 
+    public String manageCourse(Model model) { 
+        return "ManageCourse";
     }
+
 }

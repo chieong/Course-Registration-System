@@ -1,22 +1,65 @@
-<!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
-<head> 
-    <title>Getting Started: Serving Web Content</title> 
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Home | University Course Registration</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
 </head>
-<body>
-    <header>
-    </header>
-    <nav th:replace="~{nav :: nav}">
-    </nav>
-    <div style="padding: 3vh;">
-        <h1 style="text-align: center;">Welcome to Course Registration System</h1>
-        <a th:href="@{/ViewMasterClassSchedule}">View Master Class Schedule</a></p>
-        <a th:href="@{/Timetable}">View Timetable</a></p>
-        <a th:href="@{/manageclass}">Manage Class</a></p>
-        <a th:href="@{/manageplan}">Manage Plan</a></p>
-        <a th:href="@{/studentlist}">Check Student List</a></p>
-    </div>
+<body class="home-page">
+    <nav th:replace="~{fragments/nav :: nav}"></nav>
+
+    <main class="container">
+        <header class="page-header">
+            <h1>Welcome to Course Registration System</h1>
+            <p class="home-intro">Quickly jump to the page you need.</p>
+        </header>
+
+        <section class="quick-actions" aria-label="Home page quick links">
+            <a class="quick-card" th:href="@{/ViewMasterClassSchedule}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+                <span class="quick-card-title">Master Class Schedule</span>
+                <span class="quick-card-desc">Browse the complete class schedule for all offerings.</span>
+            </a>
+
+            <a class="quick-card" th:href="@{/timetable}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="table-properties"></i></span>
+                <span class="quick-card-title">Timetable</span>
+                <span class="quick-card-desc">View your weekly class timetable in one place.</span>
+            </a>
+
+            <a class="quick-card" th:href="@{/manageplan}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="clipboard-list"></i></span>
+                <span class="quick-card-title">Manage Plan</span>
+                <span class="quick-card-desc">Create and update your study plan for the term.</span>
+            </a>
+
+            <a class="quick-card" th:href="@{/ManageCourse}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="book-open-text"></i></span>
+                <span class="quick-card-title">Manage Course</span>
+                <span class="quick-card-desc">Add, edit, and organize course information.</span>
+            </a>
+
+            <a class="quick-card" th:href="@{/ManageUser}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="users"></i></span>
+                <span class="quick-card-title">Manage User</span>
+                <span class="quick-card-desc">Handle user accounts and role access settings.</span>
+            </a>
+
+            <a class="quick-card" th:href="@{/studentlist}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="list-checks"></i></span>
+                <span class="quick-card-title">Student List</span>
+                <span class="quick-card-desc">Check registered students and export the list.</span>
+            </a>
+
+            <a class="quick-card" th:href="@{/login}">
+                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="log-in"></i></span>
+                <span class="quick-card-title">Login</span>
+                <span class="quick-card-desc">Sign in to continue to secured features.</span>
+            </a>
+        </section>
+    </main>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script th:src="@{/js/home-icons.js}" defer></script>
 </body>
 </html>

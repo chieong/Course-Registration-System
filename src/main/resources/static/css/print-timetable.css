@@ -1,0 +1,206 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 30px;
+  color: #333;
+  background: #fff;
+  line-height: 1.5;
+}
+
+h1,
+h2 {
+  color: #1e3c72;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+p {
+  color: #555;
+  text-align: center;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 20px 0 30px;
+}
+
+.meta div {
+  background: #f4f7fb;
+  border: 1px solid #d9e5f7;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  margin-bottom: 30px;
+  table-layout: fixed;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 10px 8px;
+  text-align: center;
+  vertical-align: middle;
+  word-wrap: break-word;
+}
+
+th {
+  background: #1e3c72;
+  color: #fff;
+}
+
+#weeklyTable {
+  table-layout: fixed;
+}
+
+#detailsTable {
+  table-layout: auto;
+}
+
+#weeklyTable thead th {
+  background: #1e3c72;
+  color: #fff;
+}
+
+#weeklyTable td {
+  text-align: left;
+  vertical-align: top;
+}
+
+#weeklyTable .time-col {
+  font-weight: bold;
+  background: #f8fbff;
+  color: #1e3c72;
+  text-align: center;
+}
+
+#weeklyTable .class-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  border: 1px solid #cfdff7;
+  border-radius: 8px;
+  color: #1e3c72;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 8px;
+  height: 100%;
+  text-align: center;
+  gap: 4px;
+}
+
+#weeklyTable tbody tr {
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
+}
+
+#weeklyTable tbody td {
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
+  border-left: none;
+  border-right: none;
+  overflow: hidden;
+}
+
+#weeklyTable .class-block .course-code-link {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e3c72;
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+#weeklyTable .class-block .course-code-link:hover,
+#weeklyTable .class-block .course-code-link:focus {
+  text-decoration: none;
+  color: #1e3c72;
+}
+
+#weeklyTable .class-block .course-title {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #143a66;
+}
+
+#weeklyTable .class-block .venue {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #5a2e00;
+  background: #fff4df;
+  border: 1px solid #d59d3e;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 2px 0 3px;
+}
+
+#weeklyTable .section-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  background: #d9ecff;
+  color: #143a66;
+  border: 1px solid #a9ccf5;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.print-controls {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.print-controls button {
+  background: #1e3c72;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0 6px;
+}
+
+.footer {
+  margin-top: 25px;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+}
+
+@media print {
+  .print-controls {
+    display: none;
+  }
+
+  body {
+    padding: 10px;
+  }
+}

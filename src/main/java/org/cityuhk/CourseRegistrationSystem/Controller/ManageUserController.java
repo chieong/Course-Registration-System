@@ -5,10 +5,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class CheckTimetableController {
+public class ManageUserController {
 
-    @GetMapping("/timetable")
-    public String checkTimetable(Model model) {
-    return "timetable";
+    @GetMapping("/ManageUser") 
+    public String manageUser(Model model) { 
+        return "ManageUser";
     }
+
 }

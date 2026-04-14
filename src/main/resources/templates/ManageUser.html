@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage Users | University Course Registration</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" href="/css/styles.css" />
+</head>
+<body>
+    <nav th:replace="~{fragments/nav :: nav}"></nav>
+
+    <main class="container">
+        <header class="page-header">
+            <h1>Manage Users</h1>
+            <p class="muted">Create, update, and remove user accounts for students and staff.</p>
+        </header>
+
+        <div id="muNotification" class="mu-notification is-hidden" role="status" aria-live="polite" hidden>
+            <span id="muNotificationText"></span>
+            <button type="button" id="muNotificationClose" class="mu-notification-close" aria-label="Dismiss">&#x2715;</button>
+        </div>
+
+        <section class="info-banner" aria-label="User management message">
+            Account updates apply immediately. Keep role assignments accurate for access control.
+        </section>
+
+        <section class="summary-grid" aria-label="User statistics">
+            <article class="summary-card">
+                <h3>Total Users</h3>
+                <p id="muStatTotal">0</p>
+            </article>
+            <article class="summary-card">
+                <h3>Active Users</h3>
+                <p id="muStatActive">0</p>
+            </article>
+            <article class="summary-card">
+                <h3>Students</h3>
+                <p id="muStatStudent">0</p>
+            </article>
+            <article class="summary-card">
+                <h3>Staff</h3>
+                <p id="muStatStaff">0</p>
+            </article>
+        </section>
+
+        <section class="section-card mu-filter-section" aria-label="User filters">
+            <h2>Filters</h2>
+            <div class="mu-filter-row">
+                <div class="form-group">
+                    <label for="muSearch">Search User</label>
+                    <input id="muSearch" type="text" placeholder="Username, name, or email" />
+                </div>
+                <div class="form-group">
+                    <label for="muRoleFilter">Role</label>
+                    <select id="muRoleFilter">
+                        <option value="">All Roles</option>
+                        <option value="Student">Student</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="muStatusFilter">Status</label>
+                    <select id="muStatusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Disabled">Disabled</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-card" aria-label="User table">
+            <div class="split-title">
+                <h2>User Accounts</h2>
+                <button type="button" id="muAddBtn" class="mu-header-btn">+ Add User</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table aria-label="All users table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="muTableBody">
+                        <tr class="empty-row">
+                            <td colspan="6">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <p class="footer-text">© 2026 University Course Registration System</p>
+    </main>
+
+    <dialog id="muDialog" class="master-dialog">
+        <div class="master-dialog-header">
+            <h3 id="muDialogTitle">Add User</h3>
+            <button type="button" class="dialog-close-btn" id="muCloseDialogBtn">Close</button>
+        </div>
+        <div class="master-dialog-content">
+            <form id="muForm" novalidate>
+                <div class="mu-form-grid">
+                    <div class="form-group">
+                        <label for="muUsername">Username</label>
+                        <input id="muUsername" type="text" placeholder="e.g. s1234567" />
+                    </div>
+                    <div class="form-group">
+                        <label for="muFullName">Full Name</label>
+                        <input id="muFullName" type="text" placeholder="e.g. Alex Wong" />
+                    </div>
+                    <div class="form-group">
+                        <label for="muEmail">Email</label>
+                        <input id="muEmail" type="email" placeholder="name@my.cityu.edu.hk" />
+                    </div>
+                    <div class="form-group">
+                        <label for="muRole">Role</label>
+                        <select id="muRole">
+                            <option value="">Select role</option>
+                            <option value="Student">Student</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="muStatus">Status</label>
+                        <select id="muStatus">
+                            <option value="Active">Active</option>
+                            <option value="Disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="muPassword">Temporary Password</label>
+                        <input id="muPassword" type="password" placeholder="At least 8 characters" />
+                    </div>
+                </div>
+                <p class="mu-form-error is-hidden" id="muFormError" role="alert"></p>
+                <div class="action-row">
+                    <button type="submit" id="muSaveBtn">Add User</button>
+                    <button type="button" class="secondary-btn" id="muCancelDialogBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="muDeleteDialog" class="mc-confirm-dialog">
+        <div class="master-dialog-header">
+            <h3>Remove User</h3>
+            <button type="button" class="dialog-close-btn" id="muCloseDeleteBtn">Close</button>
+        </div>
+        <div class="master-dialog-content">
+            <p>The following user account will be permanently removed:</p>
+            <div class="mu-user-details" id="muDeleteDetails"></div>
+            <p id="muDeleteMsg" class="mu-delete-warning">Are you sure? This action cannot be undone.</p>
+            <div class="mc-confirm-actions">
+                <button type="button" class="danger-btn" id="muConfirmDeleteBtn">Remove User</button>
+                <button type="button" class="secondary-btn" id="muCancelDeleteBtn">Cancel</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script th:src="@{/js/manageuser.js}" src="/js/manageuser.js" defer></script>
+</body>
+</html>
