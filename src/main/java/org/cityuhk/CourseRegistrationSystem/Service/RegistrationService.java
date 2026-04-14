@@ -16,11 +16,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.io.BufferedWriter;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-
-// Service class for managing Student entities.
 
 @Service
 public class RegistrationService {
@@ -39,33 +36,17 @@ public class RegistrationService {
         this.registrationRecordRepository = registrationRecordRepository;
     }
 
-    // public Student saveStudent(Student student) {
-    //     return studentRepository.save(student);
-    // }
-    //
-    // public List<Student> getAllStudents() {
-    //     return studentRepository.findAll();
-    // }
-    //
-    // public Optional<Student> getStudentById(Integer id) {
-    //     return studentRepository.findById(id);
-    // }
-
     @Transactional
     public void addSection(Integer studentId, Integer sectionId, LocalDateTime timestamp, Semester semester) {
-        Optional<Student> existingStudent = studentRepository.findById(studentId);
-        if (!existingStudent.isPresent()) {
-            throw new RuntimeException("Student not found");
-        }
-        Optional<Section> existingSection = sectionRepository.findById(sectionId);
-        if (!existingSection.isPresent()) {
-            throw new RuntimeException("Section not found");
-        }
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new RuntimeException("Section not found"));
+        
         if (registrationRecordRepository.exists(studentId, sectionId)) {
             throw new RuntimeException("Already enrolled");
         }
-        Student student = existingStudent.get();
-        Section section = existingSection.get();
+        
         int enrolled = registrationRecordRepository.countEnrolled(sectionId);
         registrationRecordRepository.save(student.addSection(section, timestamp, enrolled, semester));
     }
@@ -75,21 +56,12 @@ public class RegistrationService {
     }
 
     public Path ExportTimeTable(Integer studentId) {
-        Optional<Student> existingStudent = studentRepository.findById(studentId);
-        if (!existingStudent.isPresent()) {
-            throw new RuntimeException("Student not found");
-        }
+        studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
         List<RegistrationRecord> records = registrationRecordRepository.findByStudentId(studentId);
-        records.sort(Comparator
-                .comparing((RegistrationRecord r) -> {
-                    Section s = r.getSection();
-                    return s != null ? s.getStartTime() : null;
-                }, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(r -> {
-                    Section s = r.getSection();
-                    return s != null ? s.getEndTime() : null;
-                }, Comparator.nullsLast(Comparator.naturalOrder())));
+        
+        Collections.sort(records);
 
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -112,45 +84,16 @@ public class RegistrationService {
                 writer.newLine();
 
                 for (RegistrationRecord record : records) {
-                    Section section = record.getSection();
-                    if (section == null) {
-                        continue;
+                    String row = record.toTimetableRow(dayFormatter, timeFormatter);
+                    if (row != null) {
+                        writer.write(row);
+                        writer.newLine();
                     }
-
-                    String courseCode = section.getCourse() != null ? section.getCourse().getCourseCode() : "";
-                    String sectionType = section.getType() != null ? section.getType().name() : "";
-                    String venue = section.getVenue() != null ? section.getVenue() : "";
-
-                    String day = section.getStartTime() != null ? section.getStartTime().format(dayFormatter) : "N/A";
-                    String timeRange = (section.getStartTime() != null && section.getEndTime() != null)
-                            ? section.getStartTime().format(timeFormatter) + "-" + section.getEndTime().format(timeFormatter)
-                            : "N/A";
-
-                    String row = String.format(
-                            "%-6s %-13s %-12s %-8s %-18s %-22s",
-                            day,
-                            timeRange,
-                            trimToWidth(courseCode, 12),
-                            section.getSectionID(),
-                            trimToWidth(sectionType, 18),
-                            trimToWidth(venue, 22));
-                    writer.write(row);
-                    writer.newLine();
                 }
             }
             return outputPath;
         } catch (Exception ex) {
             throw new RuntimeException("Failed to export timetable", ex);
         }
-    }
-
-    private String trimToWidth(String value, int width) {
-        if (value == null) {
-            return "";
-        }
-        if (value.length() <= width) {
-            return value;
-        }
-        return value.substring(0, Math.max(0, width - 3)) + "...";
     }
 }
