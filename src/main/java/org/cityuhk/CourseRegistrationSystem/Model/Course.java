@@ -68,25 +68,6 @@ public class Course { // for creating a course
         this.sections = sections != null ? new HashSet<>(sections) : null;
     }
 
-    public Course(
-            int courseId,
-            String courseCode,
-            String title,
-            int credits,
-            String description,
-            Set<Course> prerequisiteCourses,
-            Set<Section> sections,
-            String term) {
-        this.courseId = courseId;
-        this.courseCode = courseCode;
-        this.title = title;
-        this.credits = credits;
-        this.description = description;
-        this.prerequisiteCourses = prerequisiteCourses;
-        this.sections = sections;
-        this.term = term;
-    }
-
     // getter
     public int getCredits() {
         return credits;
