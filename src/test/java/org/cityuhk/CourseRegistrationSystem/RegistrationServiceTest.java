@@ -1,8 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.nio.file.Path;
 
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
@@ -10,10 +17,20 @@ import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Semester;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TextTimetableExporter;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,4 +114,9 @@ public class RegistrationServiceTest {
         assertTrue(ex.getMessage().contains("Already enrolled"));
         verify(recordRepo).exists(1, 10);
     }
+
+    // NOTE: Export timetable tests have been moved to TimetableServiceTests
+    // in org.cityuhk.CourseRegistrationSystem.Service.Timetable package
+    // The export functionality is now handled by TimetableService following
+    // SOLID principles and GoF patterns (Facade, Strategy, Builder patterns)
 }

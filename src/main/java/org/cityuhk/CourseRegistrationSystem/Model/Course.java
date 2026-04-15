@@ -68,25 +68,6 @@ public class Course { // for creating a course
         this.sections = sections != null ? new HashSet<>(sections) : new HashSet<>();
     }
 
-    public Course(
-            int courseId,
-            String courseCode,
-            String title,
-            int credits,
-            String description,
-            Set<Course> prerequisiteCourses,
-            Set<Section> sections,
-            String term) {
-        this.courseId = courseId;
-        this.courseCode = courseCode;
-        this.title = title;
-        this.credits = credits;
-        this.description = description;
-        this.prerequisiteCourses = prerequisiteCourses != null ? new HashSet<>(prerequisiteCourses) : new HashSet<>();
-        this.sections = sections != null ? new HashSet<>(sections) : new HashSet<>();
-        this.term = term;
-    }
-
     // getter
     public Integer getCourseId() {
         return courseId;
@@ -179,5 +160,13 @@ public class Course { // for creating a course
 
     public int addCredits(int sum) {
         return sum + credits;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getCourseCode() {
+        return courseCode;
     }
 }
