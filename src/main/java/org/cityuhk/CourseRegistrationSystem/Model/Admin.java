@@ -37,7 +37,7 @@ public class Admin extends User
         }
 
         @Override
-        public User build() {
+        public Admin build() {
             return new Admin(this);
         }
     }
