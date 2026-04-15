@@ -37,12 +37,9 @@ public class RegistrationController {
     @PostMapping("/add")
     public ResponseEntity<String> addRegistration(
             @RequestParam Integer studentId,
-            @RequestParam Integer sectionId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime semesterStart,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime semesterEnd) {
+            @RequestParam Integer sectionId) {
         try {
-            Semester semester = new Semester(semesterStart, semesterEnd);
-            registrationService.addSection(studentId, sectionId, LocalDateTime.now(), semester);
+            registrationService.addSection(studentId, sectionId, LocalDateTime.now());
             return ResponseEntity.ok("Registration added successfully");
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -69,6 +66,18 @@ public class RegistrationController {
             return ResponseEntity.internalServerError().body(("Export failed: " + ex.getMessage()).getBytes());
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().body("Failed to export timetable".getBytes());
+        }
+    }
+}
+    @PostMapping("/drop")
+    public ResponseEntity<String> dropRegistration(
+            @RequestParam Integer studentId,
+            @RequestParam Integer sectionId) {
+        try {
+            registrationService.dropSection(studentId, sectionId, LocalDateTime.now());
+            return ResponseEntity.ok("Registration dropped successfully");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 }

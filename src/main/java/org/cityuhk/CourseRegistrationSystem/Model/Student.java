@@ -14,16 +14,10 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
-
 @Entity
 public class Student extends User
 // implements IAcademic, IStudent
 {
-
-    protected Student() {
-        // Required by JPA for entity instantiation.
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -135,20 +129,12 @@ public class Student extends User
         }
     }
 
-    // should be deleted later
-
-    public boolean validateSemesterCreditCount(int additional) {
-        return (additional >= minSemesterCredit && additional <= maxSemesterCredit);
-    }
-
     // @Override
-    public boolean validateSemesterCreditCount(int additional, Semester semester) {
+    public boolean validateSemesterCreditCount(int additional) {
 
         int sum = additional;
         for (RegistrationRecord record : registrationRecords) {
-            if (record.within(semester)) {
-                sum = record.addCredits(sum);
-            }
+            sum = record.addCredits(sum);
         }
         return (sum >= minSemesterCredit && sum <= maxSemesterCredit);
     }
@@ -167,16 +153,20 @@ public class Student extends User
     }
 
     public boolean hasCredits(int additional) {
-        return additional <= maxSemesterCredit;
+        return (additional) > maxSemesterCredit;
     }
 
-    public RegistrationRecord addSection(Section section, LocalDateTime timestamp, int enrolled, Semester semester) {
+    public RegistrationRecord addSection(Section section, LocalDateTime timestamp, int enrolled) {
         if (!section.canEnroll(this, enrolled)) {
-            throw new RuntimeException("Enrollment conditions not met");
+            throw new RuntimeException();
         }
         return new RegistrationRecord(this, section, timestamp);
     }
 
+    public RegistrationRecord dropSection(Section section, LocalDateTime timestamp) {
+        return new RegistrationRecord(this, section, timestamp);
+    }
     // getter
     // add when needed
 }
+

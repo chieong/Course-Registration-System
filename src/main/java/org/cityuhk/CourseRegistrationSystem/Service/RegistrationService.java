@@ -41,7 +41,25 @@ public class RegistrationService {
         }
         
         int enrolled = registrationRecordRepository.countEnrolled(sectionId);
-        registrationRecordRepository.save(student.addSection(section, timestamp, enrolled, semester));
+        registrationRecordRepository.save(student.addSection(section, timestamp, enrolled));
+    }
+
+    @Transactional
+    public void dropSection(Integer studentId, Integer sectionId, LocalDateTime timestamp) {
+        Optional<Student> existingStudent = studentRepository.findById(studentId);
+        if (!existingStudent.isPresent()) {
+            throw new RuntimeException("Student not found");
+        }
+        Optional<Section> existingSection = sectionRepository.findById(sectionId);
+        if (!existingSection.isPresent()) {
+            throw new RuntimeException("Section not found");
+        }
+        if (!registrationRecordRepository.exists(studentId, sectionId)) {
+            throw new RuntimeException("Not enrolled");
+        }
+        Student student = existingStudent.get();
+        Section section = existingSection.get();
+        registrationRecordRepository.delete(student.dropSection(section, timestamp));
     }
 
     public void deleteStudent(Integer id) {
