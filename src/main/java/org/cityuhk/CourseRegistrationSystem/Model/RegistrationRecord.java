@@ -8,8 +8,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
-
 import java.time.LocalDateTime; 
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -48,10 +46,6 @@ public class RegistrationRecord implements Comparable<RegistrationRecord> {
 
     public LocalDateTime getTimestamp() {
         return timestamp;
-    }
-
-    public boolean within(Semester semester) {
-        return timestamp.isBefore(semester.start()) && timestamp.isAfter(semester.end());
     }
 
     public int addCredits(int sum) {

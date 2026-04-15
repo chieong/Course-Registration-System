@@ -1,19 +1,11 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-
-import java.io.IOException;
-import java.lang.reflect.Proxy;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.rmi.registry.Registry;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
@@ -22,34 +14,21 @@ import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordReposit
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
-import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
-import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
-import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
-import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TextTimetableExporter;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
-import static org.mockito.ArgumentMatchers.any;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class RegistrationServiceTest {
-
-    
-
 
     @Test
     void addSectionThrowsWhenStudentNotFoundTest() {
@@ -60,8 +39,10 @@ public class RegistrationServiceTest {
 
         when(studentRepo.findById(1)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.addSection(1, 10, LocalDateTime.now()));
+        RuntimeException ex =
+                assertThrows(
+                        RuntimeException.class,
+                        () -> service.addSection(1, 10, LocalDateTime.now()));
         assertTrue(ex.getMessage().contains("Student not found"));
         verify(studentRepo).findById(1);
     }
@@ -73,23 +54,26 @@ public class RegistrationServiceTest {
         RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
-        Student student = new Student.StudentBuilder()
-                .withUserEID("s001")
-                .withName("Test Student")
-                .withStudentId(1)
-                .withMinSemesterCredit(0)
-                .withMaxSemesterCredit(999)
-                .withMajor("CS")
-                .withCohort(2024)
-                .withDepartment("CS")
-                .withMaxDegreeCredit(999)
-                .build();
+        Student student =
+                new Student.StudentBuilder()
+                        .withUserEID("s001")
+                        .withName("Test Student")
+                        .withStudentId(1)
+                        .withMinSemesterCredit(0)
+                        .withMaxSemesterCredit(999)
+                        .withMajor("CS")
+                        .withCohort(2024)
+                        .withDepartment("CS")
+                        .withMaxDegreeCredit(999)
+                        .build();
 
         when(studentRepo.findById(1)).thenReturn(Optional.of(student));
         when(sectionRepo.findById(10)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.addSection(1, 10, LocalDateTime.now()));
+        RuntimeException ex =
+                assertThrows(
+                        RuntimeException.class,
+                        () -> service.addSection(1, 10, LocalDateTime.now()));
         assertTrue(ex.getMessage().contains("Section not found"));
         verify(sectionRepo).findById(10);
     }
@@ -101,17 +85,18 @@ public class RegistrationServiceTest {
         RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
-        Student student = new Student.StudentBuilder()
-                .withUserEID("s001")
-                .withName("Test Student")
-                .withStudentId(1)
-                .withMinSemesterCredit(0)
-                .withMaxSemesterCredit(999)
-                .withMajor("CS")
-                .withCohort(2024)
-                .withDepartment("CS")
-                .withMaxDegreeCredit(999)
-                .build();
+        Student student =
+                new Student.StudentBuilder()
+                        .withUserEID("s001")
+                        .withName("Test Student")
+                        .withStudentId(1)
+                        .withMinSemesterCredit(0)
+                        .withMaxSemesterCredit(999)
+                        .withMajor("CS")
+                        .withCohort(2024)
+                        .withDepartment("CS")
+                        .withMaxDegreeCredit(999)
+                        .build();
         Section section = new Section();
         LocalDateTime timestamp = LocalDateTime.now();
 
@@ -119,8 +104,8 @@ public class RegistrationServiceTest {
         when(sectionRepo.findById(10)).thenReturn(Optional.of(section));
         when(recordRepo.exists(1, 10)).thenReturn(true);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.addSection(1, 10, timestamp));
+        RuntimeException ex =
+                assertThrows(RuntimeException.class, () -> service.addSection(1, 10, timestamp));
         assertTrue(ex.getMessage().contains("Already enrolled"));
         verify(recordRepo).exists(1, 10);
     }
@@ -132,17 +117,18 @@ public class RegistrationServiceTest {
         RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
-        Student student = new Student.StudentBuilder()
-                .withUserEID("s001")
-                .withName("Test Student")
-                .withStudentId(1)
-                .withMinSemesterCredit(0)
-                .withMaxSemesterCredit(999)
-                .withMajor("CS")
-                .withCohort(2024)
-                .withDepartment("CS")
-                .withMaxDegreeCredit(999)
-                .build();
+        Student student =
+                new Student.StudentBuilder()
+                        .withUserEID("s001")
+                        .withName("Test Student")
+                        .withStudentId(1)
+                        .withMinSemesterCredit(0)
+                        .withMaxSemesterCredit(999)
+                        .withMajor("CS")
+                        .withCohort(2024)
+                        .withDepartment("CS")
+                        .withMaxDegreeCredit(999)
+                        .build();
         Section section = new Section();
         LocalDateTime timestamp = LocalDateTime.now();
 
@@ -156,7 +142,7 @@ public class RegistrationServiceTest {
         } catch (Exception e) {
             // Expected if section.canEnroll() fails, but we verify countEnrolled was called
         }
-        
+
         verify(recordRepo).countEnrolled(10);
     }
 
@@ -177,7 +163,8 @@ public class RegistrationServiceTest {
     //     StudentRepository studentRepo = mock(StudentRepository.class);
     //     SectionRepository sectionRepo = mock(SectionRepository.class);
     //     RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
-    //     RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
+    //     RegistrationService service = new RegistrationService(studentRepo, sectionRepo,
+    // recordRepo);
 
     //     // Create a real Student (not mocked) that we can call addSection on
     //     Student student = new Student.StudentBuilder()
@@ -195,7 +182,7 @@ public class RegistrationServiceTest {
     //     // Mock Section to return true for canEnroll, so student.addSection() succeeds
     //     Section section = mock(Section.class);
     //     when(section.canEnroll(student, 5)).thenReturn(true);
-        
+
     //     LocalDateTime timestamp = LocalDateTime.now();
 
     //     when(studentRepo.findById(1)).thenReturn(Optional.of(student));
@@ -208,30 +195,31 @@ public class RegistrationServiceTest {
     //     // Verify save() was called with any RegistrationRecord
     //     verify(recordRepo).save(any(RegistrationRecord.class));
 
-        
     // }
 
     @Test
     void addSectionCallsSaveWhenAllSuccessful_withoutMockito() {
-          Student student = new Student.StudentBuilder()
-                .withUserEID("s001")
-                .withName("Test Student")
-                .withStudentId(1)
-                .withMinSemesterCredit(0)
-                .withMaxSemesterCredit(999)
-                .withMajor("CS")
-                .withCohort(2024)
-                .withDepartment("CS")
-                .withMaxDegreeCredit(999)
-                .build();
+        Student student =
+                new Student.StudentBuilder()
+                        .withUserEID("s001")
+                        .withName("Test Student")
+                        .withStudentId(1)
+                        .withMinSemesterCredit(0)
+                        .withMaxSemesterCredit(999)
+                        .withMajor("CS")
+                        .withCohort(2024)
+                        .withDepartment("CS")
+                        .withMaxDegreeCredit(999)
+                        .build();
 
         // Force enrollment check to pass
-        Section section = new Section() {
-            @Override
-            public boolean canEnroll(Student s, int enrolled) {
-                return true;
-            }
-        };
+        Section section =
+                new Section() {
+                    @Override
+                    public boolean canEnroll(Student s, int enrolled) {
+                        return true;
+                    }
+                };
 
         LocalDateTime timestamp = LocalDateTime.now();
 
@@ -240,12 +228,11 @@ public class RegistrationServiceTest {
 
         class stubstudentrepo implements StudentRepository {
 
-
-
             @Override
             public void deleteAllByIdInBatch(Iterable<Integer> ids) {
                 // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllByIdInBatch'");
+                throw new UnsupportedOperationException(
+                        "Unimplemented method 'deleteAllByIdInBatch'");
             }
 
             @Override
@@ -410,7 +397,8 @@ public class RegistrationServiceTest {
             }
 
             @Override
-            public <S extends Student, R> R findBy(Example<S> arg0, Function<FetchableFluentQuery<S>, R> arg1) {
+            public <S extends Student, R> R findBy(
+                    Example<S> arg0, Function<FetchableFluentQuery<S>, R> arg1) {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'findBy'");
             }
@@ -426,12 +414,6 @@ public class RegistrationServiceTest {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'findByUserEID'");
             }
-            
-
-
-
-
-
         }
 
         class stubsectionRepo implements SectionRepository {
@@ -439,7 +421,8 @@ public class RegistrationServiceTest {
             @Override
             public void deleteAllByIdInBatch(Iterable<Integer> ids) {
                 // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllByIdInBatch'");
+                throw new UnsupportedOperationException(
+                        "Unimplemented method 'deleteAllByIdInBatch'");
             }
 
             @Override
@@ -610,18 +593,20 @@ public class RegistrationServiceTest {
             }
 
             @Override
-            public <S extends Section, R> R findBy(Example<S> example,
-                    Function<FetchableFluentQuery<S>, R> queryFunction) {
+            public <S extends Section, R> R findBy(
+                    Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'findBy'");
-            }}
+            }
+        }
 
-        class stubrecordRepo implements RegistrationRecordRepository{
+        class stubrecordRepo implements RegistrationRecordRepository {
 
             @Override
             public void deleteAllByIdInBatch(Iterable<Integer> ids) {
                 // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllByIdInBatch'");
+                throw new UnsupportedOperationException(
+                        "Unimplemented method 'deleteAllByIdInBatch'");
             }
 
             @Override
@@ -777,7 +762,8 @@ public class RegistrationServiceTest {
             }
 
             @Override
-            public <S extends RegistrationRecord> Page<S> findAll(Example<S> example, Pageable pageable) {
+            public <S extends RegistrationRecord> Page<S> findAll(
+                    Example<S> example, Pageable pageable) {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'findAll'");
             }
@@ -795,8 +781,8 @@ public class RegistrationServiceTest {
             }
 
             @Override
-            public <S extends RegistrationRecord, R> R findBy(Example<S> example,
-                    Function<FetchableFluentQuery<S>, R> queryFunction) {
+            public <S extends RegistrationRecord, R> R findBy(
+                    Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'findBy'");
             }
@@ -812,11 +798,18 @@ public class RegistrationServiceTest {
             }
 
             @Override
-            public List<RegistrationRecord> find(Integer studentId, LocalDateTime start, LocalDateTime end) {
+            public List<RegistrationRecord> find(
+                    Integer studentId, LocalDateTime start, LocalDateTime end) {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'find'");
-            }}
+            }
 
+            @Override
+            public List<RegistrationRecord> findByStudentId(Integer studentId) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'findByStudentId'");
+            }
+        }
 
         // StudentRepository studentRepo = (StudentRepository) Proxy.newProxyInstance(
         //         StudentRepository.class.getClassLoader(),
@@ -824,7 +817,8 @@ public class RegistrationServiceTest {
         //         (proxy, method, args) -> {
         //             if (method.getName().equals("findById")) return Optional.of(student);
         //             if (method.getName().equals("toString")) return "StudentRepoStub";
-        //             if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
+        //             if (method.getName().equals("hashCode")) return
+        // System.identityHashCode(proxy);
         //             if (method.getName().equals("equals")) return proxy == args[0];
         //             throw new UnsupportedOperationException("Not stubbed: " + method.getName());
         //         });
@@ -835,12 +829,14 @@ public class RegistrationServiceTest {
         //         (proxy, method, args) -> {
         //             if (method.getName().equals("findById")) return Optional.of(section);
         //             if (method.getName().equals("toString")) return "SectionRepoStub";
-        //             if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
+        //             if (method.getName().equals("hashCode")) return
+        // System.identityHashCode(proxy);
         //             if (method.getName().equals("equals")) return proxy == args[0];
         //             throw new UnsupportedOperationException("Not stubbed: " + method.getName());
         //         });
 
-        // RegistrationRecordRepository recordRepo = (RegistrationRecordRepository) Proxy.newProxyInstance(
+        // RegistrationRecordRepository recordRepo = (RegistrationRecordRepository)
+        // Proxy.newProxyInstance(
         //         RegistrationRecordRepository.class.getClassLoader(),
         //         new Class<?>[] { RegistrationRecordRepository.class },
         //         (proxy, method, args) -> {
@@ -852,7 +848,8 @@ public class RegistrationServiceTest {
         //                 return args[0];
         //             }
         //             if (method.getName().equals("toString")) return "RecordRepoStub";
-        //             if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
+        //             if (method.getName().equals("hashCode")) return
+        // System.identityHashCode(proxy);
         //             if (method.getName().equals("equals")) return proxy == args[0];
         //             throw new UnsupportedOperationException("Not stubbed: " + method.getName());
         //         });
@@ -862,7 +859,7 @@ public class RegistrationServiceTest {
         RegistrationRecordRepository recordRepo = new stubrecordRepo();
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
-        service.addSection(1, 10, timestamp );
+        service.addSection(1, 10, timestamp);
 
         assertTrue(saveCalled.get(), "Expected save(...) to be called");
         assertNotNull(savedRecord.get(), "Expected saved RegistrationRecord");

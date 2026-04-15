@@ -1,7 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;

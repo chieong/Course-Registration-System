@@ -5,11 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
-import org.cityuhk.CourseRegistrationSystem.Service.Semester;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -68,7 +66,7 @@ public class RegistrationController {
             return ResponseEntity.internalServerError().body("Failed to export timetable".getBytes());
         }
     }
-}
+
     @PostMapping("/drop")
     public ResponseEntity<String> dropRegistration(
             @RequestParam Integer studentId,
