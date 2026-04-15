@@ -1,10 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
+import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdministrativeService {
 
     private final AdminRepository adminRepository;
+    private final CourseRepository courseRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AdministrativeService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
+    public AdministrativeService(
+            AdminRepository adminRepository,
+            CourseRepository courseRepository,
+            PasswordEncoder passwordEncoder) {
         this.adminRepository = adminRepository;
+        this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -91,5 +101,133 @@ public class AdministrativeService {
             throw new RuntimeException("Admin user not found");
         }
         adminRepository.deleteById(staffId);
+    }
+
+    @Transactional
+    public Course createCourse(AdminCourseRequest request) {
+        if (request.getCourseCode() == null || request.getCourseCode().isBlank()) {
+            throw new RuntimeException("Course code is required");
+        }
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new RuntimeException("Course title is required");
+        }
+        if (request.getCredits() <= 0) {
+            throw new RuntimeException("Credits must be greater than 0");
+        }
+
+        String courseCode = request.getCourseCode().trim();
+        if (courseRepository.existsByCourseCode(courseCode)) {
+            throw new RuntimeException("Course code already exists");
+        }
+
+        Set<Course> prerequisites = resolveCourseCodes(request.getPrerequisiteCourseCodes(), "Prerequisite");
+        Set<Course> exclusives = resolveCourseCodes(request.getExclusiveCourseCodes(), "Exclusive");
+
+        if (prerequisites.stream().anyMatch(c -> c.getCourseCode().equals(courseCode))) {
+            throw new RuntimeException("A course cannot be its own prerequisite");
+        }
+        if (exclusives.stream().anyMatch(c -> c.getCourseCode().equals(courseCode))) {
+            throw new RuntimeException("A course cannot be its own exclusive course");
+        }
+
+        Course course = new Course(
+                courseCode,
+                request.getTitle().trim(),
+                request.getCredits(),
+                request.getDescription(),
+                request.getTerm(),
+                prerequisites,
+                exclusives,
+                null);
+
+        return courseRepository.save(course);
+    }
+
+    @Transactional
+    public Course modifyCourse(String courseCode, AdminCourseRequest request) {
+        if (courseCode == null || courseCode.isBlank()) {
+            throw new RuntimeException("Course code is required");
+        }
+
+        Course existingCourse = courseRepository.findByCourseCode(courseCode.trim())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        String newCourseCode = request.getCourseCode() != null && !request.getCourseCode().isBlank()
+                ? request.getCourseCode().trim()
+                : existingCourse.getCourseCode();
+
+        if (!newCourseCode.equals(existingCourse.getCourseCode())
+                && courseRepository.existsByCourseCode(newCourseCode)) {
+            throw new RuntimeException("Course code already exists");
+        }
+        if (request.getTitle() != null && request.getTitle().isBlank()) {
+            throw new RuntimeException("Course title cannot be blank");
+        }
+        if (request.getCredits() < 0) {
+            throw new RuntimeException("Credits cannot be negative");
+        }
+
+        if (request.getTitle() != null) {
+            existingCourse.setTitle(request.getTitle().trim());
+        }
+        if (request.getDescription() != null) {
+            existingCourse.setDescription(request.getDescription());
+        }
+        if (request.getTerm() != null) {
+            existingCourse.setTerm(request.getTerm());
+        }
+        if (request.getCredits() > 0) {
+            existingCourse.setCredits(request.getCredits());
+        }
+        existingCourse.setCourseCode(newCourseCode);
+
+        if (request.getPrerequisiteCourseCodes() != null) {
+            Set<Course> prerequisites = resolveCourseCodes(request.getPrerequisiteCourseCodes(), "Prerequisite");
+            if (prerequisites.stream().anyMatch(c -> c.getCourseCode().equals(newCourseCode))) {
+                throw new RuntimeException("A course cannot be its own prerequisite");
+            }
+            existingCourse.setPrerequisiteCourses(prerequisites);
+        }
+
+        if (request.getExclusiveCourseCodes() != null) {
+            Set<Course> exclusives = resolveCourseCodes(request.getExclusiveCourseCodes(), "Exclusive");
+            if (exclusives.stream().anyMatch(c -> c.getCourseCode().equals(newCourseCode))) {
+                throw new RuntimeException("A course cannot be its own exclusive course");
+            }
+            existingCourse.setExclusiveCourses(exclusives);
+        }
+
+        return courseRepository.save(existingCourse);
+    }
+
+    @Transactional
+    public void removeCourse(String courseCode) {
+        if (courseCode == null || courseCode.isBlank()) {
+            throw new RuntimeException("Course code is required");
+        }
+
+        Course existingCourse = courseRepository.findByCourseCode(courseCode.trim())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        courseRepository.delete(existingCourse);
+    }
+
+    private Set<Course> resolveCourseCodes(Set<String> courseCodes, String relationName) {
+        Set<Course> resolved = new HashSet<>();
+        if (courseCodes == null) {
+            return resolved;
+        }
+
+        for (String code : courseCodes) {
+            if (code == null || code.isBlank()) {
+                continue;
+            }
+            String normalizedCode = code.trim();
+            Course relatedCourse = courseRepository.findByCourseCode(normalizedCode)
+                    .orElseThrow(() -> new RuntimeException(relationName + " course not found: " + normalizedCode));
+            resolved.add(relatedCourse);
+        }
+
+        return resolved;
     }
 }

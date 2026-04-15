@@ -1,8 +1,14 @@
 package org.cityuhk.CourseRegistrationSystem;
 
+
+import java.io.IOException;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.rmi.registry.Registry;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,10 +22,19 @@ import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordReposit
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
+import org.cityuhk.CourseRegistrationSystem.Service.Semester;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TextTimetableExporter;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+
+import static org.mockito.ArgumentMatchers.any;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +42,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -851,4 +867,9 @@ public class RegistrationServiceTest {
         assertTrue(saveCalled.get(), "Expected save(...) to be called");
         assertNotNull(savedRecord.get(), "Expected saved RegistrationRecord");
     }
+
+    // NOTE: Export timetable tests have been moved to TimetableServiceTests
+    // in org.cityuhk.CourseRegistrationSystem.Service.Timetable package
+    // The export functionality is now handled by TimetableService following
+    // SOLID principles and GoF patterns (Facade, Strategy, Builder patterns)
 }
