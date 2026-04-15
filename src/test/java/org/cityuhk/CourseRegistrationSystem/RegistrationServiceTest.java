@@ -17,6 +17,11 @@ import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Semester;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TextTimetableExporter;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidator;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -111,100 +116,8 @@ public class RegistrationServiceTest {
         verify(recordRepo).exists(1, 10);
     }
 
-    @Test
-    void ExportTimeTableThrowsWhenStudentNotFoundTest(){
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
-        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
-
-        when(studentRepo.findById(1)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.ExportTimeTable(1));
-        assertTrue(ex.getMessage().contains("Student not found"));
-        verify(studentRepo).findById(1);
-    }
-
-    @Test 
-    void ExportTimeTableThrowsWhenFailedToExportTest(){
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
-        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
-
-        Student student = new Student.StudentBuilder()
-                .withUserEID("s001")
-                .withName("Test Student")
-                .withStudentId(1)
-                .withMinSemesterCredit(0)
-                .withMaxSemesterCredit(999)
-                .withMajor("CS")
-                .withCohort(2024)
-                .withDepartment("CS")
-                .withMaxDegreeCredit(999)
-                .build();
-
-        when(studentRepo.findById(1)).thenReturn(Optional.of(student));
-        when(recordRepo.findByStudentId(1)).thenReturn(Collections.emptyList());
-
-        try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
-            filesMock.when(() -> Files.createTempFile("student-1-timetable-", ".txt"))
-                     .thenThrow(new IOException("Disk full"));
-
-            RuntimeException ex = assertThrows(RuntimeException.class,
-                    () -> service.ExportTimeTable(1));
-
-            assertTrue(ex.getMessage().contains("Failed to export timetable"));
-            assertNotNull(ex.getCause());
-            assertTrue(ex.getCause() instanceof IOException);
-        }
-    }
-
-    @Test
-    void ExportTimeTableSuccessTest() throws IOException {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
-        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
-
-        Integer studentId = 1;
-        Student student = new Student.StudentBuilder()
-                .withUserEID("s001")
-                .withName("Test Student")
-                .withStudentId(studentId)
-                .withMinSemesterCredit(0)
-                .withMaxSemesterCredit(999)
-                .withMajor("CS")
-                .withCohort(2024)
-                .withDepartment("CS")
-                .withMaxDegreeCredit(999)
-                .build();
-
-        RegistrationRecord record = mock(RegistrationRecord.class);
-        String row = "MON    10:00        CS101        A1       LEC               Y1234";
-        when(record.toTimetableRow(any(), any())).thenReturn(row);
-
-        when(record.compareTo(any(RegistrationRecord.class))).thenReturn(0);
-
-        List<RegistrationRecord> records = new ArrayList<>();
-        records.add(record);
-
-        when(studentRepo.findById(studentId)).thenReturn(Optional.of(student));
-        when(recordRepo.findByStudentId(studentId)).thenReturn(records);
-
-        Path output = service.ExportTimeTable(studentId);
-
-        assertNotNull(output);
-        assertTrue(Files.exists(output));
-
-        String content = Files.readString(output);
-        assertTrue(content.contains("STUDENT TIMETABLE"));
-        assertTrue(content.contains("Student ID: 1"));
-        assertTrue(content.contains(row)); 
-
-        verify(record).toTimetableRow(any(), any()); 
-
-        Files.deleteIfExists(output);
-    }
+    // NOTE: Export timetable tests have been moved to TimetableServiceTests
+    // in org.cityuhk.CourseRegistrationSystem.Service.Timetable package
+    // The export functionality is now handled by TimetableService following
+    // SOLID principles and GoF patterns (Facade, Strategy, Builder patterns)
 }

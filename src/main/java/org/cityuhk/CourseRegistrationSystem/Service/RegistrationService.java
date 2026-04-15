@@ -11,13 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
-import java.io.BufferedWriter;
-import java.util.Collections;
-import java.util.List;
 
 @Service
 public class RegistrationService {
@@ -53,47 +46,5 @@ public class RegistrationService {
 
     public void deleteStudent(Integer id) {
         studentRepository.deleteById(id);
-    }
-
-    public Path ExportTimeTable(Integer studentId) {
-        studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        List<RegistrationRecord> records = registrationRecordRepository.findByStudentId(studentId);
-        
-        Collections.sort(records);
-
-        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-
-        try {
-            Path outputPath = Files.createTempFile("student-" + studentId + "-timetable-", ".txt");
-            try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
-                writer.write("STUDENT TIMETABLE");
-                writer.newLine();
-                writer.write("Student ID: " + studentId);
-                writer.newLine();
-                writer.write("Generated At: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-                writer.newLine();
-                writer.newLine();
-
-                String header = String.format("%-6s %-13s %-12s %-8s %-18s %-22s", "DAY", "TIME", "COURSE", "SEC", "TYPE", "VENUE");
-                writer.write(header);
-                writer.newLine();
-                writer.write("----------------------------------------------------------------------");
-                writer.newLine();
-
-                for (RegistrationRecord record : records) {
-                    String row = record.toTimetableRow(dayFormatter, timeFormatter);
-                    if (row != null) {
-                        writer.write(row);
-                        writer.newLine();
-                    }
-                }
-            }
-            return outputPath;
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to export timetable", ex);
-        }
     }
 }
