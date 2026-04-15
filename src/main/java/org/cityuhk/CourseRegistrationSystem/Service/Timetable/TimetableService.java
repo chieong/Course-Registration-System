@@ -93,7 +93,6 @@ public class TimetableService {
         // Build timetable data with custom formatters
         TimetableData timetableData = new TimetableData.Builder()
             .studentId(studentId)
-            .student(student)
             .registrationRecords(registrationRecordRepository.findByStudentId(studentId))
             .dayFormatter(dayFormatter)
             .timeFormatter(timeFormatter)
