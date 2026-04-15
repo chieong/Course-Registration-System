@@ -20,7 +20,7 @@ RegistrationService.ExportTimeTable()
 ### After: Layered, Modular Design
 ```
 TimetableService (Facade)
-├── TimetableValidator
+├── Internal validation helpers
 │   └── Validates student and timetable data
 ├── TimetableData (DTO with Builder)
 │   └── Immutable data holder
@@ -39,8 +39,7 @@ TimetableService (Facade)
 
 Each class has a single, well-defined responsibility:
 
-- **TimetableService**: Orchestrates timetable export workflow
-- **TimetableValidator**: Validates student data and timetable requirements
+- **TimetableService**: Orchestrates timetable export workflow and enforces export-specific validation
 - **TimetableData**: Holds timetable information
 - **TimetableFormatter**: Formats timetable output
 - **TextTimetableExporter**: Handles text file export logic
@@ -80,7 +79,7 @@ Small, focused interfaces instead of large monolithic ones:
 
 - **TimetableExporter**: Only export-related methods
 - **TimetableFormatter**: Only formatting methods
-- **TimetableValidator**: Only validation methods
+- **TimetableService** private helpers: Only timetable validation methods
 
 **Benefit**: Clients depend only on methods they actually use.
 
@@ -195,7 +194,6 @@ public interface TimetableFormatter {
 | `TextTimetableExporter` | Text file exporter | Strategy implementation |
 | `TimetableFormatter` | Format rows/headers interface | Strategy |
 | `TextTimetableFormatter` | Text format implementation | Strategy implementation |
-| `TimetableValidator` | Validates timetable data | SRP |
 | `TimetableExportException` | Export-specific exception | Custom Exception |
 | `TimetableValidationException` | Validation-specific exception | Custom Exception |
 
@@ -311,11 +309,11 @@ public class CsvTimetableExporter implements TimetableExporter {
 Each component can be tested independently:
 
 ```java
-// Test TimetableValidator
+// Test TimetableService validation
 @Test
 public void testValidateStudentNotFound() {
     assertThrows(TimetableValidationException.class, 
-        () -> validator.validateStudentForExport(invalidId));
+    () -> timetableService.exportTimetable(invalidId));
 }
 
 // Test TimetableFormatter

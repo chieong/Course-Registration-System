@@ -2,10 +2,12 @@ package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Service for managing timetable operations.
@@ -19,15 +21,15 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class TimetableService {
     
+    private final StudentRepository studentRepository;
     private final RegistrationRecordRepository registrationRecordRepository;
-    private final TimetableValidator validator;
     private final TimetableExporter defaultExporter;
     
-    public TimetableService(RegistrationRecordRepository registrationRecordRepository,
-                           TimetableValidator validator,
+    public TimetableService(StudentRepository studentRepository,
+                           RegistrationRecordRepository registrationRecordRepository,
                            TextTimetableExporter defaultExporter) {
+        this.studentRepository = studentRepository;
         this.registrationRecordRepository = registrationRecordRepository;
-        this.validator = validator;
         this.defaultExporter = defaultExporter;
     }
     
@@ -59,13 +61,13 @@ public class TimetableService {
         }
         
         // Step 1: Validate student and retrieve data
-        Student student = validator.validateStudentForExport(studentId);
+        validateStudentForExport(studentId);
         
         // Step 2: Build timetable data
         TimetableData timetableData = buildTimetableData(studentId);
         
         // Step 3: Validate built data
-        validator.validateTimetableData(timetableData);
+        validateTimetableData(timetableData);
         
         // Step 4: Export using the provided exporter
         return exporter.export(timetableData);
@@ -86,7 +88,7 @@ public class TimetableService {
                                              DateTimeFormatter timeFormatter) 
             throws TimetableExportException, TimetableValidationException {
         // Validate student
-        Student student = validator.validateStudentForExport(studentId);
+        Student student = validateStudentForExport(studentId);
         
         // Build timetable data with custom formatters
         TimetableData timetableData = new TimetableData.Builder()
@@ -98,7 +100,7 @@ public class TimetableService {
             .build();
         
         // Validate and export
-        validator.validateTimetableData(timetableData);
+        validateTimetableData(timetableData);
         return defaultExporter.export(timetableData);
     }
     
@@ -130,6 +132,40 @@ public class TimetableService {
                 .build();
         } catch (IllegalStateException ex) {
             throw new TimetableValidationException("Failed to build timetable data: " + ex.getMessage());
+        }
+    }
+
+    private Student validateStudentForExport(Integer studentId) throws TimetableValidationException {
+        if (studentId == null || studentId <= 0) {
+            throw new TimetableValidationException("Invalid student ID: " + studentId);
+        }
+
+        Student student = studentRepository.findById(studentId)
+            .orElseThrow(() -> new TimetableValidationException("Student not found with ID: " + studentId));
+
+        List<?> records = registrationRecordRepository.findByStudentId(studentId);
+        if (records == null || records.isEmpty()) {
+            throw new TimetableValidationException("Student has no registration records for timetable export");
+        }
+
+        return student;
+    }
+
+    private void validateTimetableData(TimetableData timetableData) throws TimetableValidationException {
+        if (timetableData == null) {
+            throw new TimetableValidationException("Timetable data cannot be null");
+        }
+
+        if (timetableData.getStudentId() == null) {
+            throw new TimetableValidationException("Student ID is missing from timetable data");
+        }
+
+        if (timetableData.getRegistrationRecords() == null || timetableData.getRegistrationRecords().isEmpty()) {
+            throw new TimetableValidationException("Timetable data has no registration records");
+        }
+
+        if (timetableData.getDayFormatter() == null || timetableData.getTimeFormatter() == null) {
+            throw new TimetableValidationException("Timetable data formatters are not configured");
         }
     }
 }

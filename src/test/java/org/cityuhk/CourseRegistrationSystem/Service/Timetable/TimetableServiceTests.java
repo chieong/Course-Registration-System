@@ -2,6 +2,8 @@ package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,19 +30,24 @@ import static org.mockito.Mockito.*;
 public class TimetableServiceTests {
     
     @Mock
-    private TimetableValidator mockValidator;
+    private StudentRepository studentRepository;
+    
+    @Mock
+    private RegistrationRecordRepository registrationRecordRepository;
     
     @Mock
     private TimetableExporter mockExporter;
     
     private TimetableFormatter formatter;
     private TextTimetableExporter textExporter;
+    private TimetableService timetableService;
     
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         formatter = new TextTimetableFormatter();
         textExporter = new TextTimetableExporter((TextTimetableFormatter) formatter);
+        timetableService = new TimetableService(studentRepository, registrationRecordRepository, textExporter);
     }
     
     // ===== TimetableFormatter Tests =====
@@ -220,14 +228,15 @@ public class TimetableServiceTests {
     @Test
     @DisplayName("Should throw TimetableValidationException on validation failure")
     public void testValidationExceptionPropagation() throws TimetableValidationException {
-        // Given: Validator configured to fail
-        when(mockValidator.validateStudentForExport(any(Integer.class)))
-            .thenThrow(new TimetableValidationException("Student not found"));
-        
-        // When/Then: Exception should be thrown
-        assertThrows(TimetableValidationException.class, () -> {
-            mockValidator.validateStudentForExport(99999);
+        // Given: Service dependencies configured to fail validation
+        when(studentRepository.findById(99999)).thenReturn(Optional.empty());
+
+        // When/Then: Exception should be thrown from the service
+        TimetableValidationException exception = assertThrows(TimetableValidationException.class, () -> {
+            timetableService.exportTimetable(99999, mockExporter);
         });
+
+        assertEquals("Student not found with ID: 99999", exception.getMessage());
     }
     
     // ===== Exception Type Tests =====

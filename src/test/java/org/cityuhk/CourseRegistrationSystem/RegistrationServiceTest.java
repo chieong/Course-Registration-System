@@ -21,7 +21,6 @@ import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TextTimetableExporter;
-import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidator;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
