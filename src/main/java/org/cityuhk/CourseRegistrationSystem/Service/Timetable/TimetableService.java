@@ -88,7 +88,7 @@ public class TimetableService {
                                              DateTimeFormatter timeFormatter) 
             throws TimetableExportException, TimetableValidationException {
         // Validate student
-        Student student = validateStudentForExport(studentId);
+        validateStudentForExport(studentId);
         
         // Build timetable data with custom formatters
         TimetableData timetableData = new TimetableData.Builder()
