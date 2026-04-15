@@ -1,7 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -16,14 +15,12 @@ import java.util.Objects;
  */
 public class TimetableData {
     private final Integer studentId;
-    private final Student student;
     private final List<RegistrationRecord> registrationRecords;
     private final DateTimeFormatter dayFormatter;
     private final DateTimeFormatter timeFormatter;
 
     private TimetableData(Builder builder) {
         this.studentId = builder.studentId;
-        this.student = builder.student;
         this.registrationRecords = Collections.unmodifiableList(builder.registrationRecords);
         this.dayFormatter = builder.dayFormatter;
         this.timeFormatter = builder.timeFormatter;
@@ -31,10 +28,6 @@ public class TimetableData {
 
     public Integer getStudentId() {
         return studentId;
-    }
-
-    public Student getStudent() {
-        return student;
     }
 
     public List<RegistrationRecord> getRegistrationRecords() {
@@ -63,18 +56,12 @@ public class TimetableData {
      */
     public static class Builder {
         private Integer studentId;
-        private Student student;
         private List<RegistrationRecord> registrationRecords = Collections.emptyList();
         private DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
         private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
         public Builder studentId(Integer studentId) {
             this.studentId = Objects.requireNonNull(studentId, "Student ID cannot be null");
-            return this;
-        }
-
-        public Builder student(Student student) {
-            this.student = student;
             return this;
         }
 
