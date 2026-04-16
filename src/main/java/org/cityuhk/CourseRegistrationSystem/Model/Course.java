@@ -137,15 +137,6 @@ public class Course { // for creating a course
         this.term = term;
     }
 
-    public Section getSection(int sectionId) {
-        for (Section section : sections) {
-            if (section.getSectionID() == sectionId) {
-                return section;
-            }
-        }
-        return null;
-    }
-
     public boolean satisfyPrerequisites(Set<Course> enrolledCourses) {
         return enrolledCourses.containsAll(prerequisiteCourses);
     }
