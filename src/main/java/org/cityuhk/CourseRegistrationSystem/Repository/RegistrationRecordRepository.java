@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface RegistrationRecordRepository extends JpaRepository<RegistrationRecord, Integer> {
 
@@ -16,6 +17,10 @@ public interface RegistrationRecordRepository extends JpaRepository<Registration
     @Query("select case when count(e) > 0 then true else false end from RegistrationRecord e " +
            "where e.student.studentId = :studentId and e.section.sectionId = :sectionId")
     boolean exists(@Param("studentId") Integer studentId, @Param("sectionId") Integer sectionId);
+    
+    @Query("select e from RegistrationRecord e " +
+            "where e.student.studentId = :studentId and e.section.sectionId = :sectionId")
+    Optional<RegistrationRecord> findByStudentIdAndSectionId(@Param("studentId") Integer studentId, @Param("sectionId") Integer sectionId);
 
     @Query("select e from RegistrationRecord e " +
            "where e.student.studentId = :studentId and e.timestamp between :start and :end")

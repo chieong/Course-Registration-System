@@ -1,5 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Service;
 
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
@@ -54,15 +55,12 @@ public class RegistrationService {
         if (!existingSection.isPresent()) {
             throw new RuntimeException("Section not found");
         }
-        if (!registrationRecordRepository.exists(studentId, sectionId)) {
+        
+        Optional<RegistrationRecord> existingRecord = registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId);
+        if (!existingRecord.isPresent()) {
             throw new RuntimeException("Not enrolled");
         }
-        Student student = existingStudent.get();
-        Section section = existingSection.get();
-        registrationRecordRepository.delete(student.dropSection(section, timestamp));
-    }
-
-    public void deleteStudent(Integer id) {
-        studentRepository.deleteById(id);
+        RegistrationRecord registrationRecord = existingRecord.get();
+        registrationRecordRepository.delete(registrationRecord);
     }
 }

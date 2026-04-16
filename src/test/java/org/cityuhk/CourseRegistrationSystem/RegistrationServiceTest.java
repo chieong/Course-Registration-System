@@ -146,18 +146,6 @@ public class RegistrationServiceTest {
         verify(recordRepo).countEnrolled(10);
     }
 
-    @Test
-    void deleteStudentCallsDeleteByIdTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
-        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
-
-        service.deleteStudent(1);
-
-        verify(studentRepo).deleteById(1);
-    }
-
     // @Test
     // void addSectionCallsSaveWhenAllSuccessfulTest() {
     //     StudentRepository studentRepo = mock(StudentRepository.class);
@@ -809,6 +797,12 @@ public class RegistrationServiceTest {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'findByStudentId'");
             }
+
+			@Override
+			public Optional<RegistrationRecord> findByStudentIdAndSectionId(Integer studentId, Integer sectionId) {
+				// TODO Auto-generated method stub
+				return Optional.empty();
+			}
         }
 
         // StudentRepository studentRepo = (StudentRepository) Proxy.newProxyInstance(
@@ -869,4 +863,108 @@ public class RegistrationServiceTest {
     // in org.cityuhk.CourseRegistrationSystem.Service.Timetable package
     // The export functionality is now handled by TimetableService following
     // SOLID principles and GoF patterns (Facade, Strategy, Builder patterns)
+
+    @Test
+    void dropSectionThrowsWhenStudentNotFoundTest() {
+        StudentRepository studentRepo = mock(StudentRepository.class);
+        SectionRepository sectionRepo = mock(SectionRepository.class);
+        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> service.dropSection(1, 10, LocalDateTime.now()));
+        assertTrue(ex.getMessage().contains("Student not found"));
+    }
+
+    @Test
+    void dropSectionThrowsWhenSectionNotFoundTest() {
+        StudentRepository studentRepo = mock(StudentRepository.class);
+        SectionRepository sectionRepo = mock(SectionRepository.class);
+        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
+        
+        Student student = new Student.StudentBuilder()
+                .withUserEID("s001")
+                .withName("Test Student")
+                .withStudentId(1)
+                .withMinSemesterCredit(0)
+                .withMaxSemesterCredit(999)
+                .withMajor("CS")
+                .withCohort(2024)
+                .withDepartment("CS")
+                .withMaxDegreeCredit(999)
+                .build();
+        
+        when(studentRepo.findById(1)).thenReturn(Optional.of(student));
+        when(sectionRepo.findById(10)).thenReturn(Optional.empty());
+        
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> service.dropSection(1, 10, LocalDateTime.now()));
+        assertTrue(ex.getMessage().contains("Section not found"));
+        verify(sectionRepo).findById(10);
+    }
+
+    @Test
+    void dropSectionThrowsWhenNotEnrolledTest() {
+        StudentRepository studentRepo = mock(StudentRepository.class);
+        SectionRepository sectionRepo = mock(SectionRepository.class);
+        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
+        
+        Student student = new Student.StudentBuilder()
+                .withUserEID("s001")
+                .withName("Test Student")
+                .withStudentId(1)
+                .withMinSemesterCredit(0)
+                .withMaxSemesterCredit(999)
+                .withMajor("CS")
+                .withCohort(2024)
+                .withDepartment("CS")
+                .withMaxDegreeCredit(999)
+                .build();
+
+        Section section = mock(Section.class);
+        
+        when(studentRepo.findById(1)).thenReturn(Optional.of(student));
+        when(sectionRepo.findById(10)).thenReturn(Optional.of(section));
+        when(recordRepo.findByStudentIdAndSectionId(1, 10)).thenReturn(Optional.empty());
+        
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> service.dropSection(1, 10, LocalDateTime.now()));
+        assertTrue(ex.getMessage().contains("Not enrolled"));
+        verify(recordRepo).findByStudentIdAndSectionId(1, 10);
+    }
+
+    @Test
+    void dropSectionCallsDeleteWhenSuccessfulTest() {
+        LocalDateTime timestamp = LocalDateTime.now();
+        StudentRepository studentRepo = mock(StudentRepository.class);
+        SectionRepository sectionRepo = mock(SectionRepository.class);
+        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
+        
+        Student student = new Student.StudentBuilder()
+                .withUserEID("s001")
+                .withName("Test Student")
+                .withStudentId(1)
+                .withMinSemesterCredit(0)
+                .withMaxSemesterCredit(999)
+                .withMajor("CS")
+                .withCohort(2024)
+                .withDepartment("CS")
+                .withMaxDegreeCredit(999)
+                .build();
+
+        Section section = mock(Section.class);
+        RegistrationRecord record = mock(RegistrationRecord.class);
+        
+        when(studentRepo.findById(1)).thenReturn(Optional.of(student));
+        when(sectionRepo.findById(10)).thenReturn(Optional.of(section));
+        when(recordRepo.findByStudentIdAndSectionId(1, 10)).thenReturn(Optional.of(record));
+
+        service.dropSection(1, 10, timestamp);
+
+        verify(recordRepo).delete(record);
+
+    }
 }
