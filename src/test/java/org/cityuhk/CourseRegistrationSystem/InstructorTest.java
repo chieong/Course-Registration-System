@@ -21,7 +21,7 @@ public class InstructorTest {
 	@Test
 	void getStaffIdTest() {
 		Instructor i = createInstructor();
-		assertThrows(UnsupportedOperationException.class, i::getStaffId);
+		assertEquals(87,i.getStaffId());
 	}
 	
 	@Test

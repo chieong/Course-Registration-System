@@ -79,8 +79,4 @@ public class RegistrationService {
         Section section = existingSection.get();
         registrationRecordRepository.delete(student.dropSection(section, timestamp));
     }
-
-    public void deleteStudent(Integer id) {
-        studentRepository.deleteById(id);
-    }
 }

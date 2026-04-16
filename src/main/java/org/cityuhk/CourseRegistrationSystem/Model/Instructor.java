@@ -1,15 +1,10 @@
 package org.cityuhk.CourseRegistrationSystem.Model;
 
-import java.util.Set;
-
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
+
+import java.util.Set;
 
 public class Instructor extends User
 // implements IStaff, IAcademic
@@ -53,8 +48,7 @@ public class Instructor extends User
     }
 
     public int getStaffId() {
-        // TODO - implement Instructor.getStaffId
-        throw new UnsupportedOperationException();
+        return staffId;
     }
 
     public String getDepartment() {
@@ -66,4 +60,3 @@ public class Instructor extends User
         throw new UnsupportedOperationException();
     }
 }
-
