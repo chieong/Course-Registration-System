@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem.Service;
+package org.cityuhk.CourseRegistrationSystem;
 
 import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminUserRequest;
@@ -6,6 +6,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
+import org.cityuhk.CourseRegistrationSystem.Service.AdministrativeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
