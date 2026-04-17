@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
+import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableExportException;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;

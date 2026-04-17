@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem.Service;
+package org.cityuhk.CourseRegistrationSystem.Service.Administrative;
 
 import java.util.List;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseReques
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -130,6 +131,8 @@ public class AdministrativeService {
             throw new RuntimeException("A course cannot be its own exclusive course");
         }
 
+        Set<Section> sections = request.getSections();
+
         Course course = new Course(
                 courseCode,
                 request.getTitle().trim(),
@@ -138,7 +141,7 @@ public class AdministrativeService {
                 request.getTerm(),
                 prerequisites,
                 exclusives,
-                null);
+                sections);
 
         return courseRepository.save(course);
     }
@@ -195,6 +198,11 @@ public class AdministrativeService {
                 throw new RuntimeException("A course cannot be its own exclusive course");
             }
             existingCourse.setExclusiveCourses(exclusives);
+        }
+
+        if (request.getSections() != null) {
+            Set<Section> sections = request.getSections();
+            existingCourse.setSections(sections);
         }
 
         return courseRepository.save(existingCourse);

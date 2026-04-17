@@ -57,7 +57,7 @@ public class Course { // for creating a course
             String term,
             Set<Course> prerequisiteCourses,
             Set<Course> exclusiveCourses,
-            Collection<Section> sections) {
+            Set<Section> sections) {
         this.courseCode = courseCode;
         this.title = title;
         this.credits = credits;

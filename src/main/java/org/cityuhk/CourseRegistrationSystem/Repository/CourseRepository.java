@@ -2,11 +2,13 @@ package org.cityuhk.CourseRegistrationSystem.Repository;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 	Optional<Course> findByCourseCode(String courseCode);
 
+	@Query("select case when count(c) > 0 then true else false end from Course c where c.courseCode = :courseCode")
 	boolean existsByCourseCode(String courseCode);
 }

@@ -1,8 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Controller;
 
-import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Service.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;

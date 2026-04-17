@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem.Controller.dto;
+package org.cityuhk.CourseRegistrationSystem.RestController.dto;
 
 public class AdminUserRequest {
     private String userEID;

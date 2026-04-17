@@ -1,10 +1,10 @@
-package org.cityuhk.CourseRegistrationSystem.Controller;
+package org.cityuhk.CourseRegistrationSystem.RestController;
 
 import java.util.List;
 
-import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Service.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

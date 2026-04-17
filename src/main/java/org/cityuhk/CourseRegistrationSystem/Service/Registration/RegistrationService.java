@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem.Service;
+package org.cityuhk.CourseRegistrationSystem.Service.Registration;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;

@@ -13,7 +13,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
-import org.cityuhk.CourseRegistrationSystem.Service.RegistrationService;
+import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -803,6 +803,12 @@ public class RegistrationServiceTest {
 				// TODO Auto-generated method stub
 				return Optional.empty();
 			}
+
+            @Override
+            public List<RegistrationRecord> findAllRecords() {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'findAllRecords'");
+            }
         }
 
         // StudentRepository studentRepo = (StudentRepository) Proxy.newProxyInstance(

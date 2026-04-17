@@ -1,13 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -40,28 +33,7 @@ public class Section {
     @ManyToOne(optional = false)
     private Course course;
 
-    // @ManyToMany private Set<Student> enrolledStudents;
-    // @ManyToMany private Set<Student> waitlistedStudents;
-
     public Section() {}
-
-    /** Legacy 10-arg constructor used in tests. */
-    public Section(
-            int sectionId,
-            int enrollCapacity,
-            int waitlistCapacity,
-            int minStudents,
-            String typeStr,
-            String venue,
-            Course course,
-            int extraParam,
-            Set<Student> enrolledStudents,
-            Set<Student> waitlistedStudents) {
-        this.sectionId = sectionId;
-        this.enrollCapacity = enrollCapacity;
-        this.waitlistCapacity = waitlistCapacity;
-        this.venue = venue;
-    }
 
     public Section(
             int sectionId,
@@ -69,17 +41,13 @@ public class Section {
             int waitlistCapacity,
             Type type,
             String venue,
-            Course course,
-            Set<Student> enrolledStudents,
-            Set<Student> waitlistedStudents) {
+            Course course) {
         this.sectionId = sectionId;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
         this.type = type;
         this.venue = venue;
-        // this.course = course;
-        // this.enrolledStudents = enrolledStudents;
-        // this.waitlistedStudents = waitlistedStudents;
+        this.course = course;
     }
 
     public boolean canEnroll(Student student, int enrolled) {
@@ -114,18 +82,6 @@ public class Section {
         return course;
     }
 
-    public void enrollStudent(Student student) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void waitlistStudent(Student student) {
-        throw new UnsupportedOperationException();
-    }
-
-    // public Course getCourse() {
-    //     return course;
-    // }
-
     public boolean isFull(int enrolled) {
         return enrolled >= enrollCapacity;
     }
@@ -142,10 +98,7 @@ public class Section {
         return course.addCredits(sum);
     }
 
-    // public void addStudent(Student student) {
-    //     if (!canEnroll(student)) {
-    //         throw new RuntimeException();
-    //     }
-    //     this.enrolledStudents.add(student);
-    // }
+    public int getSectionId() {
+        return sectionId;
+    }
 }

@@ -101,4 +101,11 @@ public class RegistrationRecord implements Comparable<RegistrationRecord> {
         }
         return value.substring(0, Math.max(0, width - 3)) + "...";
     }
+
+    public String toString() {
+        return String.format("RegistrationRecord{studentId=%d, sectionId=%d, timestamp=%s}",
+                student != null ? student.getStudentId() : null,
+                section != null ? section.getSectionId() : null,
+                timestamp != null ? timestamp.toString() : "null");
+    }
 }

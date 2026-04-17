@@ -136,6 +136,7 @@ public class Student extends User
         for (RegistrationRecord record : registrationRecords) {
             sum = record.addCredits(sum);
         }
+
         return (sum >= minSemesterCredit && sum <= maxSemesterCredit);
     }
 
@@ -160,6 +161,8 @@ public class Student extends User
         if (!section.canEnroll(this, enrolled)) {
             throw new RuntimeException();
         }
+
+
         return new RegistrationRecord(this, section, timestamp);
     }
 
@@ -168,5 +171,10 @@ public class Student extends User
     }
     // getter
     // add when needed
+    public Integer getStudentId() {
+        return studentId;
+    }
+
+    
 }
 
