@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem.Service.Section;
+package org.cityuhk.CourseRegistrationSystem.Service.Academic;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
@@ -20,7 +20,6 @@ public class SectionService {
         this.courseRepository = courseRepository;
     }
 
-    @Autowired
     public List<Section> getAllSections() {
         return sectionRepository.findAll();
     }

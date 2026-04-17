@@ -1,4 +1,4 @@
-package org.cityuhk.CourseRegistrationSystem.Controller;
+package org.cityuhk.CourseRegistrationSystem.RestController;
 
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin/courses")
+@RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdministrativeCourseRestController {
 
@@ -24,7 +24,7 @@ public class AdministrativeCourseRestController {
         this.administrativeService = administrativeService;
     }
 
-    @PostMapping
+    @PostMapping("courses")
     public ResponseEntity<?> createCourse(@RequestBody AdminCourseRequest request) {
         try {
             Course created = administrativeService.createCourse(request);
@@ -34,21 +34,21 @@ public class AdministrativeCourseRestController {
         }
     }
 
-    @PutMapping("/{courseCode}")
-    public ResponseEntity<?> modifyCourse(@PathVariable String courseCode, @RequestBody AdminCourseRequest request) {
+    @PutMapping("course")
+    public ResponseEntity<?> modifyCourse(@RequestBody AdminCourseRequest request) {
         try {
-            Course updated = administrativeService.modifyCourse(courseCode, request);
-            return ResponseEntity.ok(updated);
+            Course update = administrativeService.modifyCourse(request);
+            return ResponseEntity.ok(update);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
-    @DeleteMapping("/{courseCode}")
+    @DeleteMapping("course/{courseCode}")
     public ResponseEntity<?> removeCourse(@PathVariable String courseCode) {
         try {
             administrativeService.removeCourse(courseCode);
-            return ResponseEntity.noContent().build();
+            return  ResponseEntity.noContent().build();
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }

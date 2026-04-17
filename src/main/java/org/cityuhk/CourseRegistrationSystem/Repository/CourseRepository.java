@@ -11,4 +11,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
 	@Query("select case when count(c) > 0 then true else false end from Course c where c.courseCode = :courseCode")
 	boolean existsByCourseCode(String courseCode);
+
+    @Query("select c from Course c where c.courseCode = :courseCode")
+    Course  getCourseByCourseCode(String courseCode);
 }

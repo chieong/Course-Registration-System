@@ -147,10 +147,12 @@ public class AdministrativeService {
     }
 
     @Transactional
-    public Course modifyCourse(String courseCode, AdminCourseRequest request) {
-        if (courseCode == null || courseCode.isBlank()) {
+    public Course modifyCourse(AdminCourseRequest request) {
+        if (request.getCourseCode() == null || request.getCourseCode().isBlank()) {
             throw new RuntimeException("Course code is required");
         }
+
+        String courseCode = request.getCourseCode().trim();
 
         Course existingCourse = courseRepository.findByCourseCode(courseCode.trim())
                 .orElseThrow(() -> new RuntimeException("Course not found"));

@@ -198,13 +198,13 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyCourse_blankCode_throws() {
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
     void modifyCourse_notFound_throws() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("CS101", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
@@ -212,42 +212,42 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         when(courseRepository.existsByCourseCode(anyString())).thenReturn(true);
         courseReq.setCourseCode("CS999");
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("CS101", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
     void modifyCourse_blankTitle_throws() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setTitle("");
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("CS101", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
     void modifyCourse_creditsNegative_throws() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setCredits(-1);
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("CS101", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
     void modifyCourse_selfPrereq_throws() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setPrerequisiteCourseCodes(Set.of("CS101"));
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("CS101", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
     void modifyCourse_selfExclusive_throws() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setExclusiveCourseCodes(Set.of("CS101"));
-        assertThrows(RuntimeException.class, () -> service.modifyCourse("CS101", courseReq));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
     @Test
     void modifyCourse_success() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse("CS101", courseReq));
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test
@@ -255,7 +255,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setDescription("New desc");
         when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse("CS101", courseReq));
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test
@@ -263,7 +263,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setTerm("2026A");
         when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse("CS101", courseReq));
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test
@@ -271,7 +271,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setCredits(0);
         when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse("CS101", courseReq));
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test
@@ -280,7 +280,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode("CS102")).thenReturn(Optional.of(prereqCourse));
         courseReq.setPrerequisiteCourseCodes(Set.of("CS102"));
         when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse("CS101", courseReq));
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test
@@ -289,7 +289,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode("CS102")).thenReturn(Optional.of(prereqCourse));
         courseReq.setExclusiveCourseCodes(Set.of("CS102"));
         when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse("CS101", courseReq));
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test

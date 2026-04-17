@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -22,7 +23,9 @@ public class Course { // for creating a course
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer courseId;
 
+    @Column(unique = true)
     private String courseCode;
+
     private String title;
     private int credits;
     private String description;

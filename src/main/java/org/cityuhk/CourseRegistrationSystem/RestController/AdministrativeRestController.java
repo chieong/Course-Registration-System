@@ -2,6 +2,8 @@ package org.cityuhk.CourseRegistrationSystem.RestController;
 
 import java.util.List;
 
+import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin/users")
+@RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdministrativeRestController {
 
@@ -29,12 +31,12 @@ public class AdministrativeRestController {
         this.administrativeService = administrativeService;
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public ResponseEntity<List<Admin>> listUsers() {
         return ResponseEntity.ok(administrativeService.listUsers());
     }
 
-    @PostMapping
+    @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody AdminUserRequest request) {
         try {
             Admin created = administrativeService.createUser(request);
@@ -44,7 +46,7 @@ public class AdministrativeRestController {
         }
     }
 
-    @PutMapping("/{staffId}")
+    @PutMapping("/users/{staffId}")
     public ResponseEntity<?> modifyUser(@PathVariable Integer staffId, @RequestBody AdminUserRequest request) {
         try {
             Admin updated = administrativeService.modifyUser(staffId, request);
@@ -54,7 +56,7 @@ public class AdministrativeRestController {
         }
     }
 
-    @DeleteMapping("/{staffId}")
+    @DeleteMapping("/users/{staffId}")
     public ResponseEntity<?> removeUser(@PathVariable Integer staffId) {
         try {
             administrativeService.removeUser(staffId);
