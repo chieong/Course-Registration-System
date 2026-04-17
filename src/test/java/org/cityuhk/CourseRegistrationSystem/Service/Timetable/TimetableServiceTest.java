@@ -1,12 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -16,45 +19,45 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 class TimetableServiceTest {
 
-    @Mock
-    private StudentRepository studentRepository;
+    @Mock private StudentRepository studentRepository;
 
-    @Mock
-    private RegistrationRecordRepository registrationRecordRepository;
+    @Mock private RegistrationRecordRepository registrationRecordRepository;
 
-    @Mock
-    private TextTimetableExporter defaultExporter;
+    @Mock private TextTimetableFormatter defaultFormatter;
 
-    @Mock
-    private TimetableExporter customExporter;
+    @Mock private TextTimetableExporter defaultExporter;
 
-    @InjectMocks
+    @Mock private TimetableExporter customExporter;
+
+    private TimetableValidator validator;
+
     private TimetableService timetableService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        validator = new TimetableValidator(studentRepository, registrationRecordRepository);
+        timetableService =
+                new TimetableService(registrationRecordRepository, validator, defaultExporter);
     }
 
     @Test
     void exportTimetable_NullExporter_ThrowsException() {
-        TimetableExportException exception = assertThrows(TimetableExportException.class, () ->
-                timetableService.exportTimetable(12345678, null)
-        );
+        TimetableExportException exception =
+                assertThrows(
+                        TimetableExportException.class,
+                        () -> timetableService.exportTimetable(12345678, null));
         assertEquals("Exporter cannot be null", exception.getMessage());
     }
 
     @Test
     void exportTimetable_InvalidStudentId_ThrowsValidationException() {
-        TimetableValidationException exception = assertThrows(TimetableValidationException.class, () ->
-                timetableService.exportTimetable(-1)
-        );
+        TimetableValidationException exception =
+                assertThrows(
+                        TimetableValidationException.class,
+                        () -> timetableService.exportTimetable(-1));
         assertTrue(exception.getMessage().contains("Invalid student ID"));
     }
 
@@ -62,9 +65,10 @@ class TimetableServiceTest {
     void exportTimetable_StudentNotFound_ThrowsValidationException() {
         when(studentRepository.findById(99999999)).thenReturn(Optional.empty());
 
-        TimetableValidationException exception = assertThrows(TimetableValidationException.class, () ->
-                timetableService.exportTimetable(99999999)
-        );
+        TimetableValidationException exception =
+                assertThrows(
+                        TimetableValidationException.class,
+                        () -> timetableService.exportTimetable(99999999));
         assertTrue(exception.getMessage().contains("Student not found"));
     }
 
@@ -72,11 +76,14 @@ class TimetableServiceTest {
     void exportTimetable_NoRegistrationRecords_ThrowsValidationException() {
         when(studentRepository.findById(12345678)).thenReturn(Optional.of(mock(Student.class)));
         // Mocking the raw list return from the repository
-        doReturn(Collections.emptyList()).when(registrationRecordRepository).findByStudentId(12345678);
+        doReturn(Collections.emptyList())
+                .when(registrationRecordRepository)
+                .findByStudentId(12345678);
 
-        TimetableValidationException exception = assertThrows(TimetableValidationException.class, () ->
-                timetableService.exportTimetable(12345678)
-        );
+        TimetableValidationException exception =
+                assertThrows(
+                        TimetableValidationException.class,
+                        () -> timetableService.exportTimetable(12345678));
         assertTrue(exception.getMessage().contains("no registration records"));
     }
 
@@ -101,7 +108,9 @@ class TimetableServiceTest {
     void exportTimetable_SuccessWithCustomExporter() throws Exception {
         int studentId = 12345678;
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(mock(Student.class)));
-        doReturn(List.of(mock(RegistrationRecord.class))).when(registrationRecordRepository).findByStudentId(studentId);
+        doReturn(List.of(mock(RegistrationRecord.class)))
+                .when(registrationRecordRepository)
+                .findByStudentId(studentId);
 
         Path mockPath = Path.of("mock/custom.pdf");
         when(customExporter.export(any(TimetableData.class))).thenReturn(mockPath);
@@ -131,18 +140,32 @@ class TimetableServiceTest {
     void exportTimetableWithFormatters_Success() throws Exception {
         int studentId = 12345678;
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(mock(Student.class)));
-        doReturn(List.of(mock(RegistrationRecord.class))).when(registrationRecordRepository).findByStudentId(studentId);
+        doReturn(List.of(mock(RegistrationRecord.class)))
+                .when(registrationRecordRepository)
+                .findByStudentId(studentId);
         when(defaultExporter.export(any(TimetableData.class))).thenReturn(Path.of("test.txt"));
 
         DateTimeFormatter customDay = DateTimeFormatter.ofPattern("dd");
         DateTimeFormatter customTime = DateTimeFormatter.ofPattern("HH");
 
-        Path result = timetableService.exportTimetableWithFormatters(studentId, customDay, customTime);
+        Path result =
+                timetableService.exportTimetableWithFormatters(studentId, customDay, customTime);
 
         assertNotNull(result);
-        verify(defaultExporter).export(argThat(data ->
-                data.getDayFormatter().equals(customDay) &&
-                        data.getTimeFormatter().equals(customTime)
-        ));
+        verify(defaultExporter)
+                .export(
+                        argThat(
+                                data ->
+                                        data.getDayFormatter().equals(customDay)
+                                                && data.getTimeFormatter().equals(customTime)));
+    }
+
+    @Test
+    void getTimetableData_InvalidStudentId_ThrowsValidationException() {
+        TimetableValidationException exception =
+                assertThrows(
+                        TimetableValidationException.class,
+                        () -> timetableService.getTimetableData(-1));
+        assertTrue(exception.getMessage().contains("Failed to build timetable data: "));
     }
 }

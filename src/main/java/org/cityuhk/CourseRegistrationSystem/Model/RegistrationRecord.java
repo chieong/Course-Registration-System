@@ -67,45 +67,4 @@ public class RegistrationRecord implements Comparable<RegistrationRecord> {
     public LocalDateTime getEndTime() {
         return section != null ? section.getEndTime() : null;
     }
-
-    public String toTimetableRow(DateTimeFormatter dayFormatter, DateTimeFormatter timeFormatter) {
-        if (this.section == null) {
-            return null; // Skip invalid records
-        }
-
-        String courseCode = section.getCourse() != null ? section.getCourse().getCourseCode() : "";
-        String sectionType = section.getType() != null ? section.getType().name() : "";
-        String venue = section.getVenue() != null ? section.getVenue() : "";
-
-        String day = section.getStartTime() != null ? section.getStartTime().format(dayFormatter) : "N/A";
-        String timeRange = (section.getStartTime() != null && section.getEndTime() != null)
-                ? section.getStartTime().format(timeFormatter) + "-" + section.getEndTime().format(timeFormatter)
-                : "N/A";
-
-        return String.format(
-                "%-6s %-13s %-12s %-8s %-18s %-22s",
-                day,
-                timeRange,
-                trimToWidth(courseCode, 12),
-                section.getSectionID(),
-                trimToWidth(sectionType, 18),
-                trimToWidth(venue, 22));
-    }
-
-    private String trimToWidth(String value, int width) {
-        if (value == null) {
-            return "";
-        }
-        if (value.length() <= width) {
-            return value;
-        }
-        return value.substring(0, Math.max(0, width - 3)) + "...";
-    }
-
-    public String toString() {
-        return String.format("RegistrationRecord{studentId=%d, sectionId=%d, timestamp=%s}",
-                student != null ? student.getStudentId() : null,
-                section != null ? section.getSectionId() : null,
-                timestamp != null ? timestamp.toString() : "null");
-    }
 }
