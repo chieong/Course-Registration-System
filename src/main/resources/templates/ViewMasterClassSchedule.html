@@ -139,5 +139,66 @@
         </div>
     </div>
 
+    <script>
+        let coursesData = []; // Store fetched courses
+
+        function displayCourses(courses) {
+            const tbody = document.querySelector('table tbody');
+            tbody.innerHTML = ''; // Clear existing rows
+            
+            if (!Array.isArray(courses)) {
+                console.error('Courses must be an array');
+                return;
+            }
+            
+            courses.forEach(course => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${course.courseCode}</td>
+                    <td>${course.title}</td>
+                    <td>${course.department || 'N/A'}</td>
+                    <td>${course.instructor || 'N/A'}</td>
+                    <td>${course.day || 'N/A'}</td>
+                    <td>${course.time || 'N/A'}</td>
+                    <td>${course.location || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Fetch courses from API
+        function fetchCourses() {
+            return fetch('/api/sections')
+                .then(response => response.json())
+                .then(data => {
+                    coursesData = data;
+                    displayCourses(coursesData);
+                })
+                .catch(error => {
+                    console.error('Error fetching courses:', error);
+                    coursesData = [];
+                });
+        }
+
+        // Display courses when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCourses();
+        });
+
+        // Optional: Filter courses based on form inputs
+        function filterCourses() {
+            const courseCode = document.getElementById('courseCode').value.toLowerCase();
+            const filtered = coursesData.filter(course => 
+                course.courseCode.toLowerCase().includes(courseCode)
+            );
+            displayCourses(filtered);
+        }
+
+        // Add event listener to search button
+        document.querySelector('.schedule-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            filterCourses();
+        });
+    </script>
 </body>
 </html>
