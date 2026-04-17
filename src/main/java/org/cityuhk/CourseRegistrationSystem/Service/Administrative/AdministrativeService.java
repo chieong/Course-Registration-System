@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.Controller.dto.AdminUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
