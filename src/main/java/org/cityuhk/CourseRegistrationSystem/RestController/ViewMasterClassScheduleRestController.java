@@ -26,7 +26,7 @@ public class ViewMasterClassScheduleRestController {
 
     @GetMapping
     public ResponseEntity<List<Course>> getAllSections() {
-        return ResponseEntity.ok(courseService.getAllCourses());
+        return ResponseEntity.ok(courseService.getAllCourses());// TODO CHANGE IT BACK!!!!!!!!!!!!!!
     }
 
 
