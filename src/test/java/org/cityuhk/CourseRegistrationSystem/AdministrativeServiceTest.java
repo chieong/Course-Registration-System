@@ -1,5 +1,10 @@
 package org.cityuhk.CourseRegistrationSystem;
 
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
+import org.cityuhk.CourseRegistrationSystem.Exception.UserEidAlreadyExistsException;
+import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
@@ -91,28 +96,28 @@ class AdministrativeServiceTest {
     @Test
     void createUser_blankEID_throws() {
         userReq.setUserEID("");
-        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID is required"));
-        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_blankName_throws() {
         userReq.setName("");
-        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("Name is required"));
-        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_blankPassword_throws() {
         userReq.setPassword("");
-        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("Password is required"));
-        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new InvalidPasswordException());
+        assertThrows(InvalidPasswordException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_duplicateEID_throws() {
-        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createUser(userReq));
     }
 
     @Test
@@ -123,28 +128,28 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyUser_notFound_throws() {
-        when(adminUserManagementService.modifyUser(99, userReq)).thenThrow(new RuntimeException("User not found"));
-        assertThrows(RuntimeException.class, () -> service.modifyUser(99, userReq));
+        when(adminUserManagementService.modifyUser(99, userReq)).thenThrow(new UserNotFoundException("Admin", 99));
+        assertThrows(UserNotFoundException.class, () -> service.modifyUser(99, userReq));
     }
 
     @Test
     void modifyUser_blankEID_throws() {
         userReq.setUserEID("");
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new RuntimeException("User EID is required"));
-        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_blankName_throws() {
         userReq.setName("");
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new RuntimeException("Name is required"));
-        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_duplicateEID_throws() {
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
@@ -162,8 +167,8 @@ class AdministrativeServiceTest {
 
     @Test
     void removeUser_notFound_throws() {
-        doThrow(new RuntimeException("User not found")).when(adminUserManagementService).removeUser(99);
-        assertThrows(RuntimeException.class, () -> service.removeUser(99));
+        doThrow(new UserNotFoundException("Admin", 99)).when(adminUserManagementService).removeUser(99);
+        assertThrows(UserNotFoundException.class, () -> service.removeUser(99));
     }
 
     @Test
@@ -344,40 +349,40 @@ class AdministrativeServiceTest {
     @Test
     void createStudent_blankEID_throws() {
         studentReq.setUserEID("");
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID is required"));
-        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_blankName_throws() {
         studentReq.setName("");
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("Name is required"));
-        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_blankPassword_throws() {
         studentReq.setPassword("");
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("Password is required"));
-        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new InvalidPasswordException());
+        assertThrows(InvalidPasswordException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInStudentRepo_throws() {
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInAdminRepo_throws() {
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInInstructorRepo_throws() {
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
@@ -388,28 +393,28 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyStudent_notFound_throws() {
-        when(studentUserManagementService.modifyStudent(99, studentReq)).thenThrow(new RuntimeException("User not found"));
-        assertThrows(RuntimeException.class, () -> service.modifyStudent(99, studentReq));
+        when(studentUserManagementService.modifyStudent(99, studentReq)).thenThrow(new UserNotFoundException("Student", 99));
+        assertThrows(UserNotFoundException.class, () -> service.modifyStudent(99, studentReq));
     }
 
     @Test
     void modifyStudent_blankEID_throws() {
         studentReq.setUserEID("");
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new RuntimeException("User EID is required"));
-        assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.modifyStudent(1, studentReq));
     }
 
     @Test
     void modifyStudent_blankName_throws() {
         studentReq.setName("");
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new RuntimeException("Name is required"));
-        assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.modifyStudent(1, studentReq));
     }
 
     @Test
     void modifyStudent_duplicateEID_throws() {
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyStudent(1, studentReq));
     }
 
     @Test
@@ -420,8 +425,8 @@ class AdministrativeServiceTest {
 
     @Test
     void removeStudent_notFound_throws() {
-        doThrow(new RuntimeException("User not found")).when(studentUserManagementService).removeStudent(99);
-        assertThrows(RuntimeException.class, () -> service.removeStudent(99));
+        doThrow(new UserNotFoundException("Student", 99)).when(studentUserManagementService).removeStudent(99);
+        assertThrows(UserNotFoundException.class, () -> service.removeStudent(99));
     }
 
     @Test
@@ -436,40 +441,40 @@ class AdministrativeServiceTest {
     @Test
     void createInstructor_blankEID_throws() {
         instructorReq.setUserEID("");
-        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID is required"));
-        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_blankName_throws() {
         instructorReq.setName("");
-        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("Name is required"));
-        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_blankPassword_throws() {
         instructorReq.setPassword("");
-        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("Password is required"));
-        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new InvalidPasswordException());
+        assertThrows(InvalidPasswordException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_duplicateEIDInAdminRepo_throws() {
-        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new UserEidAlreadyExistsException(instructorReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_duplicateEIDInStudentRepo_throws() {
-        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new UserEidAlreadyExistsException(instructorReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_duplicateEIDInInstructorRepo_throws() {
-        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new UserEidAlreadyExistsException(instructorReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
@@ -480,28 +485,28 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyInstructor_notFound_throws() {
-        when(instructorUserManagementService.modifyInstructor(99, instructorReq)).thenThrow(new RuntimeException("User not found"));
-        assertThrows(RuntimeException.class, () -> service.modifyInstructor(99, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(99, instructorReq)).thenThrow(new UserNotFoundException("Instructor", 99));
+        assertThrows(UserNotFoundException.class, () -> service.modifyInstructor(99, instructorReq));
     }
 
     @Test
     void modifyInstructor_blankEID_throws() {
         instructorReq.setUserEID("");
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new RuntimeException("User EID is required"));
-        assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.modifyInstructor(1, instructorReq));
     }
 
     @Test
     void modifyInstructor_blankName_throws() {
         instructorReq.setName("");
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new RuntimeException("Name is required"));
-        assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.modifyInstructor(1, instructorReq));
     }
 
     @Test
     void modifyInstructor_duplicateEID_throws() {
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new UserEidAlreadyExistsException(instructorReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyInstructor(1, instructorReq));
     }
 
     @Test
@@ -512,8 +517,8 @@ class AdministrativeServiceTest {
 
     @Test
     void removeInstructor_notFound_throws() {
-        doThrow(new RuntimeException("User not found")).when(instructorUserManagementService).removeInstructor(99);
-        assertThrows(RuntimeException.class, () -> service.removeInstructor(99));
+        doThrow(new UserNotFoundException("Instructor", 99)).when(instructorUserManagementService).removeInstructor(99);
+        assertThrows(UserNotFoundException.class, () -> service.removeInstructor(99));
     }
 
     @Test
@@ -527,13 +532,13 @@ class AdministrativeServiceTest {
 
     @Test
     void createAdmin_duplicateEIDInStudentRepo_throws() {
-        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createAdmin_duplicateEIDInInstructorRepo_throws() {
-        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID already exists"));
-        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.createUser(userReq));
     }
 }
