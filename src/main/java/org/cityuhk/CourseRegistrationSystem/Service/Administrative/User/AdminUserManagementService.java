@@ -2,6 +2,10 @@ package org.cityuhk.CourseRegistrationSystem.Service.Administrative.User;
 
 import java.util.List;
 
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
+import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
@@ -30,13 +34,13 @@ public class AdminUserManagementService implements AdminUserManagementOperations
 
     public Admin createUser(AdminUserRequest request) {
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new RuntimeException("User EID is required");
+            throw new InvalidUserEIDException();
         }
         if (request.getName() == null || request.getName().isBlank()) {
-            throw new RuntimeException("Name is required");
+            throw new InvalidNameException();
         }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new RuntimeException("Password is required");
+            throw new InvalidPasswordException();
         }
 
         String normalizedUserEID = request.getUserEID().trim();
@@ -53,13 +57,13 @@ public class AdminUserManagementService implements AdminUserManagementOperations
 
     public Admin modifyUser(Integer staffId, AdminUserRequest request) {
         Admin existingAdmin = adminRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+                .orElseThrow(() -> new UserNotFoundException("Admin", staffId));
 
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new RuntimeException("User EID is required");
+            throw new InvalidUserEIDException();
         }
         if (request.getName() == null || request.getName().isBlank()) {
-            throw new RuntimeException("Name is required");
+            throw new InvalidNameException();
         }
 
         String normalizedUserEID = request.getUserEID().trim();
@@ -82,7 +86,7 @@ public class AdminUserManagementService implements AdminUserManagementOperations
 
     public void removeUser(Integer staffId) {
         if (!adminRepository.existsById(staffId)) {
-            throw new RuntimeException("Admin user not found");
+            throw new UserNotFoundException("Admin", staffId);
         }
         adminRepository.deleteById(staffId);
     }
