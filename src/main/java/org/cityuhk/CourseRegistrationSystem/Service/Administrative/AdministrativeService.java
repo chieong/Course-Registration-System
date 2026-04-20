@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
@@ -23,17 +26,20 @@ public class AdministrativeService {
     private final AdminRepository adminRepository;
     private final CourseRepository courseRepository;
     private final SectionRepository sectionRepository;
+    private final RegistrationPeriodRepository registrationPeriodRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AdministrativeService(
             AdminRepository adminRepository,
             CourseRepository courseRepository,
             PasswordEncoder passwordEncoder,
-            SectionRepository sectionRepository) {
+            SectionRepository sectionRepository,
+            RegistrationPeriodRepository registrationPeriodRepository) {
         this.adminRepository = adminRepository;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
         this.sectionRepository = sectionRepository;
+        this.registrationPeriodRepository = registrationPeriodRepository;
     }
 
     @Transactional(readOnly = true)
@@ -306,5 +312,27 @@ public class AdministrativeService {
         }
 
         sectionRepository.deleteById(request.getSectionId());
+    }
+
+    public void createRegistrationPeriod(AdminPeriodRequest request) {
+        if(request.getCohort() == null) {
+            throw new RuntimeException("Cohort is required");
+        }
+
+        RegistrationPeriod newRegistrationPeriod = new RegistrationPeriod(
+                request.getCohort(),
+                request.getStartDate(),
+                request.getEndDate()
+        );
+
+        registrationPeriodRepository.save(newRegistrationPeriod);
+    }
+
+    public void deleteRegistrationPeriod(AdminPeriodRequest request) {
+        if(request.getPeriodId() == null) {
+            throw new RuntimeException("PeriodId is required");
+        }
+
+        registrationPeriodRepository.deleteById(request.getPeriodId());
     }
 }
