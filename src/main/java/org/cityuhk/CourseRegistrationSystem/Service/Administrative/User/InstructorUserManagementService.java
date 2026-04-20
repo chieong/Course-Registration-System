@@ -6,8 +6,10 @@ import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-public class InstructorUserManagementService {
+@Service
+public class InstructorUserManagementService implements InstructorUserManagementOperations {
 
     private final InstructorRepository instructorRepository;
     private final PasswordEncoder passwordEncoder;

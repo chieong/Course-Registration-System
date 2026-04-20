@@ -6,8 +6,10 @@ import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-public class AdminUserManagementService {
+@Service
+public class AdminUserManagementService implements AdminUserManagementOperations {
 
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;

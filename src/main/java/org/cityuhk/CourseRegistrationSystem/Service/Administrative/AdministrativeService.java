@@ -42,15 +42,10 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementService;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.GlobalUserEidUniquenessPolicy;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementService;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementOperations;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementOperations;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
