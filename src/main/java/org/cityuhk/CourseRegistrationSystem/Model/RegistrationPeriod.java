@@ -14,22 +14,17 @@ public class RegistrationPeriod {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int periodId;
 
-    private final int cohort;
-    private final LocalDateTime startDateTime;
-    private final LocalDateTime endDateTime;
+    private int cohort;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
 
     public RegistrationPeriod (Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         this.cohort = cohort;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
-        if(startDateTime.isBefore(endDateTime)) {
+        if(endDateTime.isBefore(startDateTime)) {
             throw new RuntimeException("Start date cannot be before end date");
         }
-    }
-
-    public boolean isCurrentlyActive() {
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        return startDateTime.isAfter(currentDateTime) && endDateTime.isBefore(currentDateTime);
     }
 
     public int getCohort() {
