@@ -2,6 +2,10 @@ package org.cityuhk.CourseRegistrationSystem.Service.Administrative.User;
 
 import java.util.List;
 
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
+import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
@@ -30,13 +34,13 @@ public class StudentUserManagementService implements StudentUserManagementOperat
 
     public Student createStudent(StudentUserRequest request) {
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new RuntimeException("User EID is required");
+            throw new InvalidUserEIDException();
         }
         if (request.getName() == null || request.getName().isBlank()) {
-            throw new RuntimeException("Name is required");
+            throw new InvalidNameException();
         }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new RuntimeException("Password is required");
+            throw new InvalidPasswordException();
         }
 
         String normalizedUserEID = request.getUserEID().trim();
@@ -55,13 +59,13 @@ public class StudentUserManagementService implements StudentUserManagementOperat
 
     public Student modifyStudent(Integer studentId, StudentUserRequest request) {
         Student existing = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new UserNotFoundException("Student", studentId));
 
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new RuntimeException("User EID is required");
+            throw new InvalidUserEIDException();
         }
         if (request.getName() == null || request.getName().isBlank()) {
-            throw new RuntimeException("Name is required");
+            throw new InvalidNameException();
         }
 
         String normalizedUserEID = request.getUserEID().trim();
@@ -90,7 +94,7 @@ public class StudentUserManagementService implements StudentUserManagementOperat
 
     public void removeStudent(Integer studentId) {
         if (!studentRepository.existsById(studentId)) {
-            throw new RuntimeException("Student not found");
+            throw new UserNotFoundException("Student", studentId);
         }
         studentRepository.deleteById(studentId);
     }
