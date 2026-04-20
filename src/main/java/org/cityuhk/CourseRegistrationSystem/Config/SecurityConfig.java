@@ -2,6 +2,7 @@ package org.cityuhk.CourseRegistrationSystem.Config;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -36,7 +37,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(AdminRepository adminRepository, StudentRepository studentRepository) {
+    public UserDetailsService userDetailsService(AdminRepository adminRepository,
+            StudentRepository studentRepository,
+            InstructorRepository instructorRepository) {
         return username -> adminRepository.findByUserEID(username)
                 .map(admin -> {
                     if (admin.getPassword() == null || admin.getPassword().isBlank()) {
@@ -57,6 +60,17 @@ public class SecurityConfig {
                                     .username(student.getUserEID())
                                     .password(student.getPassword())
                                     .roles("STUDENT")
+                                    .build();
+                        }))
+                .or(() -> instructorRepository.findByUserEID(username)
+                        .map(instructor -> {
+                            if (instructor.getPassword() == null || instructor.getPassword().isBlank()) {
+                                throw new UsernameNotFoundException("User has no password set");
+                            }
+                            return User.builder()
+                                    .username(instructor.getUserEID())
+                                    .password(instructor.getPassword())
+                                    .roles("INSTRUCTOR")
                                     .build();
                         }))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

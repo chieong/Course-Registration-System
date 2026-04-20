@@ -27,10 +27,25 @@ A local session file is saved at:
 
 ## Admin Commands
 
+### Admin Users
 - `admin-list-users`
 - `admin-create-user <userEID> <name> <password>`
 - `admin-modify-user <staffId> <userEID> <name> [password]`
 - `admin-remove-user <staffId>`
+
+### Student Users
+- `admin-list-students`
+- `admin-create-student <userEID> <name> <password> [--major <major>] [--dept <dept>]`
+- `admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]`
+- `admin-remove-student <studentId>`
+
+### Instructor Users
+- `admin-list-instructors`
+- `admin-create-instructor <userEID> <name> <password> [--dept <dept>]`
+- `admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]`
+- `admin-remove-instructor <staffId>`
+
+### Courses
 - `admin-create-course --code <code> --title <title> --credits <credits> [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]`
 - `admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]`
 - `admin-remove-course <courseCode>`
