@@ -20,18 +20,19 @@ public class Section {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer sectionId;
 
+    @ManyToOne(optional = false)
+    private Course course;
+
     private int enrollCapacity;
     private int waitlistCapacity;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String venue;
 
     @Enumerated(EnumType.STRING)
     private Type type;
 
-    private String venue;
 
-    @ManyToOne(optional = false)
-    private Course course;
 
     public Section() {}
 
