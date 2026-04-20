@@ -13,49 +13,29 @@ import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementService;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.GlobalUserEidUniquenessPolicy;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementService;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementOperations;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementOperations;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdministrativeService {
 
-    private final AdminUserManagementService adminUserManagementService;
-    private final StudentUserManagementService studentUserManagementService;
-    private final InstructorUserManagementService instructorUserManagementService;
+    private final AdminUserManagementOperations adminUserManagementService;
+    private final StudentUserManagementOperations studentUserManagementService;
+    private final InstructorUserManagementOperations instructorUserManagementService;
     private final CourseRepository courseRepository;
 
     public AdministrativeService(
-            AdminRepository adminRepository,
-            StudentRepository studentRepository,
-            InstructorRepository instructorRepository,
-            CourseRepository courseRepository,
-            PasswordEncoder passwordEncoder) {
-        GlobalUserEidUniquenessPolicy eidPolicy = new GlobalUserEidUniquenessPolicy(
-                adminRepository,
-                studentRepository,
-                instructorRepository);
-
-        this.adminUserManagementService = new AdminUserManagementService(
-                adminRepository,
-                passwordEncoder,
-                eidPolicy);
-        this.studentUserManagementService = new StudentUserManagementService(
-                studentRepository,
-                passwordEncoder,
-                eidPolicy);
-        this.instructorUserManagementService = new InstructorUserManagementService(
-                instructorRepository,
-                passwordEncoder,
-                eidPolicy);
+            AdminUserManagementOperations adminUserManagementService,
+            StudentUserManagementOperations studentUserManagementService,
+            InstructorUserManagementOperations instructorUserManagementService,
+            CourseRepository courseRepository) {
+        this.adminUserManagementService = adminUserManagementService;
+        this.studentUserManagementService = studentUserManagementService;
+        this.instructorUserManagementService = instructorUserManagementService;
         this.courseRepository = courseRepository;
     }
 

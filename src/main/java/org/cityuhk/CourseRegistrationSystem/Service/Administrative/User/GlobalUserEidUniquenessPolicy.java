@@ -3,8 +3,10 @@ package org.cityuhk.CourseRegistrationSystem.Service.Administrative.User;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.springframework.stereotype.Component;
 
-public class GlobalUserEidUniquenessPolicy {
+@Component
+public class GlobalUserEidUniquenessPolicy implements UserEidUniquenessPolicy {
 
     private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;

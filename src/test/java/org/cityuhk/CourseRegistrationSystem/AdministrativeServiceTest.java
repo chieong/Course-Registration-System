@@ -13,6 +13,9 @@ import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementOperations;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementOperations;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementOperations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,11 +37,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AdministrativeServiceTest {
 
-    @Mock private AdminRepository adminRepository;
-    @Mock private StudentRepository studentRepository;
-    @Mock private InstructorRepository instructorRepository;
+    @Mock private AdminUserManagementOperations adminUserManagementService;
+    @Mock private StudentUserManagementOperations studentUserManagementService;
+    @Mock private InstructorUserManagementOperations instructorUserManagementService;
     @Mock private CourseRepository courseRepository;
-    @Mock private PasswordEncoder passwordEncoder;
     @InjectMocks private AdministrativeService service;
 
     private AdminUserRequest userReq;
@@ -82,97 +84,93 @@ class AdministrativeServiceTest {
 
     @Test
     void listUsers_success() {
-        when(adminRepository.findAll()).thenReturn(List.of(admin));
+        when(adminUserManagementService.listUsers()).thenReturn(List.of(admin));
         assertEquals(1, service.listUsers().size());
     }
 
     @Test
     void createUser_blankEID_throws() {
         userReq.setUserEID("");
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID is required"));
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_blankName_throws() {
         userReq.setName("");
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("Name is required"));
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_blankPassword_throws() {
         userReq.setPassword("");
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("Password is required"));
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_duplicateEID_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_success() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(adminRepository.save(any())).thenReturn(admin);
+        when(adminUserManagementService.createUser(userReq)).thenReturn(admin);
         assertNotNull(service.createUser(userReq));
     }
 
     @Test
     void modifyUser_notFound_throws() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.empty());
+        when(adminUserManagementService.modifyUser(99, userReq)).thenThrow(new RuntimeException("User not found"));
         assertThrows(RuntimeException.class, () -> service.modifyUser(99, userReq));
     }
 
     @Test
     void modifyUser_blankEID_throws() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
         userReq.setUserEID("");
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new RuntimeException("User EID is required"));
         assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_blankName_throws() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
         userReq.setName("");
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new RuntimeException("Name is required"));
         assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_duplicateEID_throws() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(new Admin.AdminBuilder().withStaffId(2).build()));
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_keepOldPassword_success() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
         userReq.setPassword("");
-        when(adminRepository.save(any())).thenReturn(admin);
+        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
         assertNotNull(service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_success() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
-        when(adminRepository.save(any())).thenReturn(admin);
+        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
         assertNotNull(service.modifyUser(1, userReq));
     }
 
     @Test
     void removeUser_notFound_throws() {
-        when(adminRepository.existsById(anyInt())).thenReturn(false);
+        doThrow(new RuntimeException("User not found")).when(adminUserManagementService).removeUser(99);
         assertThrows(RuntimeException.class, () -> service.removeUser(99));
     }
 
     @Test
     void removeUser_success() {
-        when(adminRepository.existsById(anyInt())).thenReturn(true);
+        doNothing().when(adminUserManagementService).removeUser(1);
         service.removeUser(1);
-        verify(adminRepository).deleteById(1);
+        verify(adminUserManagementService).removeUser(1);
     }
 
     @Test
@@ -346,100 +344,91 @@ class AdministrativeServiceTest {
     @Test
     void createStudent_blankEID_throws() {
         studentReq.setUserEID("");
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID is required"));
         assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_blankName_throws() {
         studentReq.setName("");
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("Name is required"));
         assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_blankPassword_throws() {
         studentReq.setPassword("");
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("Password is required"));
         assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInStudentRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInAdminRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInInstructorRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_success() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(studentRepository.save(any())).thenReturn(student);
+        when(studentUserManagementService.createStudent(studentReq)).thenReturn(student);
         assertNotNull(service.createStudent(studentReq));
     }
 
     @Test
     void modifyStudent_notFound_throws() {
-        when(studentRepository.findById(anyInt())).thenReturn(Optional.empty());
+        when(studentUserManagementService.modifyStudent(99, studentReq)).thenThrow(new RuntimeException("User not found"));
         assertThrows(RuntimeException.class, () -> service.modifyStudent(99, studentReq));
     }
 
     @Test
     void modifyStudent_blankEID_throws() {
-        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
         studentReq.setUserEID("");
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new RuntimeException("User EID is required"));
         assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
     }
 
     @Test
     void modifyStudent_blankName_throws() {
-        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
         studentReq.setName("");
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new RuntimeException("Name is required"));
         assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
     }
 
     @Test
     void modifyStudent_duplicateEID_throws() {
-        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
     }
 
     @Test
     void modifyStudent_success() {
-        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.save(any())).thenReturn(student);
+        when(studentUserManagementService.modifyStudent(1, studentReq)).thenReturn(student);
         assertNotNull(service.modifyStudent(1, studentReq));
     }
 
     @Test
     void removeStudent_notFound_throws() {
-        when(studentRepository.existsById(anyInt())).thenReturn(false);
+        doThrow(new RuntimeException("User not found")).when(studentUserManagementService).removeStudent(99);
         assertThrows(RuntimeException.class, () -> service.removeStudent(99));
     }
 
     @Test
     void removeStudent_success() {
-        when(studentRepository.existsById(anyInt())).thenReturn(true);
+        doNothing().when(studentUserManagementService).removeStudent(1);
         service.removeStudent(1);
-        verify(studentRepository).deleteById(1);
+        verify(studentUserManagementService).removeStudent(1);
     }
 
     // ── Instructor create/modify/remove tests ─────────────────────────────────
@@ -447,116 +436,104 @@ class AdministrativeServiceTest {
     @Test
     void createInstructor_blankEID_throws() {
         instructorReq.setUserEID("");
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID is required"));
         assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_blankName_throws() {
         instructorReq.setName("");
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("Name is required"));
         assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_blankPassword_throws() {
         instructorReq.setPassword("");
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("Password is required"));
         assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_duplicateEIDInAdminRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_duplicateEIDInStudentRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_duplicateEIDInInstructorRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
     }
 
     @Test
     void createInstructor_success() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(instructorRepository.save(any())).thenReturn(instructor);
+        when(instructorUserManagementService.createInstructor(instructorReq)).thenReturn(instructor);
         assertNotNull(service.createInstructor(instructorReq));
     }
 
     @Test
     void modifyInstructor_notFound_throws() {
-        when(instructorRepository.findById(anyInt())).thenReturn(Optional.empty());
+        when(instructorUserManagementService.modifyInstructor(99, instructorReq)).thenThrow(new RuntimeException("User not found"));
         assertThrows(RuntimeException.class, () -> service.modifyInstructor(99, instructorReq));
     }
 
     @Test
     void modifyInstructor_blankEID_throws() {
-        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
         instructorReq.setUserEID("");
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new RuntimeException("User EID is required"));
         assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
     }
 
     @Test
     void modifyInstructor_blankName_throws() {
-        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
         instructorReq.setName("");
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new RuntimeException("Name is required"));
         assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
     }
 
     @Test
     void modifyInstructor_duplicateEID_throws() {
-        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
     }
 
     @Test
     void modifyInstructor_success() {
-        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
-        when(instructorRepository.save(any())).thenReturn(instructor);
+        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenReturn(instructor);
         assertNotNull(service.modifyInstructor(1, instructorReq));
     }
 
     @Test
     void removeInstructor_notFound_throws() {
-        when(instructorRepository.existsById(anyInt())).thenReturn(false);
+        doThrow(new RuntimeException("User not found")).when(instructorUserManagementService).removeInstructor(99);
         assertThrows(RuntimeException.class, () -> service.removeInstructor(99));
     }
 
     @Test
     void removeInstructor_success() {
-        when(instructorRepository.existsById(anyInt())).thenReturn(true);
+        doNothing().when(instructorUserManagementService).removeInstructor(1);
         service.removeInstructor(1);
-        verify(instructorRepository).deleteById(1);
+        verify(instructorUserManagementService).removeInstructor(1);
     }
 
     // ── Cross-role EID uniqueness ──────────────────────────────────────────────
 
     @Test
     void createAdmin_duplicateEIDInStudentRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createAdmin_duplicateEIDInInstructorRepo_throws() {
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new RuntimeException("User EID already exists"));
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 }
