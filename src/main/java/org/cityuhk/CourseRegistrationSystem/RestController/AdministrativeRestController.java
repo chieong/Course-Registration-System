@@ -3,10 +3,8 @@ package org.cityuhk.CourseRegistrationSystem.RestController;
 import java.util.List;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
@@ -43,33 +41,21 @@ public class AdministrativeRestController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<?> createUser(@RequestBody AdminUserRequest request) {
-        try {
-            Admin created = administrativeService.createUser(request);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Admin> createUser(@RequestBody AdminUserRequest request) {
+        Admin created = administrativeService.createUser(request);
+        return ResponseEntity.ok(created);
     }
 
     @PutMapping("/users/{staffId}")
-    public ResponseEntity<?> modifyUser(@PathVariable Integer staffId, @RequestBody AdminUserRequest request) {
-        try {
-            Admin updated = administrativeService.modifyUser(staffId, request);
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Admin> modifyUser(@PathVariable Integer staffId, @RequestBody AdminUserRequest request) {
+        Admin updated = administrativeService.modifyUser(staffId, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/users/{staffId}")
-    public ResponseEntity<?> removeUser(@PathVariable Integer staffId) {
-        try {
-            administrativeService.removeUser(staffId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Void> removeUser(@PathVariable Integer staffId) {
+        administrativeService.removeUser(staffId);
+        return ResponseEntity.noContent().build();
     }
 
     // ── Student user endpoints ─────────────────────────────────────────────────
@@ -80,33 +66,21 @@ public class AdministrativeRestController {
     }
 
     @PostMapping("/students")
-    public ResponseEntity<?> createStudent(@RequestBody StudentUserRequest request) {
-        try {
-            Student created = administrativeService.createStudent(request);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Student> createStudent(@RequestBody StudentUserRequest request) {
+        Student created = administrativeService.createStudent(request);
+        return ResponseEntity.ok(created);
     }
 
     @PutMapping("/students/{studentId}")
-    public ResponseEntity<?> modifyStudent(@PathVariable Integer studentId, @RequestBody StudentUserRequest request) {
-        try {
-            Student updated = administrativeService.modifyStudent(studentId, request);
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Student> modifyStudent(@PathVariable Integer studentId, @RequestBody StudentUserRequest request) {
+        Student updated = administrativeService.modifyStudent(studentId, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/students/{studentId}")
-    public ResponseEntity<?> removeStudent(@PathVariable Integer studentId) {
-        try {
-            administrativeService.removeStudent(studentId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Void> removeStudent(@PathVariable Integer studentId) {
+        administrativeService.removeStudent(studentId);
+        return ResponseEntity.noContent().build();
     }
 
     // ── Instructor user endpoints ──────────────────────────────────────────────
@@ -117,32 +91,20 @@ public class AdministrativeRestController {
     }
 
     @PostMapping("/instructors")
-    public ResponseEntity<?> createInstructor(@RequestBody InstructorUserRequest request) {
-        try {
-            Instructor created = administrativeService.createInstructor(request);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Instructor> createInstructor(@RequestBody InstructorUserRequest request) {
+        Instructor created = administrativeService.createInstructor(request);
+        return ResponseEntity.ok(created);
     }
 
     @PutMapping("/instructors/{staffId}")
-    public ResponseEntity<?> modifyInstructor(@PathVariable Integer staffId, @RequestBody InstructorUserRequest request) {
-        try {
-            Instructor updated = administrativeService.modifyInstructor(staffId, request);
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Instructor> modifyInstructor(@PathVariable Integer staffId, @RequestBody InstructorUserRequest request) {
+        Instructor updated = administrativeService.modifyInstructor(staffId, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/instructors/{staffId}")
-    public ResponseEntity<?> removeInstructor(@PathVariable Integer staffId) {
-        try {
-            administrativeService.removeInstructor(staffId);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Void> removeInstructor(@PathVariable Integer staffId) {
+        administrativeService.removeInstructor(staffId);
+        return ResponseEntity.noContent().build();
     }
 }
