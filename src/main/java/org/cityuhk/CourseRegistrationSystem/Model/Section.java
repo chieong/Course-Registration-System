@@ -23,8 +23,8 @@ public class Section {
     @ManyToOne(optional = false)
     private Course course;
 
-    private int enrollCapacity;
-    private int waitlistCapacity;
+    private Integer enrollCapacity;
+    private Integer waitlistCapacity;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String venue;
@@ -37,18 +37,22 @@ public class Section {
     public Section() {}
 
     public Section(
-            int sectionId,
+            Course code,
             int enrollCapacity,
             int waitlistCapacity,
-            Type type,
-            String venue,
-            Course course) {
-        this.sectionId = sectionId;
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            String venue
+            ) {
+        this.course = code;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
-        this.type = type;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        if((startTime != null && endTime != null) && startTime.isBefore(endTime)) {
+            throw new IllegalArgumentException("Start time cannot be before end time");
+        }
         this.venue = venue;
-        this.course = course;
     }
 
     public boolean canEnroll(Student student, int enrolled) {
@@ -101,5 +105,32 @@ public class Section {
 
     public int getSectionId() {
         return sectionId;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public void setTime(LocalDateTime startTime, LocalDateTime endTime) throws IllegalArgumentException {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        if(startTime.isBefore(endTime)) {
+            throw new IllegalArgumentException("Start time cannot be before end time");
+        }
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+    public void setVenue(String venue) {
+        this.venue = venue;
+    }
+
+    public void setEnrollCapacity(int enrollCapacity) {
+        this.enrollCapacity = enrollCapacity;
+    }
+
+    public void setWaitlistCapacity(int waitlistCapacity) {
+        this.waitlistCapacity = waitlistCapacity;
     }
 }

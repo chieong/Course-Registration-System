@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
@@ -20,15 +22,18 @@ public class AdministrativeService {
 
     private final AdminRepository adminRepository;
     private final CourseRepository courseRepository;
+    private final SectionRepository sectionRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AdministrativeService(
             AdminRepository adminRepository,
             CourseRepository courseRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            SectionRepository sectionRepository) {
         this.adminRepository = adminRepository;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
+        this.sectionRepository = sectionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +58,7 @@ public class AdministrativeService {
             throw new RuntimeException("User EID already exists");
         }
 
-        Admin admin = (Admin) new Admin.AdminBuilder()
+        Admin admin = new Admin.AdminBuilder()
                 .withUserEID(normalizedUserEID)
                 .withName(request.getName().trim())
                 .withPassword(passwordEncoder.encode(request.getPassword()))
@@ -131,8 +136,6 @@ public class AdministrativeService {
             throw new RuntimeException("A course cannot be its own exclusive course");
         }
 
-        Set<Section> sections = request.getSections();
-
         Course course = new Course(
                 courseCode,
                 request.getTitle().trim(),
@@ -141,7 +144,7 @@ public class AdministrativeService {
                 request.getTerm(),
                 prerequisites,
                 exclusives,
-                sections);
+                null);
 
         return courseRepository.save(course);
     }
@@ -202,11 +205,6 @@ public class AdministrativeService {
             existingCourse.setExclusiveCourses(exclusives);
         }
 
-        if (request.getSections() != null) {
-            Set<Section> sections = request.getSections();
-            existingCourse.setSections(sections);
-        }
-
         return courseRepository.save(existingCourse);
     }
 
@@ -239,5 +237,74 @@ public class AdministrativeService {
         }
 
         return resolved;
+    }
+
+    public Section createSection(AdminSectionService request) throws IllegalArgumentException {
+        if(request.getCourse() == null) {
+            throw new RuntimeException("Course is required");
+        }
+        if(request.getSectionType() == null) {
+            throw new RuntimeException("SectionType is required");
+        }
+        if(request.getStartTime() == null || request.getEndTime() == null) {
+            throw new RuntimeException("Start and end time is required");
+        }
+        if(request.getVenue() == null || request.getVenue().isBlank()) {
+            throw new RuntimeException("Venue is required");
+        }
+
+
+        Section newSection = new Section(
+                request.getCourse(),
+                request.getEnrollCapacity(),
+                request.getWaitlistCapacity(),
+                request.getStartTime(),
+                request.getEndTime(),
+                request.getVenue()
+        );
+
+        return sectionRepository.save(newSection);
+    }
+
+    public Section modifySection(AdminSectionService request) {
+        if(request.getSectionId() == null) {
+            throw new RuntimeException("SectionId is required");
+        }
+
+        Section existingSection = sectionRepository.findById(request.getSectionId()).orElseThrow(() -> new RuntimeException("Section not found"));
+
+        if(request.getCourse() != null) {
+            existingSection.setCourse(request.getCourse());
+        }
+        if(request.getVenue() != null && !request.getVenue().isBlank()) {
+            existingSection.setVenue(request.getVenue());
+        }
+        if(request.getStartTime() != null) {
+            existingSection.setTime(request.getStartTime(),existingSection.getEndTime());
+        }
+        if(request.getEndTime() != null) {
+            existingSection.setTime(existingSection.getStartTime(),request.getEndTime());
+        }
+        if(request.getSectionType() != null) {
+            existingSection.setType(request.getSectionType());
+        }
+        if(request.getVenue() != null) {
+            existingSection.setVenue(request.getVenue());
+        }
+        if (request.getEnrollCapacity() != null) {
+            existingSection.setEnrollCapacity(request.getEnrollCapacity());
+        }
+        if (request.getWaitlistCapacity() != null) {
+            existingSection.setWaitlistCapacity(request.getWaitlistCapacity());
+        }
+        return sectionRepository.save(existingSection);
+    }
+
+    public void deleteSection(AdminSectionService request) {
+        if(request.getSectionId() == null) {
+            throw new RuntimeException("SectionId is required");
+        }
+
+        sectionRepository.deleteById(request.getSectionId());
     }
 }

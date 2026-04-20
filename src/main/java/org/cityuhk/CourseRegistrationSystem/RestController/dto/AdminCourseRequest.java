@@ -12,7 +12,6 @@ public class AdminCourseRequest {
     private String term;
     private Set<String> prerequisiteCourseCodes;
     private Set<String> exclusiveCourseCodes;
-    private Set<Section> sections;
 
     public String getCourseCode() {
         return courseCode;
@@ -68,11 +67,5 @@ public class AdminCourseRequest {
 
     public void setExclusiveCourseCodes(Set<String> exclusiveCourseCodes) {
         this.exclusiveCourseCodes = exclusiveCourseCodes;
-    }
-
-    public Set<Section> getSections() {return sections;}
-
-    public void setSections(Set<Section> sections) {
-        this.sections = sections;
     }
 }
