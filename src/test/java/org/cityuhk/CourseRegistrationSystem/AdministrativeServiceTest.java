@@ -4,6 +4,8 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseReques
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
@@ -12,6 +14,14 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
+import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodOverlapException;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodValidationException;
@@ -39,6 +49,8 @@ import static org.mockito.Mockito.*;
 class AdministrativeServiceTest {
 
     @Mock private AdminRepositoryPort adminRepository;
+    @Mock private StudentRepository studentRepository;
+    @Mock private InstructorRepository instructorRepository;
     @Mock private CourseRepositoryPort courseRepository;
     @Mock private SectionRepositoryPort sectionRepository;
     @Mock private RegistrationPeriodRepository registrationPeriodRepository;
@@ -47,8 +59,12 @@ class AdministrativeServiceTest {
     @InjectMocks private AdministrativeService service;
 
     private AdminUserRequest userReq;
+    private StudentUserRequest studentReq;
+    private InstructorUserRequest instructorReq;
     private AdminCourseRequest courseReq;
     private Admin admin;
+    private Student student;
+    private Instructor instructor;
     private Course course;
     private Course prereqCourse;
 
@@ -59,12 +75,24 @@ class AdministrativeServiceTest {
         userReq.setName("Test Admin");
         userReq.setPassword("pass123");
 
+        studentReq = new StudentUserRequest();
+        studentReq.setUserEID("SEID123");
+        studentReq.setName("Test Student");
+        studentReq.setPassword("pass456");
+
+        instructorReq = new InstructorUserRequest();
+        instructorReq.setUserEID("IEID123");
+        instructorReq.setName("Test Instructor");
+        instructorReq.setPassword("pass789");
+
         courseReq = new AdminCourseRequest();
         courseReq.setCourseCode("CS101");
         courseReq.setTitle("Intro CS");
         courseReq.setCredits(3);
 
         admin = new Admin.AdminBuilder().withStaffId(1).withUserEID("EID123").withName("Test").withPassword("enc").build();
+        student = new Student.StudentBuilder().withStudentId(1).withUserEID("SEID123").withName("Student").withPassword("enc").build();
+        instructor = new Instructor.InstructorBuilder().withStaffId(1).withUserEID("IEID123").withName("Instructor").withPassword("enc").build();
         course = new Course("CS101", "Intro CS", 3, null, Set.of(), Set.of(), null);
         prereqCourse = new Course("CS102", "Prereq CS", 3, null, Set.of(), Set.of(), null);
     }
@@ -363,6 +391,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
     }
+// <<<<<<< HEAD
 
     // ── createUser – null-input guards ───────────────────────────────────────
 
@@ -820,4 +849,226 @@ class AdministrativeServiceTest {
         assertEquals(1, result.size());
         verify(registrationPeriodRepository).findByCohortOrderByStartDateTime(2024);
     }
+
+// =======
+
+    // ── Student create/modify/remove tests ────────────────────────────────────
+
+    @Test
+    void createStudent_blankEID_throws() {
+        studentReq.setUserEID("");
+        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+    }
+
+    @Test
+    void createStudent_blankName_throws() {
+        studentReq.setName("");
+        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+    }
+
+    @Test
+    void createStudent_blankPassword_throws() {
+        studentReq.setPassword("");
+        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+    }
+
+    @Test
+    void createStudent_duplicateEIDInStudentRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+    }
+
+    @Test
+    void createStudent_duplicateEIDInAdminRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+    }
+
+    @Test
+    void createStudent_duplicateEIDInInstructorRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        assertThrows(RuntimeException.class, () -> service.createStudent(studentReq));
+    }
+
+    @Test
+    void createStudent_success() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(studentRepository.save(any())).thenReturn(student);
+        assertNotNull(service.createStudent(studentReq));
+    }
+
+    @Test
+    void modifyStudent_notFound_throws() {
+        when(studentRepository.findById(anyInt())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> service.modifyStudent(99, studentReq));
+    }
+
+    @Test
+    void modifyStudent_blankEID_throws() {
+        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
+        studentReq.setUserEID("");
+        assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
+    }
+
+    @Test
+    void modifyStudent_blankName_throws() {
+        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
+        studentReq.setName("");
+        assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
+    }
+
+    @Test
+    void modifyStudent_duplicateEID_throws() {
+        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        assertThrows(RuntimeException.class, () -> service.modifyStudent(1, studentReq));
+    }
+
+    @Test
+    void modifyStudent_success() {
+        when(studentRepository.findById(anyInt())).thenReturn(Optional.of(student));
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.save(any())).thenReturn(student);
+        assertNotNull(service.modifyStudent(1, studentReq));
+    }
+
+    @Test
+    void removeStudent_notFound_throws() {
+        when(studentRepository.existsById(anyInt())).thenReturn(false);
+        assertThrows(RuntimeException.class, () -> service.removeStudent(99));
+    }
+
+    @Test
+    void removeStudent_success() {
+        when(studentRepository.existsById(anyInt())).thenReturn(true);
+        service.removeStudent(1);
+        verify(studentRepository).deleteById(1);
+    }
+
+    // ── Instructor create/modify/remove tests ─────────────────────────────────
+
+    @Test
+    void createInstructor_blankEID_throws() {
+        instructorReq.setUserEID("");
+        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void createInstructor_blankName_throws() {
+        instructorReq.setName("");
+        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void createInstructor_blankPassword_throws() {
+        instructorReq.setPassword("");
+        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void createInstructor_duplicateEIDInAdminRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void createInstructor_duplicateEIDInStudentRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void createInstructor_duplicateEIDInInstructorRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        assertThrows(RuntimeException.class, () -> service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void createInstructor_success() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(instructorRepository.save(any())).thenReturn(instructor);
+        assertNotNull(service.createInstructor(instructorReq));
+    }
+
+    @Test
+    void modifyInstructor_notFound_throws() {
+        when(instructorRepository.findById(anyInt())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> service.modifyInstructor(99, instructorReq));
+    }
+
+    @Test
+    void modifyInstructor_blankEID_throws() {
+        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
+        instructorReq.setUserEID("");
+        assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
+    }
+
+    @Test
+    void modifyInstructor_blankName_throws() {
+        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
+        instructorReq.setName("");
+        assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
+    }
+
+    @Test
+    void modifyInstructor_duplicateEID_throws() {
+        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        assertThrows(RuntimeException.class, () -> service.modifyInstructor(1, instructorReq));
+    }
+
+    @Test
+    void modifyInstructor_success() {
+        when(instructorRepository.findById(anyInt())).thenReturn(Optional.of(instructor));
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        when(instructorRepository.save(any())).thenReturn(instructor);
+        assertNotNull(service.modifyInstructor(1, instructorReq));
+    }
+
+    @Test
+    void removeInstructor_notFound_throws() {
+        when(instructorRepository.existsById(anyInt())).thenReturn(false);
+        assertThrows(RuntimeException.class, () -> service.removeInstructor(99));
+    }
+
+    @Test
+    void removeInstructor_success() {
+        when(instructorRepository.existsById(anyInt())).thenReturn(true);
+        service.removeInstructor(1);
+        verify(instructorRepository).deleteById(1);
+    }
+
+    // ── Cross-role EID uniqueness ──────────────────────────────────────────────
+
+    @Test
+    void createAdmin_duplicateEIDInStudentRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.of(student));
+        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+    }
+
+    @Test
+    void createAdmin_duplicateEIDInInstructorRepo_throws() {
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID(anyString())).thenReturn(Optional.of(instructor));
+        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+    }
+// >>>>>>> 9e98a01 (create role and oop)
 }
