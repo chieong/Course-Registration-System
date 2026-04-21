@@ -30,7 +30,7 @@ public class RegistrationPeriod {
         if(endDateTime.isBefore(startDateTime)) {
             throw new RuntimeException("Start date cannot be before end date");
         }
-    private String term;
+    }
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 
@@ -44,14 +44,6 @@ public class RegistrationPeriod {
 
     public void setCohort(int cohort) {
         this.cohort = cohort;
-    }
-
-    public String getTerm() {
-        return term;
-    }
-
-    public void setTerm(String term) {
-        this.term = term;
     }
 
     public LocalDateTime getStartDateTime() {

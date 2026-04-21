@@ -15,27 +15,18 @@ public interface RegistrationPlanRepository extends JpaRepository<RegistrationPl
     List<RegistrationPlan> findByStudentIdAndTermOrderByPriority(@Param("studentId") Integer studentId,
                                                                  @Param("term") String term);
 
-    @Query("select count(p) from RegistrationPlan p where p.student.studentId = :studentId and p.term = :term")
-    long countByStudentIdAndTerm(@Param("studentId") Integer studentId, @Param("term") String term);
+    @Query("select count(p) from RegistrationPlan p where p.student.studentId = :studentId")
+    long countByStudentIdAndTerm(@Param("studentId") Integer studentId);
 
-    @Query("select case when count(p) > 0 then true else false end from RegistrationPlan p where p.student.studentId = :studentId and p.term = :term and p.priority = :priority")
+    @Query("select case when count(p) > 0 then true else false end from RegistrationPlan p where p.student.studentId = :studentId  and p.priority = :priority")
     boolean existsByStudentIdAndTermAndPriority(@Param("studentId") Integer studentId,
-                                                @Param("term") String term,
                                                 @Param("priority") Integer priority);
 
-    @Query("select p from RegistrationPlan p where p.student.studentId = :studentId and p.term = :term and p.priority = :priority")
-    Optional<RegistrationPlan> findByStudentIdAndTermAndPriority(@Param("studentId") Integer studentId,
-                                                                 @Param("term") String term,
+    @Query("select p from RegistrationPlan p where p.student.studentId = :studentId  and p.priority = :priority")
+    Optional<RegistrationPlan> findByStudentIdAndPriority(@Param("studentId") Integer studentId,
                                                                  @Param("priority") Integer priority);
 
-    @Query("select p from RegistrationPlan p where p.term = :term and p.student.cohort = :cohort order by p.student.studentId asc, p.priority asc")
-    List<RegistrationPlan> findByTermAndCohortOrderByStudentAndPriority(@Param("term") String term,
-                                                                        @Param("cohort") Integer cohort);
+    @Query("select p from RegistrationPlan p where  p.student.cohort = :cohort order by p.student.studentId asc, p.priority asc")
+    List<RegistrationPlan> findByCohortOrderByStudentAndPriority(@Param("cohort") Integer cohort);
 
-    @Query("select p from RegistrationPlan p where p.term = :term")
-    List<RegistrationPlan> findByTerm(@Param("term") String term);
-
-    @Modifying
-    @Query("delete from RegistrationPlan p where p.term = :term")
-    int deleteByTerm(@Param("term") String term);
 }

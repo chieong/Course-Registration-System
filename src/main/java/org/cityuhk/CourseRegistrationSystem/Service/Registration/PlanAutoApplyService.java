@@ -52,7 +52,7 @@ public class PlanAutoApplyService {
     @Transactional
     protected void processPeriod(RegistrationPeriod period, LocalDateTime now) {
         List<RegistrationPlan> plans = registrationPlanRepository
-                .findByTermAndCohortOrderByStudentAndPriority(period.getTerm(), period.getCohort());
+                .findByCohortOrderByStudentAndPriority(period.getCohort());
 
         Map<Integer, List<RegistrationPlan>> plansByStudent = new HashMap<>();
         for (RegistrationPlan plan : plans) {

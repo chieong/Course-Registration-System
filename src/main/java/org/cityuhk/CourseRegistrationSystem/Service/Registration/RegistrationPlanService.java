@@ -50,9 +50,9 @@ public class RegistrationPlanService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        ensurePlanEditable(student, term, LocalDateTime.now());
+        ensurePlanEditable(student,LocalDateTime.now());
 
-        long currentCount = registrationPlanRepository.countByStudentIdAndTerm(studentId, term);
+        long currentCount = registrationPlanRepository.countByStudentIdAndTerm(studentId);
         if (currentCount >= MAX_PLAN_COUNT) {
             throw new RuntimeException("Maximum 10 plans allowed per term");
         }
@@ -62,7 +62,7 @@ public class RegistrationPlanService {
             throw new RuntimeException("Priority must be between 1 and 10");
         }
 
-        if (registrationPlanRepository.existsByStudentIdAndTermAndPriority(studentId, term, priority)) {
+        if (registrationPlanRepository.existsByStudentIdAndTermAndPriority(studentId, priority)) {
             throw new RuntimeException("Priority slot already in use");
         }
 
@@ -81,7 +81,7 @@ public class RegistrationPlanService {
         RegistrationPlan plan = registrationPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        ensurePlanEditable(plan.getStudent(), plan.getTerm(), LocalDateTime.now());
+        ensurePlanEditable(plan.getStudent(), LocalDateTime.now());
         registrationPlanRepository.delete(plan);
     }
 
@@ -90,7 +90,7 @@ public class RegistrationPlanService {
         RegistrationPlan plan = registrationPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        ensurePlanEditable(plan.getStudent(), plan.getTerm(), LocalDateTime.now());
+        ensurePlanEditable(plan.getStudent(), LocalDateTime.now());
 
         Section section = sectionRepository.findById(sectionId)
                 .orElseThrow(() -> new RuntimeException("Section not found"));
@@ -121,7 +121,7 @@ public class RegistrationPlanService {
         RegistrationPlan plan = registrationPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        ensurePlanEditable(plan.getStudent(), plan.getTerm(), LocalDateTime.now());
+        ensurePlanEditable(plan.getStudent(), LocalDateTime.now());
 
         PlanEntry entry = planEntryRepository.findById(entryId)
                 .orElseThrow(() -> new RuntimeException("Plan entry not found"));
@@ -139,7 +139,7 @@ public class RegistrationPlanService {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        ensurePlanEditable(student, term, LocalDateTime.now());
+        ensurePlanEditable(student,LocalDateTime.now());
 
         List<RegistrationPlan> existing = registrationPlanRepository.findByStudentIdAndTermOrderByPriority(studentId, term);
         if (existing.size() != orderedPlanIds.size()) {
@@ -179,13 +179,13 @@ public class RegistrationPlanService {
         return registrationPlanRepository.saveAll(existing);
     }
 
-    private void ensurePlanEditable(Student student, String term, LocalDateTime now) {
-        RegistrationPeriod active = registrationPeriodRepository.findActivePeriod(term, student.getCohort(), now).orElse(null);
+    private void ensurePlanEditable(Student student, LocalDateTime now) {
+        RegistrationPeriod active = registrationPeriodRepository.findActivePeriod(student.getCohort(), now).orElse(null);
         if (active != null) {
             throw new RuntimeException("Plans are read-only during active registration period");
         }
 
-        List<RegistrationPeriod> configuredPeriods = registrationPeriodRepository.findByTermAndCohortOrderByStartDateTime(term, student.getCohort());
+        List<RegistrationPeriod> configuredPeriods = registrationPeriodRepository.findByCohortOrderByStartDateTime(student.getCohort());
         if (!configuredPeriods.isEmpty() && !now.isBefore(configuredPeriods.get(0).getStartDateTime())) {
             throw new RuntimeException("Plans cannot be edited after period start");
         }

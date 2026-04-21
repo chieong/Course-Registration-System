@@ -11,29 +11,23 @@ import java.util.Optional;
 
 public interface RegistrationPeriodRepository extends JpaRepository<RegistrationPeriod, Integer> {
 
-    @Query("select p from RegistrationPeriod p where p.term = :term and p.cohort = :cohort and p.startDateTime <= :now and p.endDateTime >= :now")
-    Optional<RegistrationPeriod> findActivePeriod(@Param("term") String term,
-                                                  @Param("cohort") Integer cohort,
+    @Query("select p from RegistrationPeriod p where p.cohort = :cohort and p.startDateTime <= :now and p.endDateTime >= :now")
+    Optional<RegistrationPeriod> findActivePeriod(@Param("cohort") Integer cohort,
                                                   @Param("now") LocalDateTime now);
 
-    @Query("select p from RegistrationPeriod p where p.term = :term and p.cohort = :cohort and p.startDateTime > :now order by p.startDateTime asc")
-    List<RegistrationPeriod> findUpcomingPeriods(@Param("term") String term,
-                                                 @Param("cohort") Integer cohort,
+    @Query("select p from RegistrationPeriod p where p.cohort = :cohort and p.startDateTime > :now order by p.startDateTime asc")
+    List<RegistrationPeriod> findUpcomingPeriods(@Param("cohort") Integer cohort,
                                                  @Param("now") LocalDateTime now);
 
-    @Query("select p from RegistrationPeriod p where p.term = :term and p.cohort = :cohort order by p.startDateTime asc")
-    List<RegistrationPeriod> findByTermAndCohortOrderByStartDateTime(@Param("term") String term,
-                                                                     @Param("cohort") Integer cohort);
+    @Query("select p from RegistrationPeriod p where p.cohort = :cohort order by p.startDateTime asc")
+    List<RegistrationPeriod> findByCohortOrderByStartDateTime(@Param("cohort") Integer cohort);
+
 
     @Query("select p from RegistrationPeriod p where p.startDateTime <= :now and p.endDateTime >= :now")
     List<RegistrationPeriod> findActivePeriods(@Param("now") LocalDateTime now);
 
-    @Query("select p from RegistrationPeriod p where p.term = :term order by p.endDateTime desc")
-    List<RegistrationPeriod> findByTermOrderByEndDateTimeDesc(@Param("term") String term);
 
-    @Query("select distinct p.term from RegistrationPeriod p")
-    List<String> findDistinctTerms();
-    
+
     @Query("SELECT r.cohort FROM RegistrationPeriod r WHERE :time BETWEEN r.startDateTime AND r.endDateTime")
     List<Integer> getActiveCohortByTime(LocalDateTime time);
 
