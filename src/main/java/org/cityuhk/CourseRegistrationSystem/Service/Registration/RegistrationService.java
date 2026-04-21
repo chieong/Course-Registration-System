@@ -11,11 +11,14 @@ import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodReposit
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Observer.SectionVacancyObserver;
+import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +30,7 @@ public class RegistrationService {
     private final RegistrationRecordRepositoryPort registrationRecordRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final WaitlistRecordRepository waitlistRecordRepository;
+    private final List<SectionVacancyObserver> observers = new ArrayList<>();
 
     @Autowired
     public RegistrationService(
@@ -111,5 +115,14 @@ public class RegistrationService {
         }
         RegistrationRecord registrationRecord = existingRecord.get();
         registrationRecordRepository.delete(registrationRecord);
+
+        for (SectionVacancyObserver observer : observers) {
+            observer.onVacancyOccurred(sectionId);
+        }
     }
+
+    public void addObserver(SectionVacancyObserver observer) {
+        this.observers.add(observer);
+    }
+
 }

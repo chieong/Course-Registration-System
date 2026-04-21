@@ -9,7 +9,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
