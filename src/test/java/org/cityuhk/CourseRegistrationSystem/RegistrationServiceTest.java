@@ -10,9 +10,9 @@ import static org.mockito.Mockito.when;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+
+
+
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
@@ -35,9 +35,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionThrowsWhenStudentNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         when(studentRepo.findById(1)).thenReturn(Optional.empty());
@@ -52,9 +52,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionThrowsWhenSectionNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         Student student =
@@ -83,9 +83,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionThrowsWhenAlreadyEnrolledTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         Student student =
@@ -115,9 +115,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionCallsCountEnrolledWhenAllValidTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         Student student =
@@ -151,9 +151,9 @@ public class RegistrationServiceTest {
 
     // @Test
     // void addSectionCallsSaveWhenAllSuccessfulTest() {
-    //     StudentRepository studentRepo = mock(StudentRepository.class);
-    //     SectionRepository sectionRepo = mock(SectionRepository.class);
-    //     RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+    //     StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+    //     SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+    //     RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
     //     RegistrationService service = new RegistrationService(studentRepo, sectionRepo,
     // recordRepo);
 
@@ -307,9 +307,9 @@ public class RegistrationServiceTest {
 
     @Test
     void dropSectionThrowsWhenStudentNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -319,9 +319,9 @@ public class RegistrationServiceTest {
 
     @Test
     void dropSectionThrowsWhenSectionNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
         
         Student student = new Student.StudentBuilder()
@@ -347,9 +347,9 @@ public class RegistrationServiceTest {
 
     @Test
     void dropSectionThrowsWhenNotEnrolledTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
         
         Student student = new Student.StudentBuilder()
@@ -379,9 +379,9 @@ public class RegistrationServiceTest {
     @Test
     void dropSectionCallsDeleteWhenSuccessfulTest() {
         LocalDateTime timestamp = LocalDateTime.now();
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
         
         Student student = new Student.StudentBuilder()
