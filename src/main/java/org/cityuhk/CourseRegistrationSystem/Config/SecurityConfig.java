@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/error", "/timetable").permitAll()
+                        .requestMatchers("/api/plans/**").hasRole("STUDENT")
                         .requestMatchers("/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form

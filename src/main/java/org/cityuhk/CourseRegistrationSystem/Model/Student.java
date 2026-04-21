@@ -47,6 +47,9 @@ public class Student extends User
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private Set<RegistrationRecord> registrationRecords = new HashSet<>();
 
+        @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+        private Set<RegistrationPlan> registrationPlans = new HashSet<>();
+
 
 
     public Student(StudentBuilder builder) {
@@ -174,9 +177,15 @@ public class Student extends User
     public Integer getStudentId() {
         return studentId;
     }
+
     public Integer getCohort() {
         return cohort;
     }
+
+    public Set<RegistrationPlan> getRegistrationPlans() {
+        return registrationPlans;
+    }
+
     
 }
 
