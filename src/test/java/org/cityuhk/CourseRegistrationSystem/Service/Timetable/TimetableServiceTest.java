@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -21,9 +21,9 @@ import java.util.Optional;
 
 class TimetableServiceTest {
 
-    @Mock private StudentRepository studentRepository;
+    @Mock private StudentRepositoryPort studentRepository;
 
-    @Mock private RegistrationRecordRepository registrationRecordRepository;
+    @Mock private RegistrationRecordRepositoryPort registrationRecordRepository;
 
     @Mock private TextTimetableFormatter defaultFormatter;
 

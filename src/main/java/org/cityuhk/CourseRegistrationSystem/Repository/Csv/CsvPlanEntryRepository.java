@@ -1,0 +1,123 @@
+package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
+
+import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.PlanEntryRepositoryPort;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Repository
+@Primary
+@ConditionalOnProperty(name = "app.persistence.type", havingValue = "csv")
+public class CsvPlanEntryRepository implements PlanEntryRepositoryPort {
+
+    static final String FILE = "plan_entries.csv";
+    static final String[] HEADER = {
+            "entryId", "planId", "sectionId", "entryType", "status", "joinWaitlistOnAddFailure"
+    };
+
+    private final CsvFileStore store;
+    private final CsvIdGenerator idGen;
+    private final CsvRegistrationPlanRepository planRepository;
+    private final CsvSectionRepository sectionRepository;
+
+    public CsvPlanEntryRepository(CsvFileStore store, CsvIdGenerator idGen,
+                                    CsvRegistrationPlanRepository planRepository,
+                                    CsvSectionRepository sectionRepository) {
+        this.store = store;
+        this.idGen = idGen;
+        this.planRepository = planRepository;
+        this.sectionRepository = sectionRepository;
+    }
+
+    private List<PlanEntry> loadAll() {
+        Map<Integer, RegistrationPlan> planMap = planRepository.findAll().stream()
+                .collect(Collectors.toMap(RegistrationPlan::getPlanId, p -> p));
+        Map<Integer, Section> sectionMap = sectionRepository.loadAll().stream()
+                .collect(Collectors.toMap(Section::getSectionId, s -> s));
+
+        List<PlanEntry> entries = new ArrayList<>();
+        for (String[] row : store.readRows(FILE)) {
+            if (row.length < 6) continue;
+            try {
+                int entryId = Integer.parseInt(row[0]);
+                int planId = Integer.parseInt(row[1]);
+                int sectionId = Integer.parseInt(row[2]);
+                RegistrationPlan plan = planMap.get(planId);
+                Section section = sectionMap.get(sectionId);
+                if (plan == null || section == null) continue;
+
+                PlanEntry entry = new PlanEntry(plan, section, row[3]);
+                entry.setEntryId(entryId);
+                entry.setStatus(row[4]);
+                entry.setJoinWaitlistOnAddFailure(Boolean.parseBoolean(row[5]));
+                entries.add(entry);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return entries;
+    }
+
+    private synchronized void saveAll(List<PlanEntry> entries) {
+        List<String[]> rows = entries.stream().map(e -> new String[]{
+                String.valueOf(e.getEntryId()),
+                String.valueOf(e.getPlan().getPlanId()),
+                String.valueOf(e.getSection().getSectionId()),
+                safe(e.getEntryType()),
+                safe(e.getStatus()),
+                String.valueOf(e.isJoinWaitlistOnAddFailure())
+        }).collect(Collectors.toList());
+        store.writeRows(FILE, HEADER, rows);
+    }
+
+    private static String safe(String v) { return v == null ? "" : v; }
+
+    /** Exposes loadAll for use by other repos if needed. */
+    List<PlanEntry> findAll() { return loadAll(); }
+
+    @Override
+    public Optional<PlanEntry> findById(Integer id) {
+        return loadAll().stream().filter(e -> Objects.equals(e.getEntryId(), id)).findFirst();
+    }
+
+    @Override
+    public List<PlanEntry> findByPlanId(Integer planId) {
+        return loadAll().stream()
+                .filter(e -> Objects.equals(e.getPlan().getPlanId(), planId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public synchronized PlanEntry save(PlanEntry entry) {
+        List<PlanEntry> all = loadAll();
+        if (entry.getEntryId() == null) {
+            entry.setEntryId(idGen.nextId("plan_entry"));
+            all.add(entry);
+        } else {
+            Integer id = entry.getEntryId();
+            all.removeIf(e -> Objects.equals(e.getEntryId(), id));
+            all.add(entry);
+        }
+        saveAll(all);
+        return entry;
+    }
+
+    @Override
+    public synchronized void deleteById(Integer id) {
+        List<PlanEntry> all = loadAll();
+        all.removeIf(e -> Objects.equals(e.getEntryId(), id));
+        saveAll(all);
+    }
+
+    @Override
+    public synchronized void deleteByPlanId(Integer planId) {
+        List<PlanEntry> all = loadAll();
+        all.removeIf(e -> Objects.equals(e.getPlan().getPlanId(), planId));
+        saveAll(all);
+    }
+}

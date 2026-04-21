@@ -10,9 +10,12 @@ import static org.mockito.Mockito.when;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+
+
+
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Example;
@@ -32,9 +35,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionThrowsWhenStudentNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         when(studentRepo.findById(1)).thenReturn(Optional.empty());
@@ -49,9 +52,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionThrowsWhenSectionNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         Student student =
@@ -80,9 +83,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionThrowsWhenAlreadyEnrolledTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         Student student =
@@ -112,9 +115,9 @@ public class RegistrationServiceTest {
 
     @Test
     void addSectionCallsCountEnrolledWhenAllValidTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         Student student =
@@ -148,9 +151,9 @@ public class RegistrationServiceTest {
 
     // @Test
     // void addSectionCallsSaveWhenAllSuccessfulTest() {
-    //     StudentRepository studentRepo = mock(StudentRepository.class);
-    //     SectionRepository sectionRepo = mock(SectionRepository.class);
-    //     RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+    //     StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+    //     SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+    //     RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
     //     RegistrationService service = new RegistrationService(studentRepo, sectionRepo,
     // recordRepo);
 
@@ -214,602 +217,37 @@ public class RegistrationServiceTest {
         AtomicBoolean saveCalled = new AtomicBoolean(false);
         AtomicReference<RegistrationRecord> savedRecord = new AtomicReference<>();
 
-        class stubstudentrepo implements StudentRepository {
-
-            @Override
-            public void deleteAllByIdInBatch(Iterable<Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException(
-                        "Unimplemented method 'deleteAllByIdInBatch'");
+        // Minimal port-interface stubs (avoid JpaRepository duplicate-save bytecode clash)
+        StudentRepositoryPort stubstudentrepo = new StudentRepositoryPort() {
+            @Override public Optional<Student> findByUserEID(String userEID) {
+                throw new UnsupportedOperationException();
             }
-
-            @Override
-            public void deleteAllInBatch() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllInBatch'");
-            }
-
-            @Override
-            public void deleteAllInBatch(Iterable<Student> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllInBatch'");
-            }
-
-            @Override
-            public <S extends Student> List<S> findAll(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends Student> List<S> findAll(Example<S> example, Sort sort) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public void flush() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'flush'");
-            }
-
-            @Override
-            public Student getById(Integer arg0) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getById'");
-            }
-
-            @Override
-            public Student getOne(Integer arg0) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getOne'");
-            }
-
-            @Override
-            public Student getReferenceById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getReferenceById'");
-            }
-
-            @Override
-            public <S extends Student> List<S> saveAllAndFlush(Iterable<S> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAllAndFlush'");
-            }
-
-            @Override
-            public <S extends Student> S saveAndFlush(S entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAndFlush'");
-            }
-
-            @Override
-            public List<Student> findAll() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public List<Student> findAllById(Iterable<Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAllById'");
-            }
-
-            @Override
-            public <S extends Student> List<S> saveAll(Iterable<S> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAll'");
-            }
-
-            @Override
-            public long count() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'count'");
-            }
-
-            @Override
-            public void delete(Student entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'delete'");
-            }
-
-            @Override
-            public void deleteAll() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
-            }
-
-            @Override
-            public void deleteAll(Iterable<? extends Student> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
-            }
-
-            @Override
-            public void deleteAllById(Iterable<? extends Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllById'");
-            }
-
-            @Override
-            public void deleteById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
-            }
-
-            @Override
-            public boolean existsById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'existsById'");
-            }
-
-            @Override
-            public Optional<Student> findById(Integer id) {
+            @Override public Optional<Student> findById(Integer id) {
                 return Optional.of(student);
             }
+        };
 
-            @Override
-            public <S extends Student> S save(S entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'save'");
-            }
+        SectionRepositoryPort stubsectionRepo = new SectionRepositoryPort() {
+            @Override public Optional<Section> findById(Integer id) { return Optional.of(section); }
+            @Override public Section save(Section s) { throw new UnsupportedOperationException(); }
+            @Override public void deleteById(Integer id) { throw new UnsupportedOperationException(); }
+            @Override public List<Section> findAll() { throw new UnsupportedOperationException(); }
+        };
 
-            @Override
-            public List<Student> findAll(Sort sort) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public Page<Student> findAll(Pageable pageable) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends Student> long count(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'count'");
-            }
-
-            @Override
-            public <S extends Student> boolean exists(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'exists'");
-            }
-
-            @Override
-            public <S extends Student> Page<S> findAll(Example<S> example, Pageable pageable) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends Student, R> R findBy(
-                    Example<S> arg0, Function<FetchableFluentQuery<S>, R> arg1) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findBy'");
-            }
-
-            @Override
-            public <S extends Student> Optional<S> findOne(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findOne'");
-            }
-
-            @Override
-            public Optional<Student> findByUserEID(String userEID) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findByUserEID'");
-            }
-        }
-
-        class stubsectionRepo implements SectionRepository {
-
-            @Override
-            public void deleteAllByIdInBatch(Iterable<Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException(
-                        "Unimplemented method 'deleteAllByIdInBatch'");
-            }
-
-            @Override
-            public void deleteAllInBatch() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllInBatch'");
-            }
-
-            @Override
-            public void deleteAllInBatch(Iterable<Section> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllInBatch'");
-            }
-
-            @Override
-            public <S extends Section> List<S> findAll(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends Section> List<S> findAll(Example<S> example, Sort sort) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public void flush() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'flush'");
-            }
-
-            @Override
-            public Section getById(Integer arg0) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getById'");
-            }
-
-            @Override
-            public Section getOne(Integer arg0) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getOne'");
-            }
-
-            @Override
-            public Section getReferenceById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getReferenceById'");
-            }
-
-            @Override
-            public <S extends Section> List<S> saveAllAndFlush(Iterable<S> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAllAndFlush'");
-            }
-
-            @Override
-            public <S extends Section> S saveAndFlush(S entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAndFlush'");
-            }
-
-            @Override
-            public <S extends Section> List<S> saveAll(Iterable<S> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAll'");
-            }
-
-            @Override
-            public List<Section> findAll() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public List<Section> findAllById(Iterable<Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAllById'");
-            }
-
-            @Override
-            public <S extends Section> S save(S entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'save'");
-            }
-
-            @Override
-            public Optional<Section> findById(Integer id) {
-                return Optional.of(section);
-            }
-
-            @Override
-            public boolean existsById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'existsById'");
-            }
-
-            @Override
-            public long count() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'count'");
-            }
-
-            @Override
-            public void deleteById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
-            }
-
-            @Override
-            public void delete(Section entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'delete'");
-            }
-
-            @Override
-            public void deleteAllById(Iterable<? extends Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllById'");
-            }
-
-            @Override
-            public void deleteAll(Iterable<? extends Section> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
-            }
-
-            @Override
-            public void deleteAll() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
-            }
-
-            @Override
-            public List<Section> findAll(Sort sort) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public Page<Section> findAll(Pageable pageable) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends Section> Optional<S> findOne(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findOne'");
-            }
-
-            @Override
-            public <S extends Section> Page<S> findAll(Example<S> example, Pageable pageable) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends Section> long count(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'count'");
-            }
-
-            @Override
-            public <S extends Section> boolean exists(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'exists'");
-            }
-
-            @Override
-            public <S extends Section, R> R findBy(
-                    Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findBy'");
-            }
-        }
-
-        class stubrecordRepo implements RegistrationRecordRepository {
-
-            @Override
-            public void deleteAllByIdInBatch(Iterable<Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException(
-                        "Unimplemented method 'deleteAllByIdInBatch'");
-            }
-
-            @Override
-            public void deleteAllInBatch() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllInBatch'");
-            }
-
-            @Override
-            public void deleteAllInBatch(Iterable<RegistrationRecord> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllInBatch'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> List<S> findAll(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> List<S> findAll(Example<S> example, Sort sort) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public void flush() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'flush'");
-            }
-
-            @Override
-            public RegistrationRecord getById(Integer arg0) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getById'");
-            }
-
-            @Override
-            public RegistrationRecord getOne(Integer arg0) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getOne'");
-            }
-
-            @Override
-            public RegistrationRecord getReferenceById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'getReferenceById'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> List<S> saveAllAndFlush(Iterable<S> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAllAndFlush'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> S saveAndFlush(S entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAndFlush'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> List<S> saveAll(Iterable<S> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'saveAll'");
-            }
-
-            @Override
-            public List<RegistrationRecord> findAll() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public List<RegistrationRecord> findAllById(Iterable<Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAllById'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> S save(S entity) {
-                // TODO Auto-generated method stub
+        RegistrationRecordRepositoryPort stubrecordRepo = new RegistrationRecordRepositoryPort() {
+            @Override public int countEnrolled(Integer sectionId) { return 5; }
+            @Override public List<RegistrationRecord> findAllRecords() { throw new UnsupportedOperationException(); }
+            @Override public boolean exists(Integer studentId, Integer sectionId) { return false; }
+            @Override public Optional<RegistrationRecord> findByStudentIdAndSectionId(Integer s, Integer sec) { return Optional.empty(); }
+            @Override public List<RegistrationRecord> find(Integer studentId, LocalDateTime start, LocalDateTime end) { throw new UnsupportedOperationException(); }
+            @Override public List<RegistrationRecord> findByStudentId(Integer studentId) { throw new UnsupportedOperationException(); }
+            @Override public RegistrationRecord save(RegistrationRecord record) {
                 saveCalled.set(true);
-                savedRecord.set((RegistrationRecord) entity);
-                return entity;
+                savedRecord.set(record);
+                return record;
             }
-
-            @Override
-            public Optional<RegistrationRecord> findById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findById'");
-            }
-
-            @Override
-            public boolean existsById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'existsById'");
-            }
-
-            @Override
-            public long count() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'count'");
-            }
-
-            @Override
-            public void deleteById(Integer id) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
-            }
-
-            @Override
-            public void delete(RegistrationRecord entity) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'delete'");
-            }
-
-            @Override
-            public void deleteAllById(Iterable<? extends Integer> ids) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAllById'");
-            }
-
-            @Override
-            public void deleteAll(Iterable<? extends RegistrationRecord> entities) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
-            }
-
-            @Override
-            public void deleteAll() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
-            }
-
-            @Override
-            public List<RegistrationRecord> findAll(Sort sort) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public Page<RegistrationRecord> findAll(Pageable pageable) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> Optional<S> findOne(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findOne'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> Page<S> findAll(
-                    Example<S> example, Pageable pageable) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> long count(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'count'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord> boolean exists(Example<S> example) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'exists'");
-            }
-
-            @Override
-            public <S extends RegistrationRecord, R> R findBy(
-                    Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findBy'");
-            }
-
-            @Override
-            public int countEnrolled(Integer sectionId) {
-                return 5;
-            }
-
-            @Override
-            public boolean exists(Integer studentId, Integer sectionId) {
-                return false;
-            }
-
-            @Override
-            public List<RegistrationRecord> find(
-                    Integer studentId, LocalDateTime start, LocalDateTime end) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'find'");
-            }
-
-            @Override
-            public List<RegistrationRecord> findByStudentId(Integer studentId) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findByStudentId'");
-            }
-
-			@Override
-			public Optional<RegistrationRecord> findByStudentIdAndSectionId(Integer studentId, Integer sectionId) {
-				// TODO Auto-generated method stub
-				return Optional.empty();
-			}
-
-            @Override
-            public List<RegistrationRecord> findAllRecords() {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'findAllRecords'");
-            }
-        }
+            @Override public void delete(RegistrationRecord record) { throw new UnsupportedOperationException(); }
+        };
 
         // StudentRepository studentRepo = (StudentRepository) Proxy.newProxyInstance(
         //         StudentRepository.class.getClassLoader(),
@@ -854,10 +292,7 @@ public class RegistrationServiceTest {
         //             throw new UnsupportedOperationException("Not stubbed: " + method.getName());
         //         });
 
-        StudentRepository studentRepo = new stubstudentrepo();
-        SectionRepository sectionRepo = new stubsectionRepo();
-        RegistrationRecordRepository recordRepo = new stubrecordRepo();
-        RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
+        RegistrationService service = new RegistrationService(stubstudentrepo, stubsectionRepo, stubrecordRepo);
 
         service.addSection(1, 10, timestamp);
 
@@ -872,9 +307,9 @@ public class RegistrationServiceTest {
 
     @Test
     void dropSectionThrowsWhenStudentNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -884,9 +319,9 @@ public class RegistrationServiceTest {
 
     @Test
     void dropSectionThrowsWhenSectionNotFoundTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
         
         Student student = new Student.StudentBuilder()
@@ -912,9 +347,9 @@ public class RegistrationServiceTest {
 
     @Test
     void dropSectionThrowsWhenNotEnrolledTest() {
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
         
         Student student = new Student.StudentBuilder()
@@ -944,9 +379,9 @@ public class RegistrationServiceTest {
     @Test
     void dropSectionCallsDeleteWhenSuccessfulTest() {
         LocalDateTime timestamp = LocalDateTime.now();
-        StudentRepository studentRepo = mock(StudentRepository.class);
-        SectionRepository sectionRepo = mock(SectionRepository.class);
-        RegistrationRecordRepository recordRepo = mock(RegistrationRecordRepository.class);
+        StudentRepositoryPort studentRepo = mock(StudentRepositoryPort.class);
+        SectionRepositoryPort sectionRepo = mock(SectionRepositoryPort.class);
+        RegistrationRecordRepositoryPort recordRepo = mock(RegistrationRecordRepositoryPort.class);
         RegistrationService service = new RegistrationService(studentRepo, sectionRepo, recordRepo);
         
         Student student = new Student.StudentBuilder()

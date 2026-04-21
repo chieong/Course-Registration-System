@@ -67,6 +67,10 @@ public class Section {
         return sectionId;
     }
 
+    public void setSectionId(Integer sectionId) {
+        this.sectionId = sectionId;
+    }
+
     public LocalDateTime getStartTime() {
         return startTime;
     }

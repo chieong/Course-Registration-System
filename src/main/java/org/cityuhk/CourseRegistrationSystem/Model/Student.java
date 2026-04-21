@@ -175,6 +175,9 @@ public class Student extends User
         return studentId;
     }
 
-    
+    public int getMinSemesterCredit() { return minSemesterCredit; }
+    public int getMaxSemesterCredit() { return maxSemesterCredit; }
+    public String getMajor() { return major; }
+    public int getCohort() { return cohort; }
+    public int getMaxDegreeCredit() { return maxDegreeCredit; }
 }
-

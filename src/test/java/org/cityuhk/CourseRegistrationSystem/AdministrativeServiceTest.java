@@ -4,8 +4,8 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseReques
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,8 +28,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AdministrativeServiceTest {
 
-    @Mock private AdminRepository adminRepository;
-    @Mock private CourseRepository courseRepository;
+    @Mock private AdminRepositoryPort adminRepository;
+    @Mock private CourseRepositoryPort courseRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @InjectMocks private AdministrativeService service;
 

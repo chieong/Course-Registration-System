@@ -1,6 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Repository;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface RegistrationRecordRepository extends JpaRepository<RegistrationRecord, Integer> {
+public interface RegistrationRecordRepository extends JpaRepository<RegistrationRecord, Integer>, RegistrationRecordRepositoryPort {
 
     @Query("select count(e) from RegistrationRecord e where e.section.sectionId = :sectionId")
     int countEnrolled(@Param("sectionId") Integer sectionId);

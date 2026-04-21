@@ -1,7 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -19,11 +19,11 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class TimetableService {
     
-    private final RegistrationRecordRepository registrationRecordRepository;
+    private final RegistrationRecordRepositoryPort registrationRecordRepository;
     private final TimetableValidator validator;
     private final TimetableExporter defaultExporter;
     
-    public TimetableService(RegistrationRecordRepository registrationRecordRepository,
+    public TimetableService(RegistrationRecordRepositoryPort registrationRecordRepository,
                            TimetableValidator validator,
                            TextTimetableExporter defaultExporter) {
         this.registrationRecordRepository = registrationRecordRepository;

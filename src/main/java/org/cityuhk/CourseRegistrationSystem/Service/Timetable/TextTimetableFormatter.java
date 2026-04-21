@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * Concrete formatter for text-based timetable output.
@@ -58,7 +59,7 @@ public class TextTimetableFormatter implements TimetableFormatter {
             ? record.getSection().getVenue() 
             : "";
         
-        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         
         String day = record.getSection().getStartTime() != null 
