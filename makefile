@@ -1,8 +1,17 @@
 run:
-	./mvnw.cmd spring-boot:run
+	./mvnw spring-boot:run
 
 run-release: build
 	java -jar ./target/gs-course-registration-system-0.0.1-SNAPSHOT.jar
 
 build:
-	./mvnw.cmd clean package
+	./mvnw clean package
+
+test:
+	./mvnw clean test
+
+compile:
+	./mvnw clean compile
+
+styles: *.java
+	checkstyle -c google_checks.xml -o checks *.java

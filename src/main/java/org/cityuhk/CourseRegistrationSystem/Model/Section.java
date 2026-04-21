@@ -49,7 +49,7 @@ public class Section {
         this.waitlistCapacity = waitlistCapacity;
         this.startTime = startTime;
         this.endTime = endTime;
-        if((startTime != null && endTime != null) && startTime.isBefore(endTime)) {
+        if((startTime != null && endTime != null) && endTime.isBefore(startTime)) {
             throw new IllegalArgumentException("Start time cannot be before end time");
         }
         this.venue = venue;
@@ -118,7 +118,7 @@ public class Section {
     public void setTime(LocalDateTime startTime, LocalDateTime endTime) throws IllegalArgumentException {
         this.startTime = startTime;
         this.endTime = endTime;
-        if(startTime.isBefore(endTime)) {
+        if(endTime.isBefore(startTime)) {
             throw new IllegalArgumentException("Start time cannot be before end time");
         }
     }

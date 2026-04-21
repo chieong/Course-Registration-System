@@ -5,8 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 
@@ -33,21 +33,19 @@ public class Student extends User
     // Stores the student's registered classes (their timetable), not implemented yet
     // @ManyToMany private Set<Course> completedCourses = new HashSet<>();
     // @ManyToMany private Set<Section> enrolledSections = new HashSet<>();
-    
 
     @ManyToMany
     @JoinTable(
-        name = "student_completed_courses",
-        joinColumns = @JoinColumn(name = "student_id"),
-        inverseJoinColumns = @JoinColumn(name = "course_id")
-    )
+            name = "student_completed_courses",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id"))
     private Set<Course> completedCourses = new HashSet<>();
 
-    
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private Set<RegistrationRecord> registrationRecords = new HashSet<>();
 
-
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private Set<RegistrationPlan> registrationPlans = new HashSet<>();
 
     public Student(StudentBuilder builder) {
         super(builder);
@@ -70,6 +68,7 @@ public class Student extends User
         private int cohort;
         private String department;
         private int maxDegreeCredit;
+
         // private Set<Course> completedCourses = new HashSet<>();
         // private Set<Section> enrolledSections = new HashSet<>();
 
@@ -162,22 +161,40 @@ public class Student extends User
             throw new RuntimeException();
         }
 
-
         return new RegistrationRecord(this, section, timestamp);
     }
 
     public RegistrationRecord dropSection(Section section, LocalDateTime timestamp) {
         return new RegistrationRecord(this, section, timestamp);
     }
+
     // getter
     // add when needed
     public Integer getStudentId() {
         return studentId;
     }
 
-    public int getMinSemesterCredit() { return minSemesterCredit; }
-    public int getMaxSemesterCredit() { return maxSemesterCredit; }
-    public String getMajor() { return major; }
-    public int getCohort() { return cohort; }
-    public int getMaxDegreeCredit() { return maxDegreeCredit; }
+    public int getMinSemesterCredit() {
+        return minSemesterCredit;
+    }
+
+    public int getMaxSemesterCredit() {
+        return maxSemesterCredit;
+    }
+
+    public String getMajor() {
+        return major;
+    }
+
+    public int getMaxDegreeCredit() {
+        return maxDegreeCredit;
+    }
+
+    public Integer getCohort() {
+        return cohort;
+    }
+
+    public Set<RegistrationPlan> getRegistrationPlans() {
+        return registrationPlans;
+    }
 }
