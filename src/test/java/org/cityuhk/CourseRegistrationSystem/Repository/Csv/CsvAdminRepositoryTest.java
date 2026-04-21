@@ -16,11 +16,13 @@ class CsvAdminRepositoryTest {
     Path tempDir;
 
     private CsvAdminRepository repo;
+    private CsvFileStore store;
+    private CsvIdGenerator idGen;
 
     @BeforeEach
     void setUp() {
-        CsvFileStore store = new CsvFileStore(tempDir.toString());
-        CsvIdGenerator idGen = new CsvIdGenerator(store);
+        store = new CsvFileStore(tempDir.toString());
+        idGen = new CsvIdGenerator(store);
         repo = new CsvAdminRepository(store, idGen);
     }
 
@@ -105,6 +107,32 @@ class CsvAdminRepositoryTest {
         assertTrue(repo.findById(999).isEmpty());
     }
 
+    @Test
+    void findAll_IgnoresMalformedRows_AndAllowsBlankUserEid() {
+        store.writeRows(CsvAdminRepository.FILE, CsvAdminRepository.HEADER, List.of(
+                new String[]{"1", "", "Alice", "pw"},
+                new String[]{"2", "e002", "Bob"},
+                new String[]{"bad", "e003", "Charlie", "pw3"}
+        ));
+
+        List<Admin> all = repo.findAll();
+
+        assertEquals(1, all.size());
+        assertEquals(1, all.get(0).getStaffId());
+        assertEquals("", all.get(0).getUserEID());
+    }
+
+    @Test
+    void findByUserEID_IgnoresRowsWithNullLikeBlankUserEid() {
+        store.writeRows(CsvAdminRepository.FILE, CsvAdminRepository.HEADER, List.of(
+                new String[]{"1", "", "Alice", "pw"},
+                new String[]{"2", "e002", "Bob", "pw2"}
+        ));
+
+        assertTrue(repo.findByUserEID("e001").isEmpty());
+        assertTrue(repo.findByUserEID("e002").isPresent());
+    }
+
     // ── existsById ────────────────────────────────────────────────────────────
 
     @Test
@@ -133,6 +161,17 @@ class CsvAdminRepositoryTest {
         assertDoesNotThrow(() -> repo.deleteById(999));
     }
 
+    @Test
+    void deleteById_RemovesOnlyMatchingAdmin() {
+        Admin first = repo.save(buildAdmin(0, "e001", "Alice", "pw1"));
+        Admin second = repo.save(buildAdmin(0, "e002", "Bob", "pw2"));
+
+        repo.deleteById(first.getStaffId());
+
+        assertTrue(repo.findById(first.getStaffId()).isEmpty());
+        assertEquals("Bob", repo.findById(second.getStaffId()).orElseThrow().getUserName());
+    }
+
     // ── findAll / count ───────────────────────────────────────────────────────
 
     @Test
@@ -153,12 +192,33 @@ class CsvAdminRepositoryTest {
         assertEquals(2, repo.count());
     }
 
+    @Test
+    void save_NullFields_ArePersistedAsEmptyStrings() {
+        Admin saved = repo.save(buildAdmin(0, null, null, null));
+
+        Admin found = repo.findById(saved.getStaffId()).orElseThrow();
+        assertEquals("", found.getUserEID());
+        assertEquals("", found.getUserName());
+        assertEquals("", found.getPassword());
+    }
+
+    @Test
+    void save_ExistingAdmin_PreservesOtherAdmins() {
+        Admin first = repo.save(buildAdmin(0, "e001", "Alice", "pw1"));
+        Admin second = repo.save(buildAdmin(0, "e002", "Bob", "pw2"));
+
+        repo.save(buildAdmin(first.getStaffId(), "e001", "Alice Updated", "newpw"));
+
+        List<Admin> all = repo.findAll();
+        assertEquals(2, all.size());
+        assertEquals("Alice Updated", repo.findById(first.getStaffId()).orElseThrow().getUserName());
+        assertEquals("Bob", repo.findById(second.getStaffId()).orElseThrow().getUserName());
+    }
+
     // ── persistence across instances ──────────────────────────────────────────
 
     @Test
     void savedData_PersistedAcrossRepoInstances() {
-        CsvFileStore store = new CsvFileStore(tempDir.toString());
-        CsvIdGenerator idGen = new CsvIdGenerator(store);
         CsvAdminRepository first = new CsvAdminRepository(store, idGen);
         first.save(buildAdmin(0, "e001", "Alice", "pw"));
 

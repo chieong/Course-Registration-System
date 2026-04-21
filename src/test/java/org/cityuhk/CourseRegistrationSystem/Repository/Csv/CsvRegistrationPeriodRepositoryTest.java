@@ -97,6 +97,23 @@ class CsvRegistrationPeriodRepositoryTest {
     }
 
     @Test
+    void findAll_IgnoresMalformedRows_AndLoadsBlankDatesAndTerm() {
+        store.writeRows(CsvRegistrationPeriodRepository.FILE, CsvRegistrationPeriodRepository.HEADER, List.of(
+                new String[]{"1", "2024", "", "", ""},
+                new String[]{"2", "2025", "2026-04-01T00:00:00", "2026-04-30T23:59:00"},
+                new String[]{"bad", "2026", "2026-05-01T00:00:00", "2026-05-31T23:59:00", "2026B"}
+        ));
+
+        List<RegistrationPeriod> all = repo.findAll();
+
+        assertEquals(1, all.size());
+        assertEquals(1, all.get(0).getPeriodId());
+        assertNull(all.get(0).getStartDateTime());
+        assertNull(all.get(0).getEndDateTime());
+        assertEquals("", all.get(0).getTerm());
+    }
+
+    @Test
     void findActivePeriod_NowWithinRange_ReturnsPeriod() {
         LocalDateTime start = LocalDateTime.of(2026, 4, 1, 0, 0);
         LocalDateTime end = LocalDateTime.of(2026, 4, 30, 23, 59);
@@ -139,11 +156,61 @@ class CsvRegistrationPeriodRepositoryTest {
     }
 
     @Test
+    void findActivePeriod_IncludesBoundaryTimes() {
+        LocalDateTime start = LocalDateTime.of(2026, 4, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 4, 30, 23, 59);
+        repo.save(buildPeriod(2024, start, end));
+
+        assertTrue(repo.findActivePeriod(2024, start).isPresent());
+        assertTrue(repo.findActivePeriod(2024, end).isPresent());
+    }
+
+    @Test
+    void findActivePeriod_SkipsPeriodsWithMissingDates() {
+        RegistrationPeriod missingStart = buildPeriod(2024, null, LocalDateTime.of(2026, 4, 30, 23, 59));
+        RegistrationPeriod missingEnd = buildPeriod(2024, LocalDateTime.of(2026, 4, 1, 0, 0), null);
+        repo.save(missingStart);
+        repo.save(missingEnd);
+
+        assertTrue(repo.findActivePeriod(2024, LocalDateTime.of(2026, 4, 21, 12, 0)).isEmpty());
+    }
+
+    @Test
     void save_PeriodWithNullDates_DoesNotThrow() {
         RegistrationPeriod period = new RegistrationPeriod();
         period.setCohort(2024);
         period.setTerm("2026A");
         assertDoesNotThrow(() -> repo.save(period));
+    }
+
+    @Test
+    void save_NullTerm_PersistsAsEmptyString() {
+        RegistrationPeriod period = buildPeriod(2024,
+                LocalDateTime.of(2026, 4, 1, 0, 0),
+                LocalDateTime.of(2026, 4, 30, 23, 59));
+        period.setTerm(null);
+
+        RegistrationPeriod saved = repo.save(period);
+
+        assertEquals("", repo.findById(saved.getPeriodId()).orElseThrow().getTerm());
+    }
+
+    @Test
+    void save_ExistingPeriod_PreservesOtherPeriods() {
+        RegistrationPeriod first = repo.save(buildPeriod(2024,
+                LocalDateTime.of(2026, 4, 1, 0, 0),
+                LocalDateTime.of(2026, 4, 15, 0, 0)));
+        RegistrationPeriod second = repo.save(buildPeriod(2025,
+                LocalDateTime.of(2026, 5, 1, 0, 0),
+                LocalDateTime.of(2026, 5, 15, 0, 0)));
+
+        first.setTerm("2026B");
+        repo.save(first);
+
+        List<RegistrationPeriod> all = repo.findAll();
+        assertEquals(2, all.size());
+        assertEquals("2026B", repo.findById(first.getPeriodId()).orElseThrow().getTerm());
+        assertEquals(2025, repo.findById(second.getPeriodId()).orElseThrow().getCohort());
     }
 
     @Test

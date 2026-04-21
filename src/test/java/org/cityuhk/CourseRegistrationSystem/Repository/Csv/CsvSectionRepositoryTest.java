@@ -127,6 +127,24 @@ class CsvSectionRepositoryTest {
     }
 
     @Test
+    void findAll_IgnoresMalformedRowsUnknownCoursesAndBlankTypes() {
+        store.writeRows(CsvSectionRepository.FILE, CsvSectionRepository.HEADER, List.of(
+                new String[]{"1", String.valueOf(savedCourse.getCourseId()), "30", "10", "", "", "Room A"},
+                new String[]{"2", "999999", "30", "10", "", "", "Room B", "LECTURE"},
+                new String[]{"bad", String.valueOf(savedCourse.getCourseId()), "30", "10", "", "", "Room C", "LECTURE"},
+                new String[]{"3", String.valueOf(savedCourse.getCourseId()), "40", "12", "", "", "Room D", ""}
+        ));
+
+        List<Section> all = repo.findAll();
+
+        assertEquals(1, all.size());
+        assertEquals(3, all.get(0).getSectionId());
+        assertNull(all.get(0).getType());
+        assertNull(all.get(0).getStartTime());
+        assertNull(all.get(0).getEndTime());
+    }
+
+    @Test
     void persistence_AcrossRepoInstances() {
         Section saved = repo.save(buildSection(0, "Room A"));
 
@@ -154,5 +172,45 @@ class CsvSectionRepositoryTest {
         Optional<Section> found = repo.findById(saved.getSectionId());
         assertTrue(found.isPresent());
         assertEquals(Section.Type.LECTURE, found.get().getType());
+    }
+
+    @Test
+    void save_NullVenueTypeAndCapacities_DefaultToBlanksAndZeroes() {
+        Section section = buildSection(0, "Room A");
+        section.setVenue(null);
+        section.setType(null);
+        setField(section, "enrollCapacity", null);
+        setField(section, "waitlistCapacity", null);
+
+        Section saved = repo.save(section);
+        Section found = repo.findById(saved.getSectionId()).orElseThrow();
+
+        assertEquals("", found.getVenue());
+        assertNull(found.getType());
+    }
+
+    @Test
+    void save_ExistingSection_PreservesOtherSections() {
+        Section first = repo.save(buildSection(0, "Room A"));
+        Section second = repo.save(buildSection(0, "Room B"));
+
+        first.setVenue("Updated Room");
+        repo.save(first);
+
+        List<Section> all = repo.findAll();
+        assertEquals(2, all.size());
+        assertEquals("Updated Room", repo.findById(first.getSectionId()).orElseThrow().getVenue());
+        assertEquals("Room B", repo.findById(second.getSectionId()).orElseThrow().getVenue());
+    }
+
+    @Test
+    void deleteById_RemovesOnlyMatchingSection() {
+        Section first = repo.save(buildSection(0, "Room A"));
+        Section second = repo.save(buildSection(0, "Room B"));
+
+        repo.deleteById(first.getSectionId());
+
+        assertTrue(repo.findById(first.getSectionId()).isEmpty());
+        assertEquals("Room B", repo.findById(second.getSectionId()).orElseThrow().getVenue());
     }
 }
