@@ -9,6 +9,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -162,11 +163,16 @@ public class Student extends User
 
     public RegistrationRecord addSection(Section section, LocalDateTime timestamp, int enrolled) {
         if (!section.canEnroll(this, enrolled)) {
-            throw new RuntimeException();
+            throw new RuntimeException(); // TODO logic kinda weird here
         }
-
-
         return new RegistrationRecord(this, section, timestamp);
+    }
+
+    public WaitlistRecord waitlistSection(Section section, LocalDateTime timestamp, int waitlisted) {
+        if(!section.canWaitlist(this, waitlisted)) {
+            throw new RuntimeException(); // TODO logic kinda weird here
+        }
+        return new WaitlistRecord(this,section,timestamp);
     }
 
     public RegistrationRecord dropSection(Section section, LocalDateTime timestamp) {

@@ -62,6 +62,13 @@ public class Section {
                 && student.notTakenExclusives(course);
     }
 
+    public boolean canWaitlist(Student student, int waitlistCapacity) {
+        return !isFull(waitlistCapacity)
+                && hasCredits(student)
+                && student.satisfyPrerequisites(course)
+                && student.notTakenExclusives(course);
+    }
+
     // getter
     public int getSectionID() {
         return sectionId;
@@ -89,6 +96,10 @@ public class Section {
 
     public boolean isFull(int enrolled) {
         return enrolled >= enrollCapacity;
+    }
+
+    public boolean isWaitlistFull(int waitlisted) {
+        return waitlisted >= waitlistCapacity;
     }
 
     private boolean hasCredits(Student student) {
