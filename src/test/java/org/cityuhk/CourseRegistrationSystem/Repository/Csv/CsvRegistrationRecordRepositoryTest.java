@@ -23,6 +23,9 @@ class CsvRegistrationRecordRepositoryTest {
     private CsvRegistrationRecordRepository repo;
     private CsvFileStore store;
     private CsvIdGenerator idGen;
+    private CsvStudentRepository studentRepo;
+    private CsvCourseRepository courseRepo;
+    private CsvSectionRepository sectionRepo;
     private Student student;
     private Section section;
 
@@ -31,9 +34,9 @@ class CsvRegistrationRecordRepositoryTest {
         store = new CsvFileStore(tempDir.toString());
         idGen = new CsvIdGenerator(store);
 
-        CsvStudentRepository studentRepo = new CsvStudentRepository(store, idGen);
-        CsvCourseRepository courseRepo = new CsvCourseRepository(store, idGen);
-        CsvSectionRepository sectionRepo = new CsvSectionRepository(store, idGen, courseRepo);
+        studentRepo = new CsvStudentRepository(store, idGen);
+        courseRepo = new CsvCourseRepository(store, idGen);
+        sectionRepo = new CsvSectionRepository(store, idGen, courseRepo);
         repo = new CsvRegistrationRecordRepository(store, idGen, studentRepo, sectionRepo);
 
         // Save a student and section to reference
@@ -67,6 +70,25 @@ class CsvRegistrationRecordRepositoryTest {
 
     private RegistrationRecord buildRecord(LocalDateTime ts) {
         return new RegistrationRecord(student, section, ts);
+    }
+
+    private Student buildStudent(String userEid, String name) {
+        return studentRepo.save(new Student.StudentBuilder()
+                .withStudentId(0).withUserEID(userEid).withName(name)
+                .withPassword("pw").withMinSemesterCredit(0).withMaxSemesterCredit(18)
+                .withMajor("CS").withCohort(2024).withDepartment("CS").withMaxDegreeCredit(120)
+                .build());
+    }
+
+    private Section buildSavedSection(String venue) {
+        Section savedSection = new Section();
+        savedSection.setSectionId(0);
+        savedSection.setCourse(section.getCourse());
+        savedSection.setEnrollCapacity(30);
+        savedSection.setWaitlistCapacity(5);
+        savedSection.setVenue(venue);
+        savedSection.setType(Section.Type.LECTURE);
+        return sectionRepo.save(savedSection);
     }
 
     @Test
@@ -143,11 +165,13 @@ class CsvRegistrationRecordRepositoryTest {
     void findByStudentId_ReturnsSortedByTimestamp() {
         LocalDateTime ts1 = LocalDateTime.of(2026, 4, 21, 10, 0);
         LocalDateTime ts2 = LocalDateTime.of(2026, 4, 21, 11, 0);
-        repo.save(buildRecord(ts2));
-        repo.save(buildRecord(ts1)); // save out of order (same student/section overwrite, but with separate sections would differ)
+        repo.save(new RegistrationRecord(student, buildSavedSection("Room B"), ts2));
+        repo.save(new RegistrationRecord(student, buildSavedSection("Room C"), ts1));
 
         List<RegistrationRecord> found = repo.findByStudentId(student.getStudentId());
-        assertFalse(found.isEmpty());
+        assertEquals(2, found.size());
+        assertEquals(ts1, found.get(0).getTimestamp());
+        assertEquals(ts2, found.get(1).getTimestamp());
     }
 
     @Test
@@ -189,5 +213,91 @@ class CsvRegistrationRecordRepositoryTest {
         CsvRegistrationRecordRepository repo2 = new CsvRegistrationRecordRepository(
                 store, idGen, studentRepo2, sectionRepo2);
         assertEquals(1, repo2.findAllRecords().size());
+    }
+
+    @Test
+    void findAllRecords_IgnoresMalformedRowsUnknownLinksAndAllowsBlankTimestamp() {
+        store.writeRows(CsvRegistrationRecordRepository.FILE, CsvRegistrationRecordRepository.HEADER, List.of(
+                new String[]{"1", String.valueOf(student.getStudentId()), String.valueOf(section.getSectionId())},
+                new String[]{"bad", String.valueOf(student.getStudentId()), String.valueOf(section.getSectionId()), "2026-04-21T10:00:00"},
+                new String[]{"2", "999999", String.valueOf(section.getSectionId()), "2026-04-21T10:00:00"},
+                new String[]{"3", String.valueOf(student.getStudentId()), "999999", "2026-04-21T10:00:00"},
+                new String[]{"4", String.valueOf(student.getStudentId()), String.valueOf(section.getSectionId()), ""}
+        ));
+
+        List<RegistrationRecord> all = repo.findAllRecords();
+
+        assertEquals(1, all.size());
+        assertEquals(4, all.get(0).getRecordId());
+        assertNull(all.get(0).getTimestamp());
+    }
+
+    @Test
+    void findByStudentId_SortsNullTimestampLast() {
+        Section morningSection = buildSavedSection("Room B");
+        Section unscheduledSection = buildSavedSection("Room C");
+        LocalDateTime ts = LocalDateTime.of(2026, 4, 21, 9, 0);
+
+        repo.save(new RegistrationRecord(student, unscheduledSection, null));
+        repo.save(new RegistrationRecord(student, morningSection, ts));
+
+        List<RegistrationRecord> found = repo.findByStudentId(student.getStudentId());
+
+        assertEquals(2, found.size());
+        assertEquals(ts, found.get(0).getTimestamp());
+        assertNull(found.get(1).getTimestamp());
+    }
+
+    @Test
+    void exists_AndFindByStudentIdAndSectionId_RequireBothIdentifiersToMatch() {
+        Student otherStudent = buildStudent("s002", "Bob");
+        Section otherSection = buildSavedSection("Room B");
+        repo.save(buildRecord(LocalDateTime.of(2026, 4, 21, 10, 0)));
+
+        assertFalse(repo.exists(otherStudent.getStudentId(), section.getSectionId()));
+        assertFalse(repo.exists(student.getStudentId(), otherSection.getSectionId()));
+        assertTrue(repo.findByStudentIdAndSectionId(otherStudent.getStudentId(), section.getSectionId()).isEmpty());
+        assertTrue(repo.findByStudentIdAndSectionId(student.getStudentId(), otherSection.getSectionId()).isEmpty());
+    }
+
+    @Test
+    void find_IncludesBoundaryTimestampsAndSkipsNullTimestamp() {
+        LocalDateTime start = LocalDateTime.of(2026, 4, 21, 9, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 4, 21, 11, 0);
+
+        repo.save(new RegistrationRecord(student, buildSavedSection("Room B"), start));
+        repo.save(new RegistrationRecord(student, buildSavedSection("Room C"), end));
+        repo.save(new RegistrationRecord(student, buildSavedSection("Room D"), null));
+
+        List<RegistrationRecord> found = repo.find(student.getStudentId(), start, end);
+
+        assertEquals(2, found.size());
+        assertEquals(List.of(start, end), found.stream().map(RegistrationRecord::getTimestamp).sorted().toList());
+    }
+
+    @Test
+    void save_ExistingRecord_PreservesOtherRecords() {
+        RegistrationRecord first = repo.save(new RegistrationRecord(
+                student,
+                buildSavedSection("Room B"),
+                LocalDateTime.of(2026, 4, 21, 9, 0)));
+        RegistrationRecord second = repo.save(new RegistrationRecord(
+                student,
+                buildSavedSection("Room C"),
+                LocalDateTime.of(2026, 4, 21, 10, 0)));
+
+        RegistrationRecord updated = new RegistrationRecord(student, first.getSection(), LocalDateTime.of(2026, 4, 21, 12, 0));
+        updated.setRecordId(first.getRecordId());
+        repo.save(updated);
+
+        List<RegistrationRecord> all = repo.findByStudentId(student.getStudentId());
+        assertEquals(2, all.size());
+        assertTrue(all.stream().anyMatch(record -> record.getRecordId().equals(second.getRecordId())));
+        assertEquals(LocalDateTime.of(2026, 4, 21, 12, 0),
+                all.stream()
+                        .filter(record -> record.getRecordId().equals(first.getRecordId()))
+                        .findFirst()
+                        .orElseThrow()
+                        .getTimestamp());
     }
 }

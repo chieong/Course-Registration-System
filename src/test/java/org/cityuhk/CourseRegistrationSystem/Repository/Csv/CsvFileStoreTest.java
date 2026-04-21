@@ -21,6 +21,11 @@ class CsvFileStoreTest {
         store = new CsvFileStore(tempDir.toString());
     }
 
+    @Test
+    void constructor_UsesProvidedBaseDirectory() {
+        assertEquals(tempDir, store.getBaseDir());
+    }
+
     // ── readRows ──────────────────────────────────────────────────────────────
 
     @Test
@@ -112,6 +117,16 @@ class CsvFileStoreTest {
         assertArrayEquals(new String[]{"a", "", "c"}, result);
     }
 
+    @Test
+    void parseLine_TrailingComma_PreservesTrailingEmptyField() {
+        assertArrayEquals(new String[]{"a", "b", ""}, CsvFileStore.parseLine("a,b,"));
+    }
+
+    @Test
+    void parseLine_QuotedFieldEndingWithEscapedQuote_PreservesQuote() {
+        assertArrayEquals(new String[]{"value\""}, CsvFileStore.parseLine("\"value\"\"\""));
+    }
+
     // ── joinLine / escapeCsv ──────────────────────────────────────────────────
 
     @Test
@@ -129,6 +144,23 @@ class CsvFileStoreTest {
     void joinLine_ValueContainingDoubleQuote_IsEscaped() {
         String line = CsvFileStore.joinLine(new String[]{"say \"hi\""});
         assertEquals("\"say \"\"hi\"\"\"", line);
+    }
+
+    @Test
+    void joinLine_NullValue_WritesEmptyField() {
+        String line = CsvFileStore.joinLine(new String[]{"a", null, "c"});
+        assertEquals("a,,c", line);
+    }
+
+    @Test
+    void escapeCsv_NewlineAndCarriageReturn_AreQuoted() {
+        assertEquals("\"hello\nworld\"", CsvFileStore.escapeCsv("hello\nworld"));
+        assertEquals("\"hello\rworld\"", CsvFileStore.escapeCsv("hello\rworld"));
+    }
+
+    @Test
+    void escapeCsv_Null_ReturnsEmptyString() {
+        assertEquals("", CsvFileStore.escapeCsv(null));
     }
 
     @Test

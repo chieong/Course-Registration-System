@@ -104,6 +104,34 @@ class CsvStudentRepositoryTest {
     }
 
     @Test
+    void loadAll_IgnoresMalformedRows_AndLoadsBlankTextFields() {
+        store.writeRows(CsvStudentRepository.FILE, CsvStudentRepository.HEADER, java.util.List.of(
+                new String[]{"1", "", "", "", "0", "18", "", "2024", "", "120"},
+                new String[]{"2", "s002", "Bob", "pw", "0", "18", "CS", "2024", "CS"},
+                new String[]{"bad", "s003", "Charlie", "pw", "0", "18", "CS", "2024", "CS", "120"}
+        ));
+
+        java.util.List<Student> all = repo.loadAll();
+
+        assertEquals(1, all.size());
+        assertEquals(1, all.get(0).getStudentId());
+        assertEquals("", all.get(0).getUserEID());
+        assertEquals("", all.get(0).getUserName());
+        assertEquals("", all.get(0).getDepartment());
+    }
+
+    @Test
+    void findByUserEID_BlankPersistedUserEid_DoesNotMatchOtherValues() {
+        store.writeRows(CsvStudentRepository.FILE, CsvStudentRepository.HEADER, java.util.List.of(
+                new String[]{"1", "", "Alice", "pw", "0", "18", "CS", "2024", "CS", "120"},
+                new String[]{"2", "s002", "Bob", "pw", "0", "18", "CS", "2024", "CS", "120"}
+        ));
+
+        assertTrue(repo.findByUserEID("s001").isEmpty());
+        assertTrue(repo.findByUserEID("s002").isPresent());
+    }
+
+    @Test
     void persistence_AcrossRepoInstances() {
         Student saved = repo.save(buildStudent(0, "s001", "Alice"));
 
@@ -122,5 +150,53 @@ class CsvStudentRepositoryTest {
         assertTrue(repo.findByUserEID("s001").isPresent());
         assertTrue(repo.findByUserEID("s002").isPresent());
         assertTrue(repo.findByUserEID("s003").isPresent());
+    }
+
+    @Test
+    void save_NullTextFields_ArePersistedAsEmptyStrings() {
+        Student saved = repo.save(new Student.StudentBuilder()
+                .withStudentId(0)
+                .withUserEID(null)
+                .withName(null)
+                .withPassword(null)
+                .withMinSemesterCredit(0)
+                .withMaxSemesterCredit(18)
+                .withMajor(null)
+                .withCohort(2024)
+                .withDepartment(null)
+                .withMaxDegreeCredit(120)
+                .build());
+
+        Student found = repo.findById(saved.getStudentId()).orElseThrow();
+        assertEquals("", found.getUserEID());
+        assertEquals("", found.getUserName());
+        assertEquals("", found.getPassword());
+        assertEquals("", found.getMajor());
+        assertEquals("", found.getDepartment());
+    }
+
+    @Test
+    void save_ExistingStudent_PreservesOtherStudents() {
+        Student first = repo.save(buildStudent(0, "s001", "Alice"));
+        Student second = repo.save(buildStudent(0, "s002", "Bob"));
+
+        Student updated = new Student.StudentBuilder()
+                .withStudentId(first.getStudentId())
+                .withUserEID("s001")
+                .withName("Alicia")
+                .withPassword("pw2")
+                .withMinSemesterCredit(0)
+                .withMaxSemesterCredit(18)
+                .withMajor("CS")
+                .withCohort(2024)
+                .withDepartment("CS")
+                .withMaxDegreeCredit(120)
+                .build();
+
+        repo.save(updated);
+
+        assertEquals("Alicia", repo.findById(first.getStudentId()).orElseThrow().getUserName());
+        assertEquals("Bob", repo.findById(second.getStudentId()).orElseThrow().getUserName());
+        assertEquals(2, repo.loadAll().size());
     }
 }
