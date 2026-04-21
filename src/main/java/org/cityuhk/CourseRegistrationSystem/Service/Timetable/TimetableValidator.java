@@ -1,8 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,11 +16,11 @@ import java.util.List;
 @Component
 public class TimetableValidator {
     
-    private final StudentRepository studentRepository;
-    private final RegistrationRecordRepository registrationRecordRepository;
+    private final StudentRepositoryPort studentRepository;
+    private final RegistrationRecordRepositoryPort registrationRecordRepository;
     
-    public TimetableValidator(StudentRepository studentRepository, 
-                            RegistrationRecordRepository registrationRecordRepository) {
+    public TimetableValidator(StudentRepositoryPort studentRepository, 
+                            RegistrationRecordRepositoryPort registrationRecordRepository) {
         this.studentRepository = studentRepository;
         this.registrationRecordRepository = registrationRecordRepository;
     }

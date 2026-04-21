@@ -36,6 +36,14 @@ public class RegistrationRecord implements Comparable<RegistrationRecord> {
         this.timestamp = timestamp;
     }
 
+    public void setRecordId(Integer recordId) {
+        this.recordId = recordId;
+    }
+
+    public Integer getRecordId() {
+        return recordId;
+    }
+
     public Student getStudent() {
         return student;
     }

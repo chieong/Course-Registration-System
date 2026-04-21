@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,16 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AdministrativeService {
 
-    private final AdminRepository adminRepository;
-    private final CourseRepository courseRepository;
-    private final SectionRepository sectionRepository;
+    private final AdminRepositoryPort adminRepository;
+    private final CourseRepositoryPort courseRepository;
+    private final SectionRepositoryPort sectionRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AdministrativeService(
-            AdminRepository adminRepository,
-            CourseRepository courseRepository,
+            AdminRepositoryPort adminRepository,
+            CourseRepositoryPort courseRepository,
             PasswordEncoder passwordEncoder,
-            SectionRepository sectionRepository) {
+            SectionRepositoryPort sectionRepository) {
         this.adminRepository = adminRepository;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;

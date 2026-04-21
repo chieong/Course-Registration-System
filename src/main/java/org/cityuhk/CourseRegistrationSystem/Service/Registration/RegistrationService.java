@@ -3,9 +3,9 @@ package org.cityuhk.CourseRegistrationSystem.Service.Registration;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,15 +16,15 @@ import java.util.Optional;
 @Service
 public class RegistrationService {
 
-    private final StudentRepository studentRepository;
-    private final SectionRepository sectionRepository;
-    private final RegistrationRecordRepository registrationRecordRepository;
+    private final StudentRepositoryPort studentRepository;
+    private final SectionRepositoryPort sectionRepository;
+    private final RegistrationRecordRepositoryPort registrationRecordRepository;
 
     @Autowired
     public RegistrationService(
-            StudentRepository studentRepository,
-            SectionRepository sectionRepository,
-            RegistrationRecordRepository registrationRecordRepository) {
+            StudentRepositoryPort studentRepository,
+            SectionRepositoryPort sectionRepository,
+            RegistrationRecordRepositoryPort registrationRecordRepository) {
         this.studentRepository = studentRepository;
         this.sectionRepository = sectionRepository;
         this.registrationRecordRepository = registrationRecordRepository;

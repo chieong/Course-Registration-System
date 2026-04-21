@@ -1,8 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Config;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(AdminRepository adminRepository, StudentRepository studentRepository) {
+    public UserDetailsService userDetailsService(AdminRepositoryPort adminRepository, StudentRepositoryPort studentRepository) {
         return username -> adminRepository.findByUserEID(username)
                 .map(admin -> {
                     if (admin.getPassword() == null || admin.getPassword().isBlank()) {
@@ -68,7 +68,7 @@ public class SecurityConfig {
     }
 
         @Bean
-        public CommandLineRunner seedDefaultAdmin(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
+        public CommandLineRunner seedDefaultAdmin(AdminRepositoryPort adminRepository, PasswordEncoder passwordEncoder) {
                 return args -> {
                         if (adminRepository.count() == 0) {
                                 Admin admin = (Admin) new Admin.AdminBuilder()

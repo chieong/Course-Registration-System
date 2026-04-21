@@ -76,6 +76,10 @@ public class Course { // for creating a course
         return courseId;
     }
 
+    public void setCourseId(Integer courseId) {
+        this.courseId = courseId;
+    }
+
     public String getCourseCode() {
         return courseCode;
     }
