@@ -139,18 +139,18 @@ class CsvRegistrationPlanRepositoryTest {
         assertTrue(repo.findAll().isEmpty());
     }
 
-    @Test
-    void save_ApplyStatus_Persists() {
-        RegistrationPlan saved = repo.save(buildPlan(1));
-        saved.setApplyStatus("APPLIED");
-        saved.setApplySummary("All sections added");
-        repo.save(saved);
+     @Test
+     void save_ApplyStatus_Persists() {
+         RegistrationPlan saved = repo.save(buildPlan(1));
+         saved.setApplyStatus(RegistrationPlan.ApplyStatus.APPLIED);
+         saved.setApplySummary("All sections added");
+         repo.save(saved);
 
-        Optional<RegistrationPlan> found = repo.findById(saved.getPlanId());
-        assertTrue(found.isPresent());
-        assertEquals("APPLIED", found.get().getApplyStatus());
-        assertEquals("All sections added", found.get().getApplySummary());
-    }
+         Optional<RegistrationPlan> found = repo.findById(saved.getPlanId());
+         assertTrue(found.isPresent());
+         assertEquals(RegistrationPlan.ApplyStatus.APPLIED, found.get().getApplyStatus());
+         assertEquals("All sections added", found.get().getApplySummary());
+     }
 
     @Test
     void persistence_AcrossRepoInstances() {

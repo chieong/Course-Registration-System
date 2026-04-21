@@ -5,11 +5,12 @@ import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.PlanEntryRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPlanRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.PlanEntryRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +24,15 @@ public class RegistrationPlanService {
     private static final int MAX_PLAN_COUNT = 10;
 
     private final RegistrationPlanRepository registrationPlanRepository;
-    private final PlanEntryRepository planEntryRepository;
-    private final StudentRepository studentRepository;
-    private final SectionRepository sectionRepository;
+    private final PlanEntryRepositoryPort planEntryRepository;
+    private final StudentRepositoryPort studentRepository;
+    private final SectionRepositoryPort sectionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
 
     public RegistrationPlanService(RegistrationPlanRepository registrationPlanRepository,
-                                   PlanEntryRepository planEntryRepository,
-                                   StudentRepository studentRepository,
-                                   SectionRepository sectionRepository,
+                                   PlanEntryRepositoryPort planEntryRepository,
+                                   StudentRepositoryPort studentRepository,
+                                   SectionRepositoryPort sectionRepository,
                                    RegistrationPeriodRepository registrationPeriodRepository) {
         this.registrationPlanRepository = registrationPlanRepository;
         this.planEntryRepository = planEntryRepository;
@@ -45,9 +46,9 @@ public class RegistrationPlanService {
         return registrationPlanRepository.findByStudentIdAndTermOrderByPriority(studentId, term);
     }
 
-    @Transactional
-    public RegistrationPlan createPlan(Integer studentId, String term, Integer requestedPriority) {
-        Student student = studentRepository.findById(studentId)
+     @Transactional
+     public RegistrationPlan createPlan(Integer studentId, String term, Integer requestedPriority) {
+Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         ensurePlanEditable(student,LocalDateTime.now());

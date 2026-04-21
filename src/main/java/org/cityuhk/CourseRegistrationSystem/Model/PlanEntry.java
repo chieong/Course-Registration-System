@@ -63,6 +63,10 @@ public class PlanEntry {
         return entryId;
     }
 
+    public void setEntryId(Integer entryId) {
+        this.entryId = entryId;
+    }
+
     public RegistrationPlan getPlan() {
         return plan;
     }

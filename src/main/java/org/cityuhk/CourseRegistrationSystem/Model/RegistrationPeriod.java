@@ -16,34 +16,45 @@ import java.time.LocalDateTime;
         })
 public class RegistrationPeriod {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer periodId;
+     @Id
+     @GeneratedValue(strategy = GenerationType.IDENTITY)
+     private Integer periodId;
 
-    private int cohort;
+     private int cohort;
 
-    public RegistrationPeriod() {}
+     private String term;
 
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
+     public RegistrationPeriod() {}
 
-    public RegistrationPeriod(
-            Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        this.cohort = cohort;
-        this.startDateTime = startDateTime;
-        this.endDateTime = endDateTime;
-        if (endDateTime.isBefore(startDateTime)) {
-            throw new RuntimeException("Start date cannot be before end date");
-        }
-    }
+     private LocalDateTime startDateTime;
+     private LocalDateTime endDateTime;
 
-    public Integer getPeriodId() {
-        return periodId;
-    }
+     public RegistrationPeriod(
+             Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime, String term) {
+         this.cohort = cohort;
+         this.startDateTime = startDateTime;
+         this.endDateTime = endDateTime;
+         this.term = term;
+         if (endDateTime.isBefore(startDateTime)) {
+             throw new RuntimeException("Start date cannot be before end date");
+         }
+     }
 
-    public void setPeriodId(int periodId) {
+     public Integer getPeriodId() {
+         return periodId;
+     }
+
+public void setPeriodId(Integer periodId) {
         this.periodId = periodId;
     }
+
+     public String getTerm() {
+         return term;
+     }
+
+     public void setTerm(String term) {
+         this.term = term;
+     }
 
     public int getCohort() {
         return cohort;

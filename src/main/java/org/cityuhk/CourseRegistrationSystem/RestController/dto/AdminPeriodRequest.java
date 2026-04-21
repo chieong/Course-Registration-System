@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 public class AdminPeriodRequest {
     private Integer periodId;
     private int cohort;
+    private String term;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
@@ -20,6 +21,12 @@ public class AdminPeriodRequest {
     }
     public void setCohort(int cohort) {
         this.cohort = cohort;
+    }
+    public String getTerm() {
+        return term;
+    }
+    public void setTerm(String term) {
+        this.term = term;
     }
     public LocalDateTime getStartDate() {
         return startDate;

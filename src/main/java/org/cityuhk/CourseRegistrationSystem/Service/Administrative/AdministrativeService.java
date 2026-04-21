@@ -346,7 +346,7 @@ public class AdministrativeService {
 
         RegistrationPeriod newRegistrationPeriod =
                 new RegistrationPeriod(
-                        request.getCohort(), request.getStartDate(), request.getEndDate());
+                        request.getCohort(), request.getStartDate(), request.getEndDate(), request.getTerm());
 
         registrationPeriodRepository.save(newRegistrationPeriod);
     }

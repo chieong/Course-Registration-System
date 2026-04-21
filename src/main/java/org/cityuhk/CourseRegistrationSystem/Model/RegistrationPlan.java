@@ -66,6 +66,10 @@ public class RegistrationPlan {
         return planId;
     }
 
+    public void setPlanId(Integer planId) {
+        this.planId = planId;
+    }
+
     public Student getStudent() {
         return student;
     }

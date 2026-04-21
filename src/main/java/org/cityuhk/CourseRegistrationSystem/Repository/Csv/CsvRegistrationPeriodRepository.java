@@ -72,7 +72,7 @@ public class CsvRegistrationPeriodRepository implements RegistrationPeriodReposi
     @Override
     public synchronized RegistrationPeriod save(RegistrationPeriod period) {
         List<RegistrationPeriod> all = loadAll();
-        if (period.getPeriodId() == 0) {
+        if (period.getPeriodId() == null) {
             period.setPeriodId(idGen.nextId("registration_period"));
             all.add(period);
         } else {

@@ -57,9 +57,9 @@ class CsvPlanEntryRepositoryTest {
         plan = planRepo.save(new RegistrationPlan(student, "2026A", 1));
     }
 
-    private PlanEntry buildEntry() {
-        return new PlanEntry(plan, section, "ADD");
-    }
+     private PlanEntry buildEntry() {
+         return new PlanEntry(plan, section, PlanEntry.EntryType.SELECTED);
+     }
 
     @Test
     void save_NewEntry_AssignsId() {
@@ -83,16 +83,16 @@ class CsvPlanEntryRepositoryTest {
         assertNotEquals(a.getEntryId(), b.getEntryId());
     }
 
-    @Test
-    void save_ExistingEntry_UpdatesStatus() {
-        PlanEntry saved = repo.save(buildEntry());
-        saved.setStatus("DONE");
-        repo.save(saved);
+     @Test
+     void save_ExistingEntry_UpdatesStatus() {
+         PlanEntry saved = repo.save(buildEntry());
+         saved.setStatus(PlanEntry.EntryStatus.FAILED);
+         repo.save(saved);
 
-        Optional<PlanEntry> found = repo.findById(saved.getEntryId());
-        assertTrue(found.isPresent());
-        assertEquals("DONE", found.get().getStatus());
-    }
+         Optional<PlanEntry> found = repo.findById(saved.getEntryId());
+         assertTrue(found.isPresent());
+         assertEquals(PlanEntry.EntryStatus.FAILED, found.get().getStatus());
+     }
 
     @Test
     void findById_Unknown_ReturnsEmpty() {

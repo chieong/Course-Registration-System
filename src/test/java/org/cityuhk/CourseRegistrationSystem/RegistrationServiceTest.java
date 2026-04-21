@@ -40,13 +40,13 @@ import static org.mockito.Mockito.*;
 public class RegistrationServiceTest {
 
     @Mock
-    private StudentRepository studentRepository;
+    private StudentRepositoryPort studentRepository;
 
     @Mock
-    private SectionRepository sectionRepository;
+    private SectionRepositoryPort sectionRepository;
 
     @Mock
-    private RegistrationRecordRepository registrationRecordRepository;
+    private RegistrationRecordRepositoryPort registrationRecordRepository;
 
     @Mock
     private RegistrationPeriodRepository registrationPeriodRepository;

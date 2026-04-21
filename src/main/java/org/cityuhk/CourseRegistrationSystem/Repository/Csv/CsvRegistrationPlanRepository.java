@@ -42,10 +42,9 @@ public class CsvRegistrationPlanRepository implements RegistrationPlanRepository
                 int studentId = Integer.parseInt(row[1]);
                 Student student = studentMap.get(studentId);
                 if (student == null) continue;
-                RegistrationPlan plan = new RegistrationPlan(student, row[2], Integer.parseInt(row[3]));
-                plan.setPlanId(planId);
-                plan.setApplyStatus(row[4]);
-                plan.setApplySummary(row[5]);
+                 RegistrationPlan plan = new RegistrationPlan(student, row[2], Integer.parseInt(row[3]));
+                 plan.setApplyStatus(RegistrationPlan.ApplyStatus.valueOf(row[4]));
+                 plan.setApplySummary(row[5]);
                 plans.add(plan);
             } catch (NumberFormatException ignored) {
             }
@@ -53,17 +52,17 @@ public class CsvRegistrationPlanRepository implements RegistrationPlanRepository
         return plans;
     }
 
-    private synchronized void saveAll(List<RegistrationPlan> plans) {
-        List<String[]> rows = plans.stream().map(p -> new String[]{
-                String.valueOf(p.getPlanId()),
-                String.valueOf(p.getStudent().getStudentId()),
-                safe(p.getTerm()),
-                String.valueOf(p.getPriority()),
-                safe(p.getApplyStatus()),
-                safe(p.getApplySummary())
-        }).collect(Collectors.toList());
-        store.writeRows(FILE, HEADER, rows);
-    }
+     private synchronized void saveAll(List<RegistrationPlan> plans) {
+         List<String[]> rows = plans.stream().map(p -> new String[]{
+                 String.valueOf(p.getPlanId()),
+                 String.valueOf(p.getStudent().getStudentId()),
+                 safe(p.getTerm()),
+                 String.valueOf(p.getPriority()),
+                 safe(p.getApplyStatus().name()),
+                 safe(p.getApplySummary())
+         }).collect(Collectors.toList());
+         store.writeRows(FILE, HEADER, rows);
+     }
 
     private static String safe(String v) { return v == null ? "" : v; }
 
