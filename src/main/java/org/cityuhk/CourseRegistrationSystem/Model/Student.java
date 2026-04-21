@@ -178,7 +178,7 @@ public class Student extends User
         return studentId;
     }
 
-    public int getCohort() {
+    public Integer getCohort() {
         return cohort;
     }
 

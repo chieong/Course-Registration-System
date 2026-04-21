@@ -33,4 +33,8 @@ public interface RegistrationPeriodRepository extends JpaRepository<Registration
 
     @Query("select distinct p.term from RegistrationPeriod p")
     List<String> findDistinctTerms();
+    
+    @Query("SELECT r.cohort FROM RegistrationPeriod r WHERE :time BETWEEN r.startDateTime AND r.endDateTime")
+    List<Integer> getActiveCohortByTime(LocalDateTime time);
+
 }
