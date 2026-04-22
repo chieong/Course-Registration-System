@@ -17,7 +17,7 @@ public class CsvRegistrationPlanRepository implements RegistrationPlanRepository
 
     static final String FILE = "registration_plans.csv";
     static final String[] HEADER = {
-            "planId", "studentId", "term", "priority", "applyStatus", "applySummary"
+            "planId", "studentId", "priority", "applyStatus", "applySummary"
     };
 
     private final CsvFileStore store;
@@ -36,18 +36,18 @@ public class CsvRegistrationPlanRepository implements RegistrationPlanRepository
                 .collect(Collectors.toMap(Student::getStudentId, s -> s));
         List<RegistrationPlan> plans = new ArrayList<>();
         for (String[] row : store.readRows(FILE)) {
-            if (row.length < 6) continue;
+            if (row.length < 5) continue;
             try {
                 int planId = Integer.parseInt(row[0]);
                 int studentId = Integer.parseInt(row[1]);
                 Student student = studentMap.get(studentId);
                 if (student == null) continue;
-                RegistrationPlan plan = new RegistrationPlan(student, row[2], Integer.parseInt(row[3]));
+                RegistrationPlan plan = new RegistrationPlan(student, Integer.parseInt(row[2]));
                 plan.setPlanId(planId);
-                if (row[4] != null && !row[4].isBlank()) {
-                    plan.setApplyStatus(RegistrationPlan.ApplyStatus.valueOf(row[4]));
+                if (row[3] != null && !row[3].isBlank()) {
+                    plan.setApplyStatus(RegistrationPlan.ApplyStatus.valueOf(row[3]));
                 }
-                plan.setApplySummary(row[5]);
+                plan.setApplySummary(row[4]);
                 plans.add(plan);
             } catch (IllegalArgumentException ignored) {
             }
@@ -59,7 +59,6 @@ public class CsvRegistrationPlanRepository implements RegistrationPlanRepository
          List<String[]> rows = plans.stream().map(p -> new String[]{
                  String.valueOf(p.getPlanId()),
                  String.valueOf(p.getStudent().getStudentId()),
-                 safe(p.getTerm()),
                  String.valueOf(p.getPriority()),
                  safe(p.getApplyStatus().name()),
                  safe(p.getApplySummary())

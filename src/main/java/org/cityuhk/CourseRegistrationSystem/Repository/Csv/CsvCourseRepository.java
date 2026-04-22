@@ -16,7 +16,7 @@ public class CsvCourseRepository implements CourseRepositoryPort {
 
     static final String FILE = "courses.csv";
     static final String[] HEADER = {
-            "courseId", "courseCode", "title", "credits", "description", "term",
+            "courseId", "courseCode", "title", "credits", "description",
             "prerequisiteCourseIds", "exclusiveCourseIds"
     };
 
@@ -36,16 +36,16 @@ public class CsvCourseRepository implements CourseRepositoryPort {
         Map<Integer, String> exclusiveIds = new HashMap<>();
 
         for (String[] row : rawRows) {
-            if (row.length < 8) continue;
+            if (row.length < 7) continue;
             try {
                 int courseId = Integer.parseInt(row[0]);
                 Course c = new Course(row[1], row[2],
-                        Integer.parseInt(row[3]), row[4], row[5],
+                        Integer.parseInt(row[3]), row[4],
                         new HashSet<>(), new HashSet<>(), null);
                 c.setCourseId(courseId);
                 byId.put(courseId, c);
-                prereqIds.put(courseId, row[6]);
-                exclusiveIds.put(courseId, row[7]);
+                prereqIds.put(courseId, row[5]);
+                exclusiveIds.put(courseId, row[6]);
             } catch (NumberFormatException ignored) {
             }
         }
@@ -82,7 +82,6 @@ public class CsvCourseRepository implements CourseRepositoryPort {
                 safe(c.getTitle()),
                 String.valueOf(c.getCredits()),
                 safe(c.getDescription()),
-                safe(c.getTerm()),
                 joinIds(c.getPrerequisiteCourses()),
                 joinIds(c.getExclusiveCourses())
         }).collect(Collectors.toList());

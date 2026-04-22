@@ -20,9 +20,6 @@ public class RegistrationPeriodValidator {
         if (request.getCohort() == null) {
             throw new RegistrationPeriodValidationException("Cohort is required");
         }
-        if (request.getTerm() == null || request.getTerm().isBlank()) {
-            throw new RegistrationPeriodValidationException("Term is required");
-        }
         if (request.getStartDate() == null) {
             throw new RegistrationPeriodValidationException("Start date is required");
         }

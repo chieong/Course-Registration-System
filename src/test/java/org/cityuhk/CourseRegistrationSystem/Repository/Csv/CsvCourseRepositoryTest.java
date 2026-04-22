@@ -28,7 +28,7 @@ class CsvCourseRepositoryTest {
     }
 
     private Course buildCourse(String code, String title) {
-        return new Course(code, title, 3, "desc", "2026A", new java.util.HashSet<>(), new java.util.HashSet<>(), null);
+        return new Course(code, title, 3, "desc", new java.util.HashSet<>(), new java.util.HashSet<>(), null);
     }
 
     @Test

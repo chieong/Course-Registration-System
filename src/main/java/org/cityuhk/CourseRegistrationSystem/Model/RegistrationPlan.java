@@ -21,7 +21,7 @@ import java.util.List;
 @Entity
 @Table(
         uniqueConstraints = {
-            @UniqueConstraint(columnNames = {"student_student_id", "term", "priority"})
+            @UniqueConstraint(columnNames = {"student_student_id", "priority"})
         })
 public class RegistrationPlan {
 
@@ -40,8 +40,6 @@ public class RegistrationPlan {
     @JsonIgnore
     private Student student;
 
-    private String term;
-
     private Integer priority;
 
     private LocalDateTime applyAttemptedAt;
@@ -56,9 +54,8 @@ public class RegistrationPlan {
 
     public RegistrationPlan() {}
 
-    public RegistrationPlan(Student student, String term, int priority) {
+    public RegistrationPlan(Student student, int priority) {
         this.student = student;
-        this.term = term;
         this.priority = priority;
     }
 
@@ -76,14 +73,6 @@ public class RegistrationPlan {
 
     public void setStudent(Student student) {
         this.student = student;
-    }
-
-    public String getTerm() {
-        return term;
-    }
-
-    public void setTerm(String term) {
-        this.term = term;
     }
 
     public Integer getPriority() {

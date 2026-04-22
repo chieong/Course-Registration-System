@@ -19,10 +19,6 @@ public interface RegistrationPlanRepository extends JpaRepository<RegistrationPl
     @Query("select count(p) from RegistrationPlan p where p.student.studentId = :studentId")
     long countByStudentId(@Param("studentId") Integer studentId);
 
-    @Query("select p from RegistrationPlan p where p.student.studentId = :studentId and p.term = :term order by p.priority asc")
-    List<RegistrationPlan> findByStudentIdAndTermOrderByPriority(@Param("studentId") Integer studentId,
-                                                                 @Param("term") String term);
-
     @Query("select count(p) from RegistrationPlan p where p.student.studentId = :studentId")
     long countByStudentIdAndTerm(@Param("studentId") Integer studentId);
 

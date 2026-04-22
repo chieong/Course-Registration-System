@@ -32,7 +32,6 @@ class CsvRegistrationPeriodRepositoryTest {
         rp.setCohort(cohort);
         rp.setStartDateTime(start);
         rp.setEndDateTime(end);
-        rp.setTerm("2026A");
         return rp;
     }
 
@@ -54,7 +53,6 @@ class CsvRegistrationPeriodRepositoryTest {
         Optional<RegistrationPeriod> found = repo.findById(saved.getPeriodId());
         assertTrue(found.isPresent());
         assertEquals(2024, found.get().getCohort());
-        assertEquals("2026A", found.get().getTerm());
     }
 
     @Test
@@ -67,15 +65,15 @@ class CsvRegistrationPeriodRepositoryTest {
     }
 
     @Test
-    void save_ExistingPeriod_UpdatesTerm() {
+    void save_ExistingPeriod_UpdatesCohort() {
         RegistrationPeriod saved = repo.save(buildPeriod(2024,
                 LocalDateTime.of(2026, 4, 1, 0, 0), LocalDateTime.of(2026, 4, 30, 23, 59)));
-        saved.setTerm("2026B");
+        saved.setCohort(2025);
         repo.save(saved);
 
         Optional<RegistrationPeriod> found = repo.findById(saved.getPeriodId());
         assertTrue(found.isPresent());
-        assertEquals("2026B", found.get().getTerm());
+        assertEquals(2025, found.get().getCohort());
     }
 
     @Test
@@ -97,20 +95,19 @@ class CsvRegistrationPeriodRepositoryTest {
     }
 
     @Test
-    void findAll_IgnoresMalformedRows_AndLoadsBlankDatesAndTerm() {
+    void findAll_IgnoresMalformedRows_AndLoadsBlankDates() {
         store.writeRows(CsvRegistrationPeriodRepository.FILE, CsvRegistrationPeriodRepository.HEADER, List.of(
-                new String[]{"1", "2024", "", "", ""},
+                new String[]{"1", "2024", "", ""},
                 new String[]{"2", "2025", "2026-04-01T00:00:00", "2026-04-30T23:59:00"},
-                new String[]{"bad", "2026", "2026-05-01T00:00:00", "2026-05-31T23:59:00", "2026B"}
+                new String[]{"bad", "2026", "2026-05-01T00:00:00", "2026-05-31T23:59:00"}
         ));
 
         List<RegistrationPeriod> all = repo.findAll();
 
-        assertEquals(1, all.size());
+        assertEquals(2, all.size());
         assertEquals(1, all.get(0).getPeriodId());
         assertNull(all.get(0).getStartDateTime());
         assertNull(all.get(0).getEndDateTime());
-        assertEquals("", all.get(0).getTerm());
     }
 
     @Test
@@ -179,20 +176,18 @@ class CsvRegistrationPeriodRepositoryTest {
     void save_PeriodWithNullDates_DoesNotThrow() {
         RegistrationPeriod period = new RegistrationPeriod();
         period.setCohort(2024);
-        period.setTerm("2026A");
         assertDoesNotThrow(() -> repo.save(period));
     }
 
     @Test
-    void save_NullTerm_PersistsAsEmptyString() {
+    void save_Period_CanBeFoundAfterSave() {
         RegistrationPeriod period = buildPeriod(2024,
                 LocalDateTime.of(2026, 4, 1, 0, 0),
                 LocalDateTime.of(2026, 4, 30, 23, 59));
-        period.setTerm(null);
 
         RegistrationPeriod saved = repo.save(period);
 
-        assertEquals("", repo.findById(saved.getPeriodId()).orElseThrow().getTerm());
+        assertEquals(2024, repo.findById(saved.getPeriodId()).orElseThrow().getCohort());
     }
 
     @Test
@@ -204,12 +199,12 @@ class CsvRegistrationPeriodRepositoryTest {
                 LocalDateTime.of(2026, 5, 1, 0, 0),
                 LocalDateTime.of(2026, 5, 15, 0, 0)));
 
-        first.setTerm("2026B");
+        first.setCohort(2026);
         repo.save(first);
 
         List<RegistrationPeriod> all = repo.findAll();
         assertEquals(2, all.size());
-        assertEquals("2026B", repo.findById(first.getPeriodId()).orElseThrow().getTerm());
+        assertEquals(2026, repo.findById(first.getPeriodId()).orElseThrow().getCohort());
         assertEquals(2025, repo.findById(second.getPeriodId()).orElseThrow().getCohort());
     }
 

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         uniqueConstraints = {
-            @UniqueConstraint(columnNames = {"cohort", "term", "startDateTime", "endDateTime"})
+            @UniqueConstraint(columnNames = {"cohort", "startDateTime", "endDateTime"})
         })
 public class RegistrationPeriod {
 
@@ -22,19 +22,16 @@ public class RegistrationPeriod {
 
      private int cohort;
 
-     private String term;
-
      public RegistrationPeriod() {}
 
      private LocalDateTime startDateTime;
      private LocalDateTime endDateTime;
 
      public RegistrationPeriod(
-             Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime, String term) {
+             Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime) {
          this.cohort = cohort;
          this.startDateTime = startDateTime;
          this.endDateTime = endDateTime;
-         this.term = term;
          if (endDateTime.isBefore(startDateTime)) {
              throw new RuntimeException("Start date cannot be before end date");
          }
@@ -47,14 +44,6 @@ public class RegistrationPeriod {
 public void setPeriodId(Integer periodId) {
         this.periodId = periodId;
     }
-
-     public String getTerm() {
-         return term;
-     }
-
-     public void setTerm(String term) {
-         this.term = term;
-     }
 
     public int getCohort() {
         return cohort;

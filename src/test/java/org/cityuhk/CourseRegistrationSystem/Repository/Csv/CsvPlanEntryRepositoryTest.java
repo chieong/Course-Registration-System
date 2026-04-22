@@ -42,7 +42,7 @@ class CsvPlanEntryRepositoryTest {
                 .withMajor("CS").withCohort(2024).withDepartment("CS").withMaxDegreeCredit(120)
                 .build());
 
-        Course course = courseRepo.save(new Course("CS101", "Intro CS", 3, null, "2026A",
+        Course course = courseRepo.save(new Course("CS101", "Intro CS", 3, null,
                 new java.util.HashSet<>(), new java.util.HashSet<>(), null));
 
         Section s = new Section();
@@ -54,7 +54,7 @@ class CsvPlanEntryRepositoryTest {
         s.setType(Section.Type.LECTURE);
         section = sectionRepo.save(s);
 
-        plan = planRepo.save(new RegistrationPlan(student, "2026A", 1));
+        plan = planRepo.save(new RegistrationPlan(student, 1));
     }
 
      private PlanEntry buildEntry() {

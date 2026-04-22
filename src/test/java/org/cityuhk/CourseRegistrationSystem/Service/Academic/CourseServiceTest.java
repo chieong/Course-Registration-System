@@ -29,7 +29,7 @@ class CourseServiceTest {
 
     @Test
     void getCourse_DelegatesToRepositoryByCourseCode() {
-        Course expected = new Course("CS101", "Intro CS", 3, "Basics", "2026A", Set.of(), Set.of(), Set.of());
+        Course expected = new Course("CS101", "Intro CS", 3, "Basics", Set.of(), Set.of(), Set.of());
         when(courseRepository.getCourseByCourseCode("CS101")).thenReturn(expected);
 
         Course found = courseService.getCourse("CS101");
@@ -52,8 +52,8 @@ class CourseServiceTest {
 
     @Test
     void getAllCourses_ReturnsRepositoryResultWithoutModification() {
-        Course c1 = new Course("CS101", "Intro CS", 3, "Basics", "2026A", Set.of(), Set.of(), Set.of());
-        Course c2 = new Course("CS102", "Data Structures", 3, "Core", "2026A", Set.of(), Set.of(), Set.of());
+        Course c1 = new Course("CS101", "Intro CS", 3, "Basics", Set.of(), Set.of(), Set.of());
+        Course c2 = new Course("CS102", "Data Structures", 3, "Core", Set.of(), Set.of(), Set.of());
         List<Course> expected = List.of(c1, c2);
         when(courseRepository.findAll()).thenReturn(expected);
 

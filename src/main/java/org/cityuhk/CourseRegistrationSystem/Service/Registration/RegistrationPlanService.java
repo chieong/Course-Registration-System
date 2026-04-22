@@ -42,12 +42,12 @@ public class RegistrationPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<RegistrationPlan> getPlanSet(Integer studentId, String term) {
-        return registrationPlanRepository.findByStudentIdAndTermOrderByPriority(studentId, term);
+    public List<RegistrationPlan> getPlanSet(Integer studentId) {
+        return registrationPlanRepository.findByStudentIdOrderByPriorityAsc(studentId);
     }
 
      @Transactional
-     public RegistrationPlan createPlan(Integer studentId, String term, Integer requestedPriority) {
+     public RegistrationPlan createPlan(Integer studentId, Integer requestedPriority) {
 Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -69,7 +69,6 @@ Student student = studentRepository.findById(studentId)
 
         RegistrationPlan plan = new RegistrationPlan();
         plan.setStudent(student);
-        plan.setTerm(term);
         plan.setPriority(priority);
         plan.setApplyStatus(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED);
         plan.setApplySummary("Awaiting period start");
@@ -95,10 +94,6 @@ Student student = studentRepository.findById(studentId)
 
         Section section = sectionRepository.findById(sectionId)
                 .orElseThrow(() -> new RuntimeException("Section not found"));
-
-        if (section.getCourse() == null || section.getCourse().getTerm() == null || !section.getCourse().getTerm().equals(plan.getTerm())) {
-            throw new RuntimeException("Section term does not match plan term");
-        }
 
         boolean duplicate = plan.getEntries().stream()
             .anyMatch(e -> e.getSection() != null
@@ -138,13 +133,13 @@ Student student = studentRepository.findById(studentId)
     }
 
     @Transactional
-    public List<RegistrationPlan> reorderPlans(Integer studentId, String term, List<Integer> orderedPlanIds) {
+    public List<RegistrationPlan> reorderPlans(Integer studentId, List<Integer> orderedPlanIds) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         ensurePlanEditable(student,LocalDateTime.now());
 
-        List<RegistrationPlan> existing = registrationPlanRepository.findByStudentIdAndTermOrderByPriority(studentId, term);
+        List<RegistrationPlan> existing = registrationPlanRepository.findByStudentIdOrderByPriorityAsc(studentId);
         if (existing.size() != orderedPlanIds.size()) {
             throw new RuntimeException("Reorder list size mismatch");
         }

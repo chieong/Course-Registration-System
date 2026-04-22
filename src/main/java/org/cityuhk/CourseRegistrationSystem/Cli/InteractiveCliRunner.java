@@ -303,7 +303,6 @@ public class InteractiveCliRunner implements CommandLineRunner {
             System.out.println(
                     course.getCourseCode() + " | "
                             + course.getTitle() + " | credits=" + course.getCredits()
-                            + " | term=" + valueOrDash(course.getTerm())
                             + " | sections=" + sectionCount);
         }
     }
@@ -459,24 +458,19 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
         String cohortStr = options.get("cohort");
         if (cohortStr == null || cohortStr.isBlank()) {
-            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
-        }
-        String term = options.get("term");
-        if (term == null || term.isBlank()) {
-            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
         }
         String startStr = options.get("start");
         if (startStr == null || startStr.isBlank()) {
-            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
         }
         String endStr = options.get("end");
         if (endStr == null || endStr.isBlank()) {
-            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
         }
 
         AdminPeriodRequest request = new AdminPeriodRequest();
         request.setCohort(parseInteger(cohortStr, "cohort"));
-        request.setTerm(term);
         request.setStartDate(parseDateTime(startStr, "start"));
         request.setEndDate(parseDateTime(endStr, "end"));
 
@@ -507,7 +501,6 @@ public class InteractiveCliRunner implements CommandLineRunner {
         for (RegistrationPeriod p : periods) {
             System.out.println(
                     p.getPeriodId() + " | cohort=" + p.getCohort()
-                            + " | term=" + valueOrDash(p.getTerm())
                             + " | " + p.getStartDateTime() + " -> " + p.getEndDateTime());
         }
     }
@@ -543,7 +536,6 @@ public class InteractiveCliRunner implements CommandLineRunner {
             request.setCredits(parseInteger(credits, "credits"));
         }
 
-        request.setTerm(options.get("term"));
         request.setDescription(options.get("description"));
         request.setPrerequisiteCourseCodes(splitCsv(options.get("prereq")));
         request.setExclusiveCourseCodes(splitCsv(options.get("exclusive")));
