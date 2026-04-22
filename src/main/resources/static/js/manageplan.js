@@ -29,6 +29,7 @@
 
 		const plans = [{
 			name: "Plan 1",
+			planId: null,
 			selectedHTML: initialSelectedHTML,
 			waitlistHTML: initialWaitlistHTML,
 			initialSelectedHTML,
@@ -36,6 +37,106 @@
 			savedSignature: "",
 		}];
 		let currentPlanIndex = 0;
+		let currentStudentId = null;
+
+		const sectionIdByCourseCode = {
+			CSC201: 1,
+			CSC302: 2,
+			CSC311: 3,
+			CSC318: 4,
+			CSC325: 5,
+			CSC331: 6,
+			CSC344: 7,
+			CSC352: 8,
+			CSC360: 9,
+			CSC384: 10,
+			CSC390: 11,
+			CSC401: 12,
+			CSC415: 13,
+			CSC422: 14,
+		};
+
+		async function apiRequest(url, options) {
+			const response = await fetch(url, Object.assign({
+				headers: {
+					"Content-Type": "application/json"
+				}
+			}, options || {}));
+
+			if (!response.ok) {
+				const text = await response.text();
+				throw new Error(text || "Request failed.");
+			}
+
+			if (response.status === 204) {
+				return null;
+			}
+
+			return response.json();
+		}
+
+		async function loadCurrentStudent() {
+			const me = await apiRequest("/api/session/me", { method: "GET" });
+			if (!me || me.role !== "STUDENT" || !me.studentId) {
+				throw new Error("Manage Plan requires a STUDENT login.");
+			}
+			currentStudentId = me.studentId;
+		}
+
+		function inferSectionId(courseCode) {
+			return sectionIdByCourseCode[courseCode] || null;
+		}
+
+		async function persistCurrentPlanRows(planId) {
+			const currentPlans = await apiRequest(`/api/plans/${currentStudentId}`, { method: "GET" });
+			const matchingPlan = Array.isArray(currentPlans)
+				? currentPlans.find((plan) => Number(plan.planId) === Number(planId))
+				: null;
+
+			if (matchingPlan && Array.isArray(matchingPlan.entries)) {
+				for (const entry of matchingPlan.entries) {
+					await apiRequest(`/api/plans/${planId}/entries/${entry.entryId}`, { method: "DELETE" });
+				}
+			}
+
+			for (const row of getSelectedRows()) {
+				const sectionId = Number(row.dataset.sectionId || inferSectionId(row.dataset.code));
+				if (!sectionId) {
+					continue;
+				}
+				const created = await apiRequest(`/api/plans/${planId}/entries`, {
+					method: "POST",
+					body: JSON.stringify({
+						sectionId,
+						entryType: "SELECTED",
+						joinWaitlistOnAddFailure: false
+					})
+				});
+				if (created && created.entryId != null) {
+					row.dataset.entryId = String(created.entryId);
+				}
+				row.dataset.sectionId = String(sectionId);
+			}
+
+			for (const row of getWaitlistedRows()) {
+				const sectionId = Number(row.dataset.sectionId || inferSectionId(row.dataset.code));
+				if (!sectionId) {
+					continue;
+				}
+				const created = await apiRequest(`/api/plans/${planId}/entries`, {
+					method: "POST",
+					body: JSON.stringify({
+						sectionId,
+						entryType: "WAITLIST",
+						joinWaitlistOnAddFailure: true
+					})
+				});
+				if (created && created.entryId != null) {
+					row.dataset.entryId = String(created.entryId);
+				}
+				row.dataset.sectionId = String(sectionId);
+			}
+		}
 
 		function getSelectedRows() {
 			return Array.from(selectedPlanBody.querySelectorAll("tr[data-code]"));
@@ -245,10 +346,20 @@
 			updateCarousel();
 		}
 
-		function addNewPlan() {
+		async function addNewPlan() {
 			saveCurrentPlanState();
+			let createdPlanId = null;
+			if (currentStudentId) {
+				const created = await apiRequest(`/api/plans/${currentStudentId}`, {
+					method: "POST",
+					body: JSON.stringify({})
+				});
+				createdPlanId = created && created.planId ? created.planId : null;
+			}
+
 			plans.push({
 				name: `Plan ${plans.length + 1}`,
+				planId: createdPlanId,
 				selectedHTML: emptySelectedHTML,
 				waitlistHTML: emptyWaitlistHTML,
 				initialSelectedHTML: emptySelectedHTML,
@@ -266,13 +377,18 @@
 			updateCarousel();
 		}
 
-		function removeCurrentPlan() {
+		async function removeCurrentPlan() {
 			if (plans.length === 1) {
 				window.alert("You must have at least one plan.");
 				return;
 			}
 			const confirmed = window.confirm(`Remove "${plans[currentPlanIndex].name}"? This cannot be undone.`);
 			if (!confirmed) return;
+			const removedPlan = plans[currentPlanIndex];
+			if (removedPlan && removedPlan.planId) {
+				await apiRequest(`/api/plans/${removedPlan.planId}`, { method: "DELETE" });
+			}
+
 			plans.splice(currentPlanIndex, 1);
 			if (currentPlanIndex >= plans.length) {
 				currentPlanIndex = plans.length - 1;
@@ -461,7 +577,7 @@
 			}
 		}
 
-		function addCourseRow(courseCode, credits, day, time, category, location) {
+		function addCourseRow(courseCode, credits, day, time, category, location, sectionId, entryId) {
 			const row = document.createElement("tr");
 			row.dataset.code = courseCode;
 			row.dataset.credits = String(credits);
@@ -469,6 +585,12 @@
 			row.dataset.time = time;
 			row.dataset.category = category;
 			row.dataset.location = location;
+			if (sectionId) {
+				row.dataset.sectionId = String(sectionId);
+			}
+			if (entryId) {
+				row.dataset.entryId = String(entryId);
+			}
 			row.innerHTML = `
 				<td>${courseCode}</td>
 				<td>${credits}</td>
@@ -487,11 +609,17 @@
 			renderPreviewTimetable();
 		}
 
-		function addWaitlistRow(courseCode, day, time) {
+		function addWaitlistRow(courseCode, day, time, sectionId, entryId) {
 			const row = document.createElement("tr");
 			row.dataset.code = courseCode;
 			row.dataset.day = day;
 			row.dataset.time = time;
+			if (sectionId) {
+				row.dataset.sectionId = String(sectionId);
+			}
+			if (entryId) {
+				row.dataset.entryId = String(entryId);
+			}
 			row.innerHTML = `
 				<td>${courseCode}</td>
 				<td>${day}</td>
@@ -507,9 +635,15 @@
 			toggleWaitlistEmptyState();
 		}
 
-		function removeCourse(courseCode) {
+		async function removeCourse(courseCode) {
 			const row = selectedPlanBody.querySelector(`tr[data-code="${courseCode}"]`);
 			if (!row) return;
+
+			if (plans[currentPlanIndex] && plans[currentPlanIndex].planId && row.dataset.entryId) {
+				await apiRequest(`/api/plans/${plans[currentPlanIndex].planId}/entries/${row.dataset.entryId}`, {
+					method: "DELETE"
+				});
+			}
 
 			row.remove();
 			resetCourseButtonState(courseCode);
@@ -518,16 +652,22 @@
 			renderPreviewTimetable();
 		}
 
-		function removeWaitlistedCourse(courseCode) {
+		async function removeWaitlistedCourse(courseCode) {
 			const row = waitlistBody.querySelector(`tr[data-code="${courseCode}"]`);
 			if (!row) return;
+
+			if (plans[currentPlanIndex] && plans[currentPlanIndex].planId && row.dataset.entryId) {
+				await apiRequest(`/api/plans/${plans[currentPlanIndex].planId}/entries/${row.dataset.entryId}`, {
+					method: "DELETE"
+				});
+			}
 
 			row.remove();
 			resetCourseButtonState(courseCode);
 			toggleWaitlistEmptyState();
 		}
 
-		function handleOverlapDecision(courseCode, day, overlapCourses, actionLabel) {
+async function handleOverlapDecision(courseCode, day, overlapCourses, actionLabel) {
 			if (!overlapCourses.length) return true;
 
 			const overlapMessage = overlapCourses
@@ -540,19 +680,18 @@
 
 			if (!shouldReplace) return false;
 
-			overlapCourses.forEach((course) => {
+			for (const course of overlapCourses) {
 				if (selectedPlanBody.querySelector(`tr[data-code="${course.code}"]`)) {
-					removeCourse(course.code);
-					return;
+					await removeCourse(course.code);
+					continue;
 				}
-
-				removeWaitlistedCourse(course.code);
-			});
+				await removeWaitlistedCourse(course.code);
+			}
 
 			return true;
 		}
 
-		availableCoursesBody.addEventListener("click", (event) => {
+		availableCoursesBody.addEventListener("click", async (event) => {
 			const button = event.target.closest("button[data-code]");
 			if (!button) return;
 			if (button.disabled) return;
@@ -576,38 +715,63 @@
 			if (availability === "full") return;
 
 			const overlapCourses = findOverlapCourses(day, time);
+			const sectionId = Number(row.dataset.sectionId || inferSectionId(courseCode));
 			if (availability === "waitlist") {
-				if (!handleOverlapDecision(courseCode, day, overlapCourses, "add it to the waitlist")) return;
-				addWaitlistRow(courseCode, day, time);
+				if (!await handleOverlapDecision(courseCode, day, overlapCourses, "add it to the waitlist")) return;
+				let entryId = null;
+				if (plans[currentPlanIndex] && plans[currentPlanIndex].planId && sectionId) {
+					const created = await apiRequest(`/api/plans/${plans[currentPlanIndex].planId}/entries`, {
+						method: "POST",
+						body: JSON.stringify({
+							sectionId,
+							entryType: "WAITLIST",
+							joinWaitlistOnAddFailure: true
+						})
+					});
+					entryId = created && created.entryId != null ? created.entryId : null;
+				}
+				addWaitlistRow(courseCode, day, time, sectionId, entryId);
 				setCourseButtonState(courseCode, "waitlisted");
 				return;
 			}
 
-			if (!handleOverlapDecision(courseCode, day, overlapCourses, "add it to your plan")) return;
+			if (!await handleOverlapDecision(courseCode, day, overlapCourses, "add it to your plan")) return;
 
-			addCourseRow(courseCode, credits, day, time, category, location);
+			let entryId = null;
+			if (plans[currentPlanIndex] && plans[currentPlanIndex].planId && sectionId) {
+				const created = await apiRequest(`/api/plans/${plans[currentPlanIndex].planId}/entries`, {
+					method: "POST",
+					body: JSON.stringify({
+						sectionId,
+						entryType: "SELECTED",
+						joinWaitlistOnAddFailure: false
+					})
+				});
+				entryId = created && created.entryId != null ? created.entryId : null;
+			}
+			addCourseRow(courseCode, credits, day, time, category, location, sectionId, entryId);
 			setCourseButtonState(courseCode, "added");
 		});
 
-		selectedPlanBody.addEventListener("click", (event) => {
+		selectedPlanBody.addEventListener("click", async (event) => {
 			const button = event.target.closest(".remove-course-btn");
 			if (!button) return;
 
 			const courseCode = button.dataset.code;
 			if (!courseCode) return;
-			removeCourse(courseCode);
+			await removeCourse(courseCode);
 		});
 
-		waitlistBody.addEventListener("click", (event) => {
+		waitlistBody.addEventListener("click", async (event) => {
 			const button = event.target.closest(".remove-waitlist-btn");
 			if (!button) return;
 
 			const courseCode = button.dataset.code;
 			if (!courseCode) return;
-			removeWaitlistedCourse(courseCode);
+			await removeWaitlistedCourse(courseCode);
 		});
 
-		submitPlanBtn.addEventListener("click", () => {
+		submitPlanBtn.addEventListener("click", async () => {
 			const totalCredits = Number(creditValue.textContent || 0);
 
 			if (!getSelectedRows().length) {
@@ -620,8 +784,24 @@
 				if (!proceed) return;
 			}
 
-			plans[currentPlanIndex].savedSignature = getCurrentPlanSignature();
-			window.alert("Study plan submitted successfully.");
+			try {
+				if (!currentStudentId) {
+					await loadCurrentStudent();
+				}
+				if (!plans[currentPlanIndex].planId) {
+					const created = await apiRequest(`/api/plans/${currentStudentId}`, {
+						method: "POST",
+						body: JSON.stringify({})
+					});
+					plans[currentPlanIndex].planId = created.planId;
+				}
+
+				await persistCurrentPlanRows(plans[currentPlanIndex].planId);
+				plans[currentPlanIndex].savedSignature = getCurrentPlanSignature();
+				window.alert("Study plan submitted successfully.");
+			} catch (error) {
+				window.alert("Failed to submit plan: " + (error.message || "Unknown error"));
+			}
 		});
 
 		window.addEventListener("beforeunload", (event) => {
@@ -669,9 +849,21 @@
 			if (currentPlanIndex < plans.length - 1) switchToPlan(currentPlanIndex + 1);
 		});
 
-		addPlanBtn.addEventListener("click", addNewPlan);
+		addPlanBtn.addEventListener("click", async () => {
+			try {
+				await addNewPlan();
+			} catch (error) {
+				window.alert("Failed to create plan: " + (error.message || "Unknown error"));
+			}
+		});
 
-		removePlanBtn.addEventListener("click", removeCurrentPlan);
+		removePlanBtn.addEventListener("click", async () => {
+			try {
+				await removeCurrentPlan();
+			} catch (error) {
+				window.alert("Failed to remove plan: " + (error.message || "Unknown error"));
+			}
+		});
 
 		if (planPager) {
 			planPager.addEventListener("click", (event) => {
@@ -682,3 +874,20 @@
 				switchToPlan(targetIndex);
 			});
 		}
+
+		(async function initApiContext() {
+			try {
+				await loadCurrentStudent();
+				const apiPlans = await apiRequest(`/api/plans/${currentStudentId}`, { method: "GET" });
+				if (Array.isArray(apiPlans) && apiPlans.length > 0) {
+					for (let index = 0; index < plans.length; index += 1) {
+						if (!apiPlans[index]) {
+							break;
+						}
+						plans[index].planId = apiPlans[index].planId;
+					}
+				}
+			} catch (error) {
+				console.error("manageplan API bootstrap failed", error);
+			}
+		})();

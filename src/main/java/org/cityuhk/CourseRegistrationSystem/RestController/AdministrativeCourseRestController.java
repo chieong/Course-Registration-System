@@ -2,9 +2,11 @@ package org.cityuhk.CourseRegistrationSystem.RestController;
 
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,9 +21,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdministrativeCourseRestController {
 
     private final AdministrativeService administrativeService;
+    private final CourseService courseService;
 
-    public AdministrativeCourseRestController(AdministrativeService administrativeService) {
+    public AdministrativeCourseRestController(AdministrativeService administrativeService,
+                                              CourseService courseService) {
         this.administrativeService = administrativeService;
+        this.courseService = courseService;
+    }
+
+    @GetMapping("/courses")
+    public ResponseEntity<?> listCourses() {
+        return ResponseEntity.ok(courseService.getAllCourses());
     }
 
     @PostMapping("courses")

@@ -21,7 +21,9 @@ import java.util.Set;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
@@ -31,6 +33,7 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodReques
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationPlanService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.junit.jupiter.api.AfterEach;
@@ -56,6 +59,8 @@ class InteractiveCliRunnerTest {
     private TimetableService timetableService;
     @Mock
     private AdministrativeService administrativeService;
+    @Mock
+    private RegistrationPlanService registrationPlanService;
     @Mock
     private AdminRepository adminRepository;
     @Mock
@@ -762,6 +767,83 @@ void adminModifyCourse_shouldCoverSplitCsvEmptySetBranch() {
 @Test
 void handleLine_shouldReturnWhenTokenListIsEmpty() {
     assertDoesNotThrow(() -> invokeHandleLine(""));
+}
+
+@Test
+void studentPlanCommands_shouldListCreateRemoveAddEntryRemoveEntryAndReorder() {
+    Student student = mockStudent("student1", "pwd", 1001);
+    setStudentSession("student1");
+    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+
+    RegistrationPlan plan = new RegistrationPlan();
+    plan.setPlanId(11);
+    plan.setPriority(1);
+    plan.setApplyStatus(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED);
+    plan.setApplySummary("Awaiting period start");
+
+    Section section = new Section();
+    section.setSectionId(88);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryId(22);
+    entry.setSection(section);
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setStatus(PlanEntry.EntryStatus.PENDING);
+    entry.setJoinWaitlistOnAddFailure(true);
+    plan.addEntry(entry);
+
+    when(registrationPlanService.getPlanSet(1001)).thenReturn(List.of(plan));
+    when(registrationPlanService.createPlan(1001, 2)).thenReturn(plan);
+    when(registrationPlanService.addEntry(11, 88, PlanEntry.EntryType.SELECTED, true)).thenReturn(entry);
+    when(registrationPlanService.reorderPlans(1001, List.of(11))).thenReturn(List.of(plan));
+
+    invokeHandleLine("list-plans");
+    invokeHandleLine("create-plan 2");
+    invokeHandleLine("add-plan-entry 11 88 selected true");
+    invokeHandleLine("remove-plan-entry 11 22");
+    invokeHandleLine("reorder-plans 11");
+    invokeHandleLine("remove-plan 11");
+
+    verify(registrationPlanService).getPlanSet(1001);
+    verify(registrationPlanService).createPlan(1001, 2);
+    verify(registrationPlanService).addEntry(11, 88, PlanEntry.EntryType.SELECTED, true);
+    verify(registrationPlanService).removeEntry(11, 22);
+    verify(registrationPlanService).reorderPlans(1001, List.of(11));
+    verify(registrationPlanService).removePlan(11);
+
+    String out = output();
+    assertTrue(out.contains("planId=11 | priority=1"));
+    assertTrue(out.contains("Created plan 11 with priority=1"));
+    assertTrue(out.contains("Added plan entry 22"));
+    assertTrue(out.contains("Removed plan entry 22"));
+    assertTrue(out.contains("Plans reordered."));
+    assertTrue(out.contains("Removed plan 11"));
+}
+
+@Test
+void studentPlanCommands_shouldValidateUsageAndRole() {
+    setAdminSession("admin1");
+    Exception roleEx = assertThrows(Exception.class, () -> invokeHandleLine("list-plans"));
+    assertTrue(roleEx.getMessage().contains("This command requires STUDENT role"));
+
+    Student student = mockStudent("student1", "pwd", 1001);
+    setStudentSession("student1");
+    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+
+    Exception usageEx1 = assertThrows(Exception.class, () -> invokeHandleLine("create-plan 1 2"));
+    assertTrue(usageEx1.getMessage().contains("Usage: create-plan [priority]"));
+
+    Exception usageEx2 = assertThrows(Exception.class, () -> invokeHandleLine("remove-plan"));
+    assertTrue(usageEx2.getMessage().contains("Usage: remove-plan <planId>"));
+
+    Exception usageEx3 = assertThrows(Exception.class, () -> invokeHandleLine("add-plan-entry 1 2 badType"));
+    assertTrue(usageEx3.getMessage().contains("Invalid entry type. Use SELECTED or WAITLIST"));
+
+    Exception usageEx4 = assertThrows(Exception.class, () -> invokeHandleLine("remove-plan-entry 1"));
+    assertTrue(usageEx4.getMessage().contains("Usage: remove-plan-entry <planId> <entryId>"));
+
+    Exception usageEx5 = assertThrows(Exception.class, () -> invokeHandleLine("reorder-plans"));
+    assertTrue(usageEx5.getMessage().contains("Usage: reorder-plans <planIdCsv>"));
 }
 }
 

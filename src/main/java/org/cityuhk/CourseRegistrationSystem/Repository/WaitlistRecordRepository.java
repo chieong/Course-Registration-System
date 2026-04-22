@@ -10,7 +10,8 @@ import java.util.Optional;
 
 public interface WaitlistRecordRepository extends JpaRepository<WaitlistRecord,Integer> {
 
-    Optional<WaitlistRecord> findFirstBySectionIdOrderByTimestampAsc(Integer sectionId);
+    @Query("select w from WaitlistRecord w where w.section.sectionId = :sectionId order by w.timestamp asc limit 1")
+    Optional<WaitlistRecord> findFirstBySectionIdOrderByTimestampAsc(@Param("sectionId") Integer sectionId);
 
     @Query("select count(w) from WaitlistRecord w where w.section.sectionId = :sectionId")
     int countWaitlisted(@Param("sectionId") Integer sectionId);

@@ -1,47 +1,11 @@
 (function () {
   const state = {
-    users: [
-      {
-        id: 1,
-        username: "s2201001",
-        fullName: "Chris Chan",
-        email: "s2201001@my.cityu.edu.hk",
-        role: "Student",
-        status: "Active",
-        password: ""
-      },
-      {
-        id: 2,
-        username: "s2201045",
-        fullName: "Mandy Lee",
-        email: "s2201045@my.cityu.edu.hk",
-        role: "Student",
-        status: "Disabled",
-        password: ""
-      },
-      {
-        id: 3,
-        username: "staff001",
-        fullName: "Jason Ng",
-        email: "jason.ng@cityu.edu.hk",
-        role: "Staff",
-        status: "Active",
-        password: ""
-      },
-      {
-        id: 4,
-        username: "admin001",
-        fullName: "Alice Ho",
-        email: "alice.ho@cityu.edu.hk",
-        role: "Admin",
-        status: "Active",
-        password: ""
-      }
-    ],
+    users: [],
     editingId: null,
     deletingId: null,
     notificationTimer: null,
-    notificationHideTimer: null
+    notificationHideTimer: null,
+    initialized: false
   };
 
   const els = {
@@ -117,32 +81,6 @@
     });
   }
 
-  function openModal(dialog) {
-    if (!dialog) {
-      return;
-    }
-
-    if (typeof dialog.showModal === "function") {
-      dialog.showModal();
-      return;
-    }
-
-    dialog.setAttribute("open", "open");
-  }
-
-  function closeModal(dialog) {
-    if (!dialog) {
-      return;
-    }
-
-    if (typeof dialog.close === "function") {
-      dialog.close();
-      return;
-    }
-
-    dialog.removeAttribute("open");
-  }
-
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
@@ -156,31 +94,65 @@
     return String(value || "").toLowerCase().trim();
   }
 
+  async function apiRequest(url, options) {
+    const response = await fetch(url, Object.assign({
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }, options || {}));
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || "Request failed.");
+    }
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    return response.json();
+  }
+
+  function mapAdminToUi(admin) {
+    return {
+      id: admin.staffId,
+      username: admin.userEID || "",
+      fullName: admin.userName || "",
+      email: admin.userEID ? (admin.userEID + "@cityu.local") : "",
+      role: "Admin",
+      status: "Active",
+      password: ""
+    };
+  }
+
+  async function loadUsers() {
+    const data = await apiRequest("/api/admin/users", { method: "GET" });
+    state.users = Array.isArray(data) ? data.map(mapAdminToUi) : [];
+    renderAll();
+  }
+
   function getFilteredUsers() {
     const search = normalize(els.search.value);
     const roleFilter = els.roleFilter.value;
     const statusFilter = els.statusFilter.value;
 
-    return state.users.filter((user) => {
+    return state.users.filter(function (user) {
       const matchesSearch = !search || [user.username, user.fullName, user.email]
-        .some((field) => normalize(field).includes(search));
+        .some(function (field) { return normalize(field).includes(search); });
       const matchesRole = !roleFilter || user.role === roleFilter;
       const matchesStatus = !statusFilter || user.status === statusFilter;
-
       return matchesSearch && matchesRole && matchesStatus;
     });
   }
 
   function renderStats() {
     const total = state.users.length;
-    const active = state.users.filter((u) => u.status === "Active").length;
-    const students = state.users.filter((u) => u.role === "Student").length;
-    const staff = state.users.filter((u) => u.role === "Staff" || u.role === "Admin").length;
+    const active = state.users.filter(function (u) { return u.status === "Active"; }).length;
 
     els.statTotal.textContent = String(total);
     els.statActive.textContent = String(active);
-    els.statStudent.textContent = String(students);
-    els.statStaff.textContent = String(staff);
+    els.statStudent.textContent = "0";
+    els.statStaff.textContent = String(total);
   }
 
   function renderTable() {
@@ -191,24 +163,8 @@
       return;
     }
 
-    els.tableBody.innerHTML = rows.map((user) => {
-      const statusClass = user.status === "Active" ? "mu-status-active" : "mu-status-disabled";
-
-      return `
-        <tr>
-          <td>${escapeHtml(user.username)}</td>
-          <td>${escapeHtml(user.fullName)}</td>
-          <td>${escapeHtml(user.email)}</td>
-          <td>${escapeHtml(user.role)}</td>
-          <td><span class="${statusClass}">${escapeHtml(user.status)}</span></td>
-          <td>
-            <div class="inline-actions">
-              <button type="button" class="small-btn" data-action="edit" data-id="${user.id}">Edit</button>
-              <button type="button" class="small-danger" data-action="delete" data-id="${user.id}">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `;
+    els.tableBody.innerHTML = rows.map(function (user) {
+      return "\n        <tr>\n          <td>" + escapeHtml(user.username) + "</td>\n          <td>" + escapeHtml(user.fullName) + "</td>\n          <td>" + escapeHtml(user.email) + "</td>\n          <td>" + escapeHtml(user.role) + "</td>\n          <td><span class=\"mu-status-active\">Active</span></td>\n          <td>\n            <div class=\"inline-actions\">\n              <button type=\"button\" class=\"small-btn\" data-action=\"edit\" data-id=\"" + user.id + "\">Edit</button>\n              <button type=\"button\" class=\"small-danger\" data-action=\"delete\" data-id=\"" + user.id + "\">Delete</button>\n            </div>\n          </td>\n        </tr>\n      ";
     }).join("");
   }
 
@@ -233,28 +189,25 @@
     els.notification.removeAttribute("hidden");
     els.notification.classList.remove("is-hiding");
     els.notification.classList.remove("is-hidden");
-    // Force a reflow so visibility transition runs every time.
     void els.notification.offsetWidth;
     els.notification.classList.add("is-visible");
   }
 
   function showMessage(message, type) {
     els.notificationText.textContent = message;
-    els.notification.classList.remove("mu-notification-success", "mu-notification-info");
-    els.notification.classList.add(type === "info" ? "mu-notification-info" : "mu-notification-success");
+    els.notification.classList.remove("mu-notification-success", "mu-notification-info", "mu-notification-error");
+    if (type === "error") {
+      els.notification.classList.add("mu-notification-error");
+    } else if (type === "info") {
+      els.notification.classList.add("mu-notification-info");
+    } else {
+      els.notification.classList.add("mu-notification-success");
+    }
     showNotification();
     clearTimeout(state.notificationTimer);
     state.notificationTimer = setTimeout(function () {
       hideNotification();
     }, 4000);
-  }
-
-  function showSuccess(message) {
-    showMessage(message, "success");
-  }
-
-  function showInfo(message) {
-    showMessage(message, "info");
   }
 
   function showFormError(message) {
@@ -273,8 +226,29 @@
     els.saveBtn.textContent = "Add User";
     els.form.reset();
     els.status.value = "Active";
+    els.role.value = "Admin";
     els.username.readOnly = false;
     clearFormError();
+  }
+
+  function openModal(dialog) {
+    if (dialog && typeof dialog.showModal === "function") {
+      dialog.showModal();
+      return;
+    }
+    if (dialog) {
+      dialog.setAttribute("open", "open");
+    }
+  }
+
+  function closeModal(dialog) {
+    if (dialog && typeof dialog.close === "function") {
+      dialog.close();
+      return;
+    }
+    if (dialog) {
+      dialog.removeAttribute("open");
+    }
   }
 
   function openCreateDialog() {
@@ -283,7 +257,7 @@
   }
 
   function openEditDialog(id) {
-    const user = state.users.find((u) => u.id === id);
+    const user = state.users.find(function (u) { return u.id === id; });
     if (!user) {
       return;
     }
@@ -294,28 +268,24 @@
     els.username.value = user.username;
     els.fullName.value = user.fullName;
     els.email.value = user.email;
-    els.role.value = user.role;
-    els.status.value = user.status;
+    els.role.value = "Admin";
+    els.status.value = "Active";
     els.password.value = "";
-    els.username.readOnly = true;
+    els.username.readOnly = false;
     clearFormError();
     openModal(els.dialog);
   }
 
   function closeDialog(options) {
-    const shouldNotifyCancel = !!(options && options.notifyCancel);
-    const message = options && options.message;
-
-    if (els.dialog.open) {
-      closeModal(els.dialog);
-      if (shouldNotifyCancel) {
-        showInfo(message || (state.editingId ? "User modification cancelled." : "User creation cancelled."));
-      }
+    const notify = !!(options && options.notifyCancel);
+    closeModal(els.dialog);
+    if (notify) {
+      showMessage(state.editingId ? "User modification cancelled." : "User creation cancelled.", "info");
     }
   }
 
   function openDeleteDialog(id) {
-    const user = state.users.find((u) => u.id === id);
+    const user = state.users.find(function (u) { return u.id === id; });
     if (!user) {
       return;
     }
@@ -328,21 +298,17 @@
       ["Role", user.role],
       ["Status", user.status]
     ].map(function (pair) {
-      return `<div class="mu-detail-row"><span class="mu-detail-label">${escapeHtml(pair[0])}</span><span>${escapeHtml(pair[1])}</span></div>`;
+      return "<div class=\"mu-detail-row\"><span class=\"mu-detail-label\">" + escapeHtml(pair[0]) + "</span><span>" + escapeHtml(pair[1]) + "</span></div>";
     }).join("");
     openModal(els.deleteDialog);
   }
 
   function closeDeleteDialog(options) {
-    const shouldNotifyCancel = !!(options && options.notifyCancel);
-    const message = options && options.message;
-
+    const notify = !!(options && options.notifyCancel);
     state.deletingId = null;
-    if (els.deleteDialog.open) {
-      closeModal(els.deleteDialog);
-      if (shouldNotifyCancel) {
-        showInfo(message || "User removal cancelled.");
-      }
+    closeModal(els.deleteDialog);
+    if (notify) {
+      showMessage("User removal cancelled.", "info");
     }
   }
 
@@ -350,11 +316,9 @@
     const username = els.username.value.trim();
     const fullName = els.fullName.value.trim();
     const email = els.email.value.trim();
-    const role = els.role.value;
-    const status = els.status.value;
     const password = els.password.value;
 
-    if (!username || !fullName || !email || !role || !status) {
+    if (!username || !fullName || !email) {
       return "Please fill in all required fields.";
     }
 
@@ -367,18 +331,10 @@
       return "Temporary password must be at least 8 characters for new users.";
     }
 
-    const duplicateUser = state.users.find(
-      (u) => normalize(u.username) === normalize(username) && u.id !== state.editingId
-    );
-
-    if (duplicateUser) {
-      return "Username already exists. Please use a different username.";
-    }
-
     return "";
   }
 
-  function saveUser(event) {
+  async function saveUser(event) {
     event.preventDefault();
     clearFormError();
 
@@ -388,81 +344,68 @@
       return;
     }
 
-    const payload = {
-      username: els.username.value.trim(),
-      fullName: els.fullName.value.trim(),
-      email: els.email.value.trim(),
-      role: els.role.value,
-      status: els.status.value,
-      password: els.password.value
-    };
-
     const isEdit = !!state.editingId;
-    const saveConfirmed = window.confirm(
-      isEdit
-        ? "Are you sure you want to save changes to this user account?"
-        : "Are you sure you want to create this user account?"
-    );
+    const confirmed = window.confirm(isEdit
+      ? "Are you sure you want to save changes to this user account?"
+      : "Are you sure you want to create this user account?");
 
-    if (!saveConfirmed) {
-      showInfo(isEdit ? "User modification cancelled." : "User creation cancelled.");
+    if (!confirmed) {
+      showMessage(isEdit ? "User modification cancelled." : "User creation cancelled.", "info");
       return;
     }
 
-    if (state.editingId) {
-      const index = state.users.findIndex((u) => u.id === state.editingId);
-      if (index >= 0) {
-        state.users[index] = {
-          ...state.users[index],
-          ...payload,
-          password: ""
-        };
-      }
-    } else {
-      const nextId = Math.max(0, ...state.users.map((u) => u.id)) + 1;
-      state.users.push({ id: nextId, ...payload, password: "" });
-    }
+    const payload = {
+      userEID: els.username.value.trim(),
+      name: els.fullName.value.trim(),
+      password: els.password.value || null
+    };
 
-    closeDialog();
-    renderAll();
-    showSuccess(isEdit ? "User account updated successfully." : "New user account created successfully.");
+    try {
+      if (isEdit) {
+        await apiRequest("/api/admin/users/" + state.editingId, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+      } else {
+        await apiRequest("/api/admin/users", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+      }
+
+      closeModal(els.dialog);
+      await loadUsers();
+      showMessage(isEdit ? "User account updated successfully." : "New user account created successfully.", "success");
+    } catch (requestError) {
+      showFormError(requestError.message || "Failed to save user.");
+    }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (state.deletingId == null) {
       return;
     }
 
-    const userToDelete = state.users.find((u) => u.id === state.deletingId);
-    if (!userToDelete) {
+    const user = state.users.find(function (u) { return u.id === state.deletingId; });
+    if (!user) {
       closeDeleteDialog();
       return;
     }
 
-    const firstConfirm = window.confirm(
-      `Confirm removing user \"${userToDelete.username}\"?`
-    );
-
-    if (!firstConfirm) {
-      showInfo("User removal cancelled.");
+    const confirmed = window.confirm("Confirm removing user \"" + user.username + "\"?");
+    if (!confirmed) {
+      showMessage("User removal cancelled.", "info");
       return;
     }
 
-    if (userToDelete.role === "Student") {
-      const secondConfirm = window.confirm(
-        `Double confirmation: remove student account \"${userToDelete.username}\" permanently?`
-      );
-
-      if (!secondConfirm) {
-        showInfo("User removal cancelled.");
-        return;
-      }
+    try {
+      await apiRequest("/api/admin/users/" + state.deletingId, { method: "DELETE" });
+      closeDeleteDialog();
+      await loadUsers();
+      showMessage("User account removed successfully.", "success");
+    } catch (requestError) {
+      showMessage(requestError.message || "Failed to remove user.", "error");
     }
-
-    state.users = state.users.filter((u) => u.id !== state.deletingId);
-    closeDeleteDialog();
-    renderAll();
-    showSuccess("User account removed successfully.");
   }
 
   function onTableClick(event) {
@@ -479,8 +422,8 @@
     const action = button.getAttribute("data-action");
     if (action === "edit") {
       openEditDialog(id);
+      return;
     }
-
     if (action === "delete") {
       openDeleteDialog(id);
     }
@@ -516,11 +459,23 @@
     });
   }
 
-  if (!hasAllRequiredElements()) {
-    return;
+  async function init() {
+    if (!hasAllRequiredElements() || state.initialized) {
+      return;
+    }
+
+    state.initialized = true;
+    hideNotification();
+    bindEvents();
+
+    try {
+      await loadUsers();
+      showMessage("Users loaded from server.", "info");
+    } catch (error) {
+      els.tableBody.innerHTML = "<tr class=\"empty-row\"><td colspan=\"6\">Failed to load users.</td></tr>";
+      showMessage(error.message || "Failed to load users.", "error");
+    }
   }
 
-  hideNotification();
-  bindEvents();
-  renderAll();
+  init();
 })();

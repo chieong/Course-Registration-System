@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
@@ -27,6 +29,7 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodReques
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationPlanService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.springframework.boot.CommandLineRunner;
@@ -42,6 +45,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private final RegistrationService registrationService;
     private final TimetableService timetableService;
     private final AdministrativeService administrativeService;
+    private final RegistrationPlanService registrationPlanService;
     private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
@@ -55,6 +59,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
             RegistrationService registrationService,
             TimetableService timetableService,
             AdministrativeService administrativeService,
+            RegistrationPlanService registrationPlanService,
             AdminRepository adminRepository,
             StudentRepository studentRepository,
             PasswordEncoder passwordEncoder,
@@ -63,6 +68,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         this.registrationService = registrationService;
         this.timetableService = timetableService;
         this.administrativeService = administrativeService;
+        this.registrationPlanService = registrationPlanService;
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.passwordEncoder = passwordEncoder;
@@ -141,6 +147,24 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "export-timetable":
                 handleExportTimetable(args);
                 return;
+            case "list-plans":
+                handleListPlans();
+                return;
+            case "create-plan":
+                handleCreatePlan(args);
+                return;
+            case "remove-plan":
+                handleRemovePlan(args);
+                return;
+            case "add-plan-entry":
+                handleAddPlanEntry(args);
+                return;
+            case "remove-plan-entry":
+                handleRemovePlanEntry(args);
+                return;
+            case "reorder-plans":
+                handleReorderPlans(args);
+                return;
             case "admin-list-users":
                 handleAdminListUsers();
                 return;
@@ -196,6 +220,12 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  drop-section <sectionId>");
         System.out.println("  join-waitlist <sectionId>");
         System.out.println("  export-timetable [outputPath]");
+        System.out.println("  list-plans");
+        System.out.println("  create-plan [priority]");
+        System.out.println("  remove-plan <planId>");
+        System.out.println("  add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure]");
+        System.out.println("  remove-plan-entry <planId> <entryId>");
+        System.out.println("  reorder-plans <planIdCsv>");
         System.out.println("  admin-list-users");
         System.out.println("  admin-create-user <userEID> <name> <password>");
         System.out.println("  admin-modify-user <staffId> <userEID> <name> [password]");
@@ -354,6 +384,122 @@ public class InteractiveCliRunner implements CommandLineRunner {
         Files.copy(generated, outputPath, StandardCopyOption.REPLACE_EXISTING);
         Files.deleteIfExists(generated);
         System.out.println("Timetable exported to " + outputPath);
+    }
+
+    private void handleListPlans() {
+        Student student = requireStudent();
+        List<RegistrationPlan> plans = registrationPlanService.getPlanSet(student.getStudentId());
+        if (plans.isEmpty()) {
+            System.out.println("No plans found.");
+            return;
+        }
+
+        List<RegistrationPlan> sortedPlans = plans.stream()
+                .sorted((a, b) -> Integer.compare(a.getPriority(), b.getPriority()))
+                .collect(Collectors.toList());
+
+        for (RegistrationPlan plan : sortedPlans) {
+            int entryCount = plan.getEntries() == null ? 0 : plan.getEntries().size();
+            System.out.println(
+                    "planId=" + plan.getPlanId()
+                            + " | priority=" + plan.getPriority()
+                            + " | status=" + plan.getApplyStatus()
+                            + " | entries=" + entryCount
+                            + " | summary=" + valueOrDash(plan.getApplySummary()));
+            if (plan.getEntries() == null) {
+                continue;
+            }
+            for (PlanEntry entry : plan.getEntries()) {
+                Integer sectionId = entry.getSection() == null ? null : entry.getSection().getSectionId();
+                String sectionText = sectionId == null ? "-" : sectionId.toString();
+                System.out.println(
+                        "  entryId=" + entry.getEntryId()
+                                + " | sectionId=" + sectionText
+                                + " | type=" + entry.getEntryType()
+                                + " | status=" + entry.getStatus()
+                                + " | joinWaitlistOnAddFailure=" + entry.isJoinWaitlistOnAddFailure()
+                                + " | reason=" + valueOrDash(entry.getFailureReason()));
+            }
+        }
+    }
+
+    private void handleCreatePlan(List<String> args) {
+        Student student = requireStudent();
+        if (args.size() > 1) {
+            throw new IllegalArgumentException("Usage: create-plan [priority]");
+        }
+
+        Integer priority = args.isEmpty() ? null : parseInteger(args.get(0), "priority");
+        RegistrationPlan plan = registrationPlanService.createPlan(student.getStudentId(), priority);
+        System.out.println("Created plan " + plan.getPlanId() + " with priority=" + plan.getPriority());
+    }
+
+    private void handleRemovePlan(List<String> args) {
+        requireStudent();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: remove-plan <planId>");
+        }
+
+        int planId = parseInteger(args.get(0), "planId");
+        registrationPlanService.removePlan(planId);
+        System.out.println("Removed plan " + planId);
+    }
+
+    private void handleAddPlanEntry(List<String> args) {
+        requireStudent();
+        if (args.size() != 3 && args.size() != 4) {
+            throw new IllegalArgumentException("Usage: add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure]");
+        }
+
+        int planId = parseInteger(args.get(0), "planId");
+        int sectionId = parseInteger(args.get(1), "sectionId");
+
+        PlanEntry.EntryType entryType;
+        try {
+            entryType = PlanEntry.EntryType.valueOf(args.get(2).trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid entry type. Use SELECTED or WAITLIST");
+        }
+
+        boolean joinWaitlistOnAddFailure = args.size() == 4 && Boolean.parseBoolean(args.get(3));
+        PlanEntry created = registrationPlanService.addEntry(planId, sectionId, entryType, joinWaitlistOnAddFailure);
+        System.out.println("Added plan entry " + created.getEntryId());
+    }
+
+    private void handleRemovePlanEntry(List<String> args) {
+        requireStudent();
+        if (args.size() != 2) {
+            throw new IllegalArgumentException("Usage: remove-plan-entry <planId> <entryId>");
+        }
+
+        int planId = parseInteger(args.get(0), "planId");
+        int entryId = parseInteger(args.get(1), "entryId");
+        registrationPlanService.removeEntry(planId, entryId);
+        System.out.println("Removed plan entry " + entryId);
+    }
+
+    private void handleReorderPlans(List<String> args) {
+        Student student = requireStudent();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: reorder-plans <planIdCsv>");
+        }
+
+        String csv = args.get(0);
+        List<Integer> planIds = Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(value -> parseInteger(value, "planId"))
+                .collect(Collectors.toList());
+
+        if (planIds.isEmpty()) {
+            throw new IllegalArgumentException("planIdCsv must contain at least one planId");
+        }
+
+        List<RegistrationPlan> reordered = registrationPlanService.reorderPlans(student.getStudentId(), planIds);
+        System.out.println("Plans reordered.");
+        for (RegistrationPlan plan : reordered) {
+            System.out.println("planId=" + plan.getPlanId() + " | priority=" + plan.getPriority());
+        }
     }
 
     private void handleAdminListUsers() {
