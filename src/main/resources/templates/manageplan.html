@@ -5,438 +5,20 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Manage Study Plan | University Course Registration</title>
 	<link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
-
-	<style>
-		.page-header {
-			text-align: center;
-			margin-bottom: 20px;
-		}
-
-		.muted {
-			color: #5b6b87;
-			font-size: 14px;
-		}
-
-		.info-banner {
-			background: #eef4ff;
-			border: 1px solid #d9e5f7;
-			color: #1e3c72;
-			padding: 14px 16px;
-			border-radius: 10px;
-			margin-bottom: 20px;
-			text-align: center;
-		}
-
-		.summary-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-			gap: 14px;
-			margin-bottom: 20px;
-		}
-
-		.summary-card {
-			background: #f8fbff;
-			border: 1px solid #d9e5f7;
-			border-radius: 12px;
-			padding: 14px;
-			text-align: center;
-		}
-
-		.summary-card h3 {
-			margin-bottom: 6px;
-			font-size: 15px;
-			color: #1e3c72;
-		}
-
-		.summary-card p {
-			margin: 0;
-			color: #2f3d59;
-			font-size: 14px;
-		}
-
-		.section-card {
-			margin-top: 20px;
-			padding: 20px;
-			background: #fff;
-			border: 1px solid #e5ecf6;
-			border-radius: 12px;
-			box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-		}
-
-		.plan-layout {
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 16px;
-			align-items: start;
-		}
-
-		.pill {
-			display: inline-block;
-			font-size: 12px;
-			font-weight: 700;
-			border-radius: 999px;
-			padding: 3px 10px;
-			border: 1px solid;
-			white-space: nowrap;
-		}
-
-		.pill-core {
-			color: #0f5c2f;
-			background: #e8f9ee;
-			border-color: #9fddb6;
-		}
-
-		.pill-elective {
-			color: #7a4a00;
-			background: #fff4df;
-			border-color: #e8c68c;
-		}
-
-		.pill-lab {
-			color: #304f86;
-			background: #eaf2ff;
-			border-color: #b8cff3;
-		}
-
-		.right-card {
-			background: #f8fbff;
-			border: 1px solid #d9e5f7;
-			border-radius: 10px;
-			padding: 12px;
-		}
-
-		.credits-box {
-			margin-top: 10px;
-			border-radius: 10px;
-			border: 1px solid #d9e5f7;
-			background: #fff;
-			padding: 12px;
-			text-align: center;
-		}
-
-		.credits-box h3 {
-			margin-bottom: 6px;
-		}
-
-		.credit-value {
-			font-size: 28px;
-			font-weight: 800;
-			color: #1e3c72;
-			line-height: 1.1;
-		}
-
-		.credit-range {
-			font-size: 13px;
-			color: #5b6b87;
-			margin-top: 3px;
-		}
-
-		.credit-status {
-			margin-top: 8px;
-			font-size: 13px;
-			font-weight: 700;
-		}
-
-		.status-good {
-			color: #0f5c2f;
-		}
-
-		.status-warning {
-			color: #7a4a00;
-		}
-
-		.status-danger {
-			color: #7a1b1b;
-		}
-
-		.button-row {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 10px;
-			margin-top: 12px;
-		}
-
-		.button-row button {
-			width: auto;
-			min-width: 160px;
-			padding: 10px 14px;
-			font-size: 14px;
-		}
-
-		.secondary-btn {
-			background: #2a5298;
-		}
-
-		.secondary-btn:hover {
-			background: #1e3c72;
-		}
-
-		.danger-btn {
-			background: #b3261e;
-		}
-
-		.danger-btn:hover {
-			background: #8f1e17;
-		}
-
-		.split-title {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			gap: 12px;
-			flex-wrap: wrap;
-			margin-bottom: 10px;
-		}
-
-		.empty-row {
-			color: #667b9e;
-			font-style: italic;
-			text-align: center;
-			background: #fbfdff;
-		}
-
-		.inline-actions {
-			display: flex;
-			gap: 8px;
-			justify-content: center;
-			flex-wrap: wrap;
-		}
-
-		.inline-actions button {
-			width: auto;
-			padding: 6px 10px;
-			font-size: 12px;
-			border-radius: 8px;
-		}
-
-		.small-btn {
-			background: #2a5298;
-		}
-
-		.small-btn:hover {
-			background: #1e3c72;
-		}
-
-		.small-btn.added {
-			background: #2e7d32;
-		}
-
-		.small-btn.added:hover {
-			background: #256628;
-		}
-
-		.small-btn.waitlist {
-			background: #a15c00;
-		}
-
-		.small-btn.waitlist:hover {
-			background: #844b00;
-		}
-
-		.small-btn.waitlisted {
-			background: #8b6b31;
-		}
-
-		.small-btn.waitlisted:hover {
-			background: #755728;
-		}
-
-		.small-btn.full,
-		.small-btn.full:hover {
-			background: #b3261e;
-			color: #fff;
-			cursor: not-allowed;
-		}
-
-		.add-course-btn {
-			width: 140px;
-			text-align: center;
-		}
-
-		.course-action-btn {
-			width: 140px;
-			text-align: center;
-		}
-
-		.available-search {
-			margin-bottom: 10px;
-		}
-
-		.available-search input {
-			width: 100%;
-			max-width: 420px;
-			padding: 8px 10px;
-			border: 1px solid #c7d6ee;
-			border-radius: 8px;
-			font-size: 14px;
-		}
-
-		.small-danger {
-			background: #b3261e;
-		}
-
-		.small-danger:hover {
-			background: #8f1e17;
-		}
-
-		.waitlist-card {
-			margin-top: 16px;
-			border-top: 1px solid #d9e5f7;
-			padding-top: 16px;
-		}
-
-		.preview-layout {
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 16px;
-			align-items: start;
-		}
-
-		.preview-card {
-			background: #f8fbff;
-			border: 1px solid #d9e5f7;
-			border-radius: 10px;
-			padding: 12px;
-		}
-
-		.preview-note {
-			font-size: 13px;
-			color: #56698d;
-			margin-bottom: 10px;
-		}
-
-		table.preview-timetable {
-			width: 100%;
-			border-collapse: collapse;
-			table-layout: fixed;
-			font-size: 13px;
-		}
-
-		table.preview-timetable th,
-		table.preview-timetable td {
-			border: 1px solid #d9e5f7;
-			padding: 7px;
-			vertical-align: top;
-		}
-
-		table.preview-timetable th {
-			background: #1e3c72;
-			color: #fff;
-			text-align: center;
-		}
-
-		.preview-time-col {
-			width: 88px;
-			background: #f4f8ff;
-			font-weight: 700;
-			color: #1e3c72;
-			text-align: center;
-		}
-
-		.preview-empty {
-			background: #fcfdff;
-		}
-
-		.preview-merged {
-			vertical-align: middle;
-			background: #f5f9ff;
-		}
-
-		.schedule-chip {
-			display: inline-block;
-			font-size: 11px;
-			font-weight: 700;
-			line-height: 1.2;
-			padding: 3px 7px;
-			border-radius: 999px;
-			background: #e7f0ff;
-			border: 1px solid #b7d0f5;
-			color: #173e78;
-			margin: 2px 2px 0 0;
-		}
-
-		.schedule-chip .chip-code {
-			display: block;
-			font-size: 12px;
-			font-weight: 800;
-		}
-
-		.schedule-chip .chip-meta {
-			display: block;
-			font-size: 10px;
-			font-weight: 700;
-			margin-top: 2px;
-		}
-
-		.conflict-cell {
-			background: #fff0ef;
-			border-color: #e8b2ac;
-		}
-
-		.conflict-chip {
-			background: #ffe3e0;
-			border-color: #e7a09a;
-			color: #7d1f18;
-		}
-
-		.warning-panel {
-			background: #fff7e9;
-			border: 1px solid #f0d6a0;
-			border-radius: 10px;
-			padding: 12px;
-		}
-
-		.warning-panel h3 {
-			margin-bottom: 8px;
-		}
-
-		.warning-panel ul {
-			padding-left: 18px;
-			margin-top: 6px;
-		}
-
-		.warning-panel li {
-			color: #614113;
-			font-size: 13px;
-		}
-
-		.ok-panel {
-			background: #ecf9ef;
-			border: 1px solid #b9e2c0;
-			border-radius: 10px;
-			padding: 12px;
-			color: #235634;
-			font-size: 14px;
-			font-weight: 700;
-		}
-
-		@media (max-width: 980px) {
-			.plan-layout {
-				grid-template-columns: 1fr;
-			}
-
-			.preview-layout {
-				grid-template-columns: 1fr;
-			}
-
-			.button-row {
-				flex-direction: column;
-			}
-
-			.button-row button {
-				width: 100%;
-			}
-		}
-	</style>
 </head>
 <body>
-	<nav th:replace="~{nav :: nav}"></nav>
+	<nav th:replace="~{fragments/nav :: nav}"></nav>
 
 	<main class="container">
 		<header class="page-header">
 			<h1>Manage Study Plan</h1>
 			<p class="muted">Build and adjust your semester plan before final registration.</p>
 		</header>
+
+		<div id="mpNotification" class="mu-notification is-hidden" role="status" aria-live="polite" hidden>
+			<span id="mpNotificationText"></span>
+			<button type="button" id="mpNotificationClose" class="mu-notification-close" aria-label="Dismiss">&#x2715;</button>
+		</div>
 
 		<section class="info-banner" aria-label="Study plan message">
 			Plan for Semester 2, 2026. Recommended workload is 15 to 18 credits.
@@ -639,6 +221,66 @@
 										<button type="button" class="small-btn waitlist course-action-btn" data-code="CSC390">Add to Waitlist</button>
 									</td>
 								</tr>
+								<tr data-day="Monday" data-time="10:00 - 12:00" data-location="Room G102" data-availability="open">
+									<td>CSC311</td>
+									<td>Operating Systems</td>
+									<td><span class="pill pill-core">Core</span></td>
+									<td data-credits="3">3</td>
+									<td>Monday</td>
+									<td>10:00 - 12:00</td>
+									<td>Room G102</td>
+									<td>
+										<button type="button" class="small-btn add-course-btn" data-code="CSC311">Add</button>
+									</td>
+								</tr>
+								<tr data-day="Tuesday" data-time="10:00 - 12:00" data-location="Room H205" data-availability="open">
+									<td>CSC331</td>
+									<td>Database Systems</td>
+									<td><span class="pill pill-core">Core</span></td>
+									<td data-credits="3">3</td>
+									<td>Tuesday</td>
+									<td>10:00 - 12:00</td>
+									<td>Room H205</td>
+									<td>
+										<button type="button" class="small-btn add-course-btn" data-code="CSC331">Add</button>
+									</td>
+								</tr>
+								<tr data-day="Wednesday" data-time="11:00 - 13:00" data-location="Room B110" data-availability="open">
+									<td>CSC344</td>
+									<td>Computer Graphics</td>
+									<td><span class="pill pill-elective">Elective</span></td>
+									<td data-credits="3">3</td>
+									<td>Wednesday</td>
+									<td>11:00 - 13:00</td>
+									<td>Room B110</td>
+									<td>
+										<button type="button" class="small-btn add-course-btn" data-code="CSC344">Add</button>
+									</td>
+								</tr>
+								<tr data-day="Thursday" data-time="14:00 - 16:00" data-location="Room C220" data-availability="open">
+									<td>CSC422</td>
+									<td>Machine Learning</td>
+									<td><span class="pill pill-elective">Elective</span></td>
+									<td data-credits="3">3</td>
+									<td>Thursday</td>
+									<td>14:00 - 16:00</td>
+									<td>Room C220</td>
+									<td>
+										<button type="button" class="small-btn add-course-btn" data-code="CSC422">Add</button>
+									</td>
+								</tr>
+								<tr data-day="Friday" data-time="13:00 - 14:00" data-location="Server Room 1" data-availability="open">
+									<td>CSC401</td>
+									<td>System Administration</td>
+									<td><span class="pill pill-lab">Lab</span></td>
+									<td data-credits="1">1</td>
+									<td>Friday</td>
+									<td>13:00 - 14:00</td>
+									<td>Server Room 1</td>
+									<td>
+										<button type="button" class="small-btn add-course-btn" data-code="CSC401">Add</button>
+									</td>
+								</tr>
 							</tbody>
 						</table>
 					</div>
@@ -646,6 +288,12 @@
 
 				<aside class="right-card" aria-label="Current semester plan">
 					<h2>Current Plan</h2>
+					<div class="plan-carousel">
+						<button type="button" class="carousel-nav" id="prevPlanBtn" aria-label="Previous plan">&#x2039; Prev</button>
+						<div class="plan-pager" id="planPager" aria-label="Plan pages"></div>
+						<button type="button" class="carousel-nav" id="nextPlanBtn" aria-label="Next plan">Next &#x203A;</button>
+						<button type="button" class="carousel-add-btn" id="addPlanBtn">+ New Plan</button>
+					</div>
 					<p class="muted">Courses selected for this term.</p>
 
 					<div class="table-wrapper">
@@ -660,6 +308,61 @@
 								</tr>
 							</thead>
 							<tbody id="selectedPlanBody">
+								<tr data-code="CSC201" data-credits="1" data-day="Tuesday" data-time="11:00 - 12:00" data-category="Core" data-location="Room E205">
+									<td>CSC201</td>
+									<td>1</td>
+									<td>Tuesday</td>
+									<td>11:00 - 12:00</td>
+									<td>
+										<div class="inline-actions">
+											<button type="button" class="small-danger remove-course-btn" data-code="CSC201">Remove</button>
+										</div>
+									</td>
+								</tr>
+								<tr data-code="CSC302" data-credits="3" data-day="Monday" data-time="09:00 - 11:00" data-category="Core" data-location="Room A101">
+									<td>CSC302</td>
+									<td>3</td>
+									<td>Monday</td>
+									<td>09:00 - 11:00</td>
+									<td>
+										<div class="inline-actions">
+											<button type="button" class="small-danger remove-course-btn" data-code="CSC302">Remove</button>
+										</div>
+									</td>
+								</tr>
+								<tr data-code="CSC352" data-credits="3" data-day="Wednesday" data-time="10:00 - 12:00" data-category="Elective" data-location="Room C310">
+									<td>CSC352</td>
+									<td>3</td>
+									<td>Wednesday</td>
+									<td>10:00 - 12:00</td>
+									<td>
+										<div class="inline-actions">
+											<button type="button" class="small-danger remove-course-btn" data-code="CSC352">Remove</button>
+										</div>
+									</td>
+								</tr>
+								<tr data-code="CSC384" data-credits="1" data-day="Friday" data-time="13:00 - 15:00" data-category="Lab" data-location="Networks Lab">
+									<td>CSC384</td>
+									<td>1</td>
+									<td>Friday</td>
+									<td>13:00 - 15:00</td>
+									<td>
+										<div class="inline-actions">
+											<button type="button" class="small-danger remove-course-btn" data-code="CSC384">Remove</button>
+										</div>
+									</td>
+								</tr>
+								<tr data-code="CSC415" data-credits="3" data-day="Thursday" data-time="13:00 - 16:00" data-category="Elective" data-location="Room F301">
+									<td>CSC415</td>
+									<td>3</td>
+									<td>Thursday</td>
+									<td>13:00 - 16:00</td>
+									<td>
+										<div class="inline-actions">
+											<button type="button" class="small-danger remove-course-btn" data-code="CSC415">Remove</button>
+										</div>
+									</td>
+								</tr>
 								<tr class="empty-row" id="emptyPlanRow">
 									<td colspan="5">No courses selected yet.</td>
 								</tr>
@@ -676,7 +379,8 @@
 
 					<div class="button-row">
 						<button type="button" class="secondary-btn" id="submitPlanBtn">Submit Plan</button>
-						<button type="button" class="danger-btn" id="clearPlanBtn">Clear Plan</button>
+						<button type="button" class="secondary-btn" id="undoPlanBtn">Undo All Changes</button>
+							<button type="button" class="danger-btn" id="removePlanBtn">Remove Plan</button>
 					</div>
 
 					<div class="waitlist-card" aria-label="Current waitlist">
@@ -708,7 +412,6 @@
 		<section class="section-card" aria-label="Planned timetable preview">
 			<div class="split-title">
 				<h2>Planned Timetable Preview</h2>
-				<p class="muted">Overlap slots are highlighted in red automatically.</p>
 			</div>
 
 			<div class="preview-layout">
@@ -733,7 +436,7 @@
 				</div>
 
 				<div>
-					<div class="warning-panel" id="conflictPanel" style="display: none;">
+					<div class="warning-panel is-hidden" id="conflictPanel">
 						<h3>Overlap Warnings</h3>
 						<ul id="conflictList"></ul>
 					</div>
@@ -746,528 +449,7 @@
 
 		<p class="footer-text">© 2026 University Course Registration System</p>
 	</main>
-
-	<script>
-		const availableCoursesBody = document.getElementById("availableCoursesBody");
-		const selectedPlanBody = document.getElementById("selectedPlanBody");
-		const waitlistBody = document.getElementById("waitlistBody");
-		const creditValue = document.getElementById("creditValue");
-		const creditStatus = document.getElementById("creditStatus");
-		const clearPlanBtn = document.getElementById("clearPlanBtn");
-		const submitPlanBtn = document.getElementById("submitPlanBtn");
-		const previewTimetableBody = document.getElementById("previewTimetableBody");
-		const conflictPanel = document.getElementById("conflictPanel");
-		const conflictList = document.getElementById("conflictList");
-		const noConflictPanel = document.getElementById("noConflictPanel");
-		const availableCourseSearch = document.getElementById("availableCourseSearch");
-
-		const previewDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-		const previewStartHour = 9;
-		const previewEndHour = 22;
-		let lastSavedPlanSignature = "";
-
-		function getSelectedRows() {
-			return Array.from(selectedPlanBody.querySelectorAll("tr[data-code]"));
-		}
-
-		function getWaitlistedRows() {
-			return Array.from(waitlistBody.querySelectorAll("tr[data-code]"));
-		}
-
-		function getCurrentPlanSignature() {
-			const selectedCourses = getSelectedRows().map((row) => ({
-				code: row.dataset.code,
-				credits: row.dataset.credits,
-				day: row.dataset.day,
-				time: row.dataset.time,
-				type: "selected"
-			}));
-
-			const waitlistedCourses = getWaitlistedRows().map((row) => ({
-				code: row.dataset.code,
-				day: row.dataset.day,
-				time: row.dataset.time,
-				type: "waitlisted"
-			}));
-
-			return JSON.stringify({
-				selectedCourses,
-				waitlistedCourses
-			});
-		}
-
-		function hasUnsavedPlanChanges() {
-			return getCurrentPlanSignature() !== lastSavedPlanSignature;
-		}
-
-		function updateCreditStatus(totalCredits) {
-			creditValue.textContent = String(totalCredits);
-
-			creditStatus.classList.remove("status-good", "status-warning", "status-danger");
-
-			if (totalCredits >= 15 && totalCredits <= 18) {
-				creditStatus.textContent = "Within recommended range";
-				creditStatus.classList.add("status-good");
-				return;
-			}
-
-			if (totalCredits < 15) {
-				creditStatus.textContent = "Below recommended range";
-				creditStatus.classList.add("status-warning");
-				return;
-			}
-
-			creditStatus.textContent = "Above recommended range";
-			creditStatus.classList.add("status-danger");
-		}
-
-		function recalculateCredits() {
-			const totalCredits = getSelectedRows().reduce((sum, row) => {
-				return sum + Number(row.dataset.credits || 0);
-			}, 0);
-
-			updateCreditStatus(totalCredits);
-		}
-
-		function toggleEmptyState() {
-			const emptyPlanRow = document.getElementById("emptyPlanRow");
-			if (!emptyPlanRow) return;
-
-			emptyPlanRow.style.display = getSelectedRows().length ? "none" : "table-row";
-		}
-
-		function toggleWaitlistEmptyState() {
-			const emptyWaitlistRow = document.getElementById("emptyWaitlistRow");
-			if (!emptyWaitlistRow) return;
-
-			emptyWaitlistRow.style.display = getWaitlistedRows().length ? "none" : "table-row";
-		}
-
-		function setCourseButtonState(courseCode, state) {
-			const btn = availableCoursesBody.querySelector(`button[data-code="${courseCode}"]`);
-			if (!btn) return;
-
-			btn.classList.remove("added", "waitlist", "waitlisted", "full", "add-course-btn", "course-action-btn");
-			btn.dataset.state = state;
-
-			if (state === "added") {
-				btn.disabled = true;
-				btn.classList.add("small-btn", "add-course-btn", "added");
-				btn.textContent = "Added";
-				return;
-			}
-
-			if (state === "waitlisted") {
-				btn.disabled = true;
-				btn.classList.add("small-btn", "course-action-btn", "waitlisted");
-				btn.textContent = "Waitlisted";
-				return;
-			}
-
-			if (state === "waitlist") {
-				btn.disabled = false;
-				btn.classList.add("small-btn", "course-action-btn", "waitlist");
-				btn.textContent = "Add to Waitlist";
-				return;
-			}
-
-			if (state === "full") {
-				btn.disabled = true;
-				btn.classList.add("small-btn", "course-action-btn", "full");
-				btn.textContent = "Full";
-				return;
-			}
-
-			btn.disabled = false;
-			btn.classList.add("small-btn", "add-course-btn");
-			btn.textContent = "Add";
-		}
-
-		function resetCourseButtonState(courseCode) {
-			const row = availableCoursesBody.querySelector(`tr button[data-code="${courseCode}"]`)?.closest("tr");
-			if (!row) return;
-
-			const availability = row.dataset.availability || "open";
-			setCourseButtonState(courseCode, availability);
-		}
-
-		function filterAvailableCourses() {
-			const query = String(availableCourseSearch ? availableCourseSearch.value : "")
-				.trim()
-				.toLowerCase();
-
-			Array.from(availableCoursesBody.querySelectorAll("tr")).forEach((row) => {
-				const rowText = row.textContent.toLowerCase();
-				row.style.display = !query || rowText.includes(query) ? "" : "none";
-			});
-		}
-
-		function formatHour(hour) {
-			return `${String(hour).padStart(2, "0")}:00`;
-		}
-
-		function parseStartEndHours(timeRange) {
-			const [startTime, endTime] = String(timeRange).split("-").map((part) => part.trim());
-			if (!startTime || !endTime) return null;
-
-			const startHour = Number(startTime.split(":")[0]);
-			const endHour = Number(endTime.split(":")[0]);
-
-			if (!Number.isFinite(startHour) || !Number.isFinite(endHour) || startHour >= endHour) {
-				return null;
-			}
-
-			return { startHour, endHour };
-		}
-
-		function hasTimeOverlap(firstRange, secondRange) {
-			return firstRange.startHour < secondRange.endHour && secondRange.startHour < firstRange.endHour;
-		}
-
-		function findOverlapCourses(day, timeRange) {
-			const newCourseRange = parseStartEndHours(timeRange);
-			if (!newCourseRange) return [];
-
-			const overlaps = [];
-
-			for (const row of [...getSelectedRows(), ...getWaitlistedRows()]) {
-				if (row.dataset.day !== day) continue;
-
-				const existingRange = parseStartEndHours(row.dataset.time || "");
-				if (!existingRange) continue;
-
-				if (hasTimeOverlap(newCourseRange, existingRange)) {
-					overlaps.push({
-						code: row.dataset.code,
-						time: row.dataset.time
-					});
-				}
-			}
-
-			return overlaps;
-		}
-
-		function renderPreviewTimetable() {
-			previewTimetableBody.innerHTML = "";
-			conflictList.innerHTML = "";
-
-			const slotMap = {};
-			const occupiedCells = new Set();
-			const conflicts = [];
-
-			getSelectedRows().forEach((row) => {
-				const courseCode = row.dataset.code;
-				const category = row.dataset.category || "N/A";
-				const location = row.dataset.location || "TBA";
-				const day = row.dataset.day;
-				const time = row.dataset.time;
-				const parsed = parseStartEndHours(time);
-
-				if (!courseCode || !day || !previewDays.includes(day) || !parsed) return;
-
-				for (let hour = parsed.startHour; hour < parsed.endHour; hour += 1) {
-					if (hour < previewStartHour || hour >= previewEndHour) continue;
-					const slotKey = `${day}|${hour}`;
-					slotMap[slotKey] = slotMap[slotKey] || [];
-					slotMap[slotKey].push({
-						code: courseCode,
-						category,
-						location
-					});
-				}
-			});
-
-			for (let hour = previewStartHour; hour < previewEndHour; hour += 1) {
-				const row = document.createElement("tr");
-
-				const timeCell = document.createElement("td");
-				timeCell.className = "preview-time-col";
-				timeCell.textContent = `${formatHour(hour)} - ${formatHour(hour + 1)}`;
-				row.appendChild(timeCell);
-
-				previewDays.forEach((day) => {
-					const occupiedKey = `${day}|${hour}`;
-					if (occupiedCells.has(occupiedKey)) {
-						return;
-					}
-
-					const cell = document.createElement("td");
-					const slotKey = `${day}|${hour}`;
-					const courses = slotMap[slotKey] || [];
-
-					if (!courses.length) {
-						cell.classList.add("preview-empty");
-					} else {
-						const hasConflict = courses.length > 1;
-
-						if (hasConflict) {
-							cell.classList.add("conflict-cell");
-							conflicts.push(`${day} ${formatHour(hour)} - ${formatHour(hour + 1)}: ${courses.map((course) => course.code).join(", ")}`);
-
-							courses.forEach((course) => {
-								const chip = document.createElement("span");
-								chip.className = "schedule-chip conflict-chip";
-								chip.innerHTML = `
-									<span class="chip-code">${course.code}</span>
-									<span class="chip-meta">${course.category} | ${course.location}</span>
-								`;
-								cell.appendChild(chip);
-							});
-						} else {
-							const singleCourse = courses[0];
-							const courseCode = singleCourse.code;
-							let rowSpan = 1;
-
-							for (let nextHour = hour + 1; nextHour < previewEndHour; nextHour += 1) {
-								const nextCourses = slotMap[`${day}|${nextHour}`] || [];
-								if (nextCourses.length !== 1 || nextCourses[0].code !== courseCode) {
-									break;
-								}
-								rowSpan += 1;
-							}
-
-							if (rowSpan > 1) {
-								cell.rowSpan = rowSpan;
-								cell.classList.add("preview-merged");
-								for (let coveredHour = hour + 1; coveredHour < hour + rowSpan; coveredHour += 1) {
-									occupiedCells.add(`${day}|${coveredHour}`);
-								}
-							}
-
-							const chip = document.createElement("span");
-							chip.className = "schedule-chip";
-							chip.innerHTML = `
-								<span class="chip-code">${singleCourse.code}</span>
-								<span class="chip-meta">${singleCourse.category} | ${singleCourse.location}</span>
-							`;
-							cell.appendChild(chip);
-						}
-					}
-
-					row.appendChild(cell);
-				});
-
-				previewTimetableBody.appendChild(row);
-			}
-
-			if (conflicts.length) {
-				conflictPanel.style.display = "block";
-				noConflictPanel.style.display = "none";
-
-				conflicts.forEach((warning) => {
-					const item = document.createElement("li");
-					item.textContent = warning;
-					conflictList.appendChild(item);
-				});
-			} else {
-				conflictPanel.style.display = "none";
-				noConflictPanel.style.display = "block";
-			}
-		}
-
-		function addCourseRow(courseCode, credits, day, time, category, location) {
-			const row = document.createElement("tr");
-			row.dataset.code = courseCode;
-			row.dataset.credits = String(credits);
-			row.dataset.day = day;
-			row.dataset.time = time;
-			row.dataset.category = category;
-			row.dataset.location = location;
-			row.innerHTML = `
-				<td>${courseCode}</td>
-				<td>${credits}</td>
-				<td>${day}</td>
-				<td>${time}</td>
-				<td>
-					<div class="inline-actions">
-						<button type="button" class="small-danger remove-course-btn" data-code="${courseCode}">Remove</button>
-					</div>
-				</td>
-			`;
-
-			selectedPlanBody.appendChild(row);
-			toggleEmptyState();
-			recalculateCredits();
-			renderPreviewTimetable();
-		}
-
-		function addWaitlistRow(courseCode, day, time) {
-			const row = document.createElement("tr");
-			row.dataset.code = courseCode;
-			row.dataset.day = day;
-			row.dataset.time = time;
-			row.innerHTML = `
-				<td>${courseCode}</td>
-				<td>${day}</td>
-				<td>${time}</td>
-				<td>
-					<div class="inline-actions">
-						<button type="button" class="small-danger remove-waitlist-btn" data-code="${courseCode}">Remove</button>
-					</div>
-				</td>
-			`;
-
-			waitlistBody.appendChild(row);
-			toggleWaitlistEmptyState();
-		}
-
-		function removeCourse(courseCode) {
-			const row = selectedPlanBody.querySelector(`tr[data-code="${courseCode}"]`);
-			if (!row) return;
-
-			row.remove();
-			resetCourseButtonState(courseCode);
-			toggleEmptyState();
-			recalculateCredits();
-			renderPreviewTimetable();
-		}
-
-		function removeWaitlistedCourse(courseCode) {
-			const row = waitlistBody.querySelector(`tr[data-code="${courseCode}"]`);
-			if (!row) return;
-
-			row.remove();
-			resetCourseButtonState(courseCode);
-			toggleWaitlistEmptyState();
-		}
-
-		function handleOverlapDecision(courseCode, day, overlapCourses, actionLabel) {
-			if (!overlapCourses.length) return true;
-
-			const overlapMessage = overlapCourses
-				.map((course) => `${course.code} (${course.time})`)
-				.join(", ");
-
-			const shouldReplace = window.confirm(
-				`${courseCode} overlaps with ${overlapMessage} on ${day}.\n\nSelect OK to replace overlapping class(es) and ${actionLabel.toLowerCase()}, or Cancel to keep your current choices.`
-			);
-
-			if (!shouldReplace) return false;
-
-			overlapCourses.forEach((course) => {
-				if (selectedPlanBody.querySelector(`tr[data-code="${course.code}"]`)) {
-					removeCourse(course.code);
-					return;
-				}
-
-				removeWaitlistedCourse(course.code);
-			});
-
-			return true;
-		}
-
-		availableCoursesBody.addEventListener("click", (event) => {
-			const button = event.target.closest("button[data-code]");
-			if (!button) return;
-			if (button.disabled) return;
-
-			const row = button.closest("tr");
-			if (!row) return;
-
-			const courseCode = button.dataset.code;
-			const creditCell = row.querySelector("td[data-credits]");
-			const credits = Number(creditCell ? creditCell.dataset.credits : 0);
-			const day = row.dataset.day;
-			const time = row.dataset.time;
-			const category = row.children[2] ? row.children[2].textContent.trim() : "N/A";
-			const location = row.dataset.location || (row.children[6] ? row.children[6].textContent.trim() : "TBA");
-			const availability = row.dataset.availability || "open";
-
-			if (!courseCode || !credits || !day || !time) return;
-
-			if (selectedPlanBody.querySelector(`tr[data-code="${courseCode}"]`)) return;
-			if (waitlistBody.querySelector(`tr[data-code="${courseCode}"]`)) return;
-			if (availability === "full") return;
-
-			const overlapCourses = findOverlapCourses(day, time);
-			if (availability === "waitlist") {
-				if (!handleOverlapDecision(courseCode, day, overlapCourses, "add it to the waitlist")) return;
-				addWaitlistRow(courseCode, day, time);
-				setCourseButtonState(courseCode, "waitlisted");
-				return;
-			}
-
-			if (!handleOverlapDecision(courseCode, day, overlapCourses, "add it to your plan")) return;
-
-			addCourseRow(courseCode, credits, day, time, category, location);
-			setCourseButtonState(courseCode, "added");
-		});
-
-		selectedPlanBody.addEventListener("click", (event) => {
-			const button = event.target.closest(".remove-course-btn");
-			if (!button) return;
-
-			const courseCode = button.dataset.code;
-			if (!courseCode) return;
-			removeCourse(courseCode);
-		});
-
-		waitlistBody.addEventListener("click", (event) => {
-			const button = event.target.closest(".remove-waitlist-btn");
-			if (!button) return;
-
-			const courseCode = button.dataset.code;
-			if (!courseCode) return;
-			removeWaitlistedCourse(courseCode);
-		});
-
-		clearPlanBtn.addEventListener("click", () => {
-			getSelectedRows().forEach((row) => {
-				resetCourseButtonState(row.dataset.code);
-				row.remove();
-			});
-
-			getWaitlistedRows().forEach((row) => {
-				resetCourseButtonState(row.dataset.code);
-				row.remove();
-			});
-
-			toggleEmptyState();
-			toggleWaitlistEmptyState();
-			recalculateCredits();
-			renderPreviewTimetable();
-		});
-
-		submitPlanBtn.addEventListener("click", () => {
-			const totalCredits = Number(creditValue.textContent || 0);
-
-			if (!getSelectedRows().length) {
-				window.alert("Please add at least one course before submitting.");
-				return;
-			}
-
-			if (totalCredits < 15 || totalCredits > 18) {
-				const proceed = window.confirm("Your total credits are outside the recommended range. Submit anyway?");
-				if (!proceed) return;
-			}
-
-			lastSavedPlanSignature = getCurrentPlanSignature();
-			window.alert("Study plan submitted successfully.");
-		});
-
-		window.addEventListener("beforeunload", (event) => {
-			if (!hasUnsavedPlanChanges()) return;
-
-			event.preventDefault();
-			event.returnValue = "";
-		});
-
-		if (availableCourseSearch) {
-			availableCourseSearch.addEventListener("input", filterAvailableCourses);
-		}
-
-		Array.from(availableCoursesBody.querySelectorAll("tr")).forEach((row) => {
-			const button = row.querySelector("button[data-code]");
-			if (!button) return;
-
-			setCourseButtonState(button.dataset.code, row.dataset.availability || "open");
-		});
-
-		lastSavedPlanSignature = getCurrentPlanSignature();
-		toggleEmptyState();
-		toggleWaitlistEmptyState();
-		recalculateCredits();
-		renderPreviewTimetable();
-	</script>
+  <script th:src="@{/js/manageplan.js}" defer></script>
 </body>
 </html>
+
