@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -16,46 +17,46 @@
         </header>
 
         <section class="quick-actions" aria-label="Home page quick links">
-            <a class="quick-card" th:href="@{/ViewMasterClassSchedule}">
+            <a class="quick-card" th:href="@{/ViewMasterClassSchedule}"
+               sec:authorize="isAuthenticated()">
                 <span class="quick-card-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
                 <span class="quick-card-title">Master Class Schedule</span>
                 <span class="quick-card-desc">Browse the complete class schedule for all offerings.</span>
             </a>
 
-            <a class="quick-card" th:href="@{/timetable}">
+            <a class="quick-card" th:href="@{/timetable}"
+               sec:authorize="hasAnyRole('ADMIN','STUDENT','INSTRUCTOR')">
                 <span class="quick-card-icon" aria-hidden="true"><i data-lucide="table-properties"></i></span>
                 <span class="quick-card-title">Timetable</span>
                 <span class="quick-card-desc">View your weekly class timetable in one place.</span>
             </a>
 
-            <a class="quick-card" th:href="@{/manageplan}">
+            <a class="quick-card" th:href="@{/manageplan}"
+               sec:authorize="hasAnyRole('ADMIN','STUDENT')">
                 <span class="quick-card-icon" aria-hidden="true"><i data-lucide="clipboard-list"></i></span>
                 <span class="quick-card-title">Manage Plan</span>
                 <span class="quick-card-desc">Create and update your study plan for the term.</span>
             </a>
 
-            <a class="quick-card" th:href="@{/ManageCourse}">
+            <a class="quick-card" th:href="@{/ManageCourse}"
+               sec:authorize="hasRole('ADMIN')">
                 <span class="quick-card-icon" aria-hidden="true"><i data-lucide="book-open-text"></i></span>
                 <span class="quick-card-title">Manage Course</span>
                 <span class="quick-card-desc">Add, edit, and organize course information.</span>
             </a>
 
-            <a class="quick-card" th:href="@{/ManageUser}">
+            <a class="quick-card" th:href="@{/ManageUser}"
+               sec:authorize="hasRole('ADMIN')">
                 <span class="quick-card-icon" aria-hidden="true"><i data-lucide="users"></i></span>
                 <span class="quick-card-title">Manage User</span>
                 <span class="quick-card-desc">Handle user accounts and role access settings.</span>
             </a>
 
-            <a class="quick-card" th:href="@{/studentlist}">
+            <a class="quick-card" th:href="@{/studentlist}"
+               sec:authorize="hasAnyRole('ADMIN','INSTRUCTOR')">
                 <span class="quick-card-icon" aria-hidden="true"><i data-lucide="list-checks"></i></span>
                 <span class="quick-card-title">Student List</span>
                 <span class="quick-card-desc">Check registered students and export the list.</span>
-            </a>
-
-            <a class="quick-card" th:href="@{/login}">
-                <span class="quick-card-icon" aria-hidden="true"><i data-lucide="log-in"></i></span>
-                <span class="quick-card-title">Login</span>
-                <span class="quick-card-desc">Sign in to continue to secured features.</span>
             </a>
         </section>
     </main>
