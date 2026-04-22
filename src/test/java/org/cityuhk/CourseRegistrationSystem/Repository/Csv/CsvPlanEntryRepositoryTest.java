@@ -73,7 +73,7 @@ class CsvPlanEntryRepositoryTest {
         PlanEntry saved = repo.save(buildEntry());
         Optional<PlanEntry> found = repo.findById(saved.getEntryId());
         assertTrue(found.isPresent());
-        assertEquals("ADD", found.get().getEntryType());
+        assertEquals(PlanEntry.EntryType.SELECTED, found.get().getEntryType());
     }
 
     @Test
@@ -155,6 +155,6 @@ class CsvPlanEntryRepositoryTest {
 
         Optional<PlanEntry> found = repo2.findById(saved.getEntryId());
         assertTrue(found.isPresent());
-        assertEquals("ADD", found.get().getEntryType());
+        assertEquals(PlanEntry.EntryType.SELECTED, found.get().getEntryType());
     }
 }

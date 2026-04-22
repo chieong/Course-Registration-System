@@ -42,11 +42,14 @@ public class CsvRegistrationPlanRepository implements RegistrationPlanRepository
                 int studentId = Integer.parseInt(row[1]);
                 Student student = studentMap.get(studentId);
                 if (student == null) continue;
-                 RegistrationPlan plan = new RegistrationPlan(student, row[2], Integer.parseInt(row[3]));
-                 plan.setApplyStatus(RegistrationPlan.ApplyStatus.valueOf(row[4]));
-                 plan.setApplySummary(row[5]);
+                RegistrationPlan plan = new RegistrationPlan(student, row[2], Integer.parseInt(row[3]));
+                plan.setPlanId(planId);
+                if (row[4] != null && !row[4].isBlank()) {
+                    plan.setApplyStatus(RegistrationPlan.ApplyStatus.valueOf(row[4]));
+                }
+                plan.setApplySummary(row[5]);
                 plans.add(plan);
-            } catch (NumberFormatException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
         return plans;

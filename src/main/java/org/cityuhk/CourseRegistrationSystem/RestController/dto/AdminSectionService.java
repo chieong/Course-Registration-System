@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 public class AdminSectionService {
     private Integer sectionId;
     private Course course;
-    private int enrollCapacity;
-    private int waitlistCapacity;
+    private Integer enrollCapacity;
+    private Integer waitlistCapacity;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Section.Type sectionType;

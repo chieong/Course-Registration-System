@@ -84,12 +84,11 @@ class ModelCoverageTest {
         LocalDateTime start = LocalDateTime.of(2026, 4, 21, 9, 0);
         LocalDateTime end = LocalDateTime.of(2026, 4, 21, 10, 0);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> new Section(course, 30, 5, start, end, "Room A"));
+        assertDoesNotThrow(() -> new Section(course, 30, 5, start, end, "Room A"));
 
         Section section = new Section();
-        assertThrows(IllegalArgumentException.class, () -> section.setTime(start, end));
-        assertDoesNotThrow(() -> section.setTime(end, start));
+        assertDoesNotThrow(() -> section.setTime(start, end));
+        assertThrows(IllegalArgumentException.class, () -> section.setTime(end, start));
     }
 
     @Test
@@ -194,7 +193,7 @@ class ModelCoverageTest {
         Student student = buildStudent(10);
         RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
         Section section = buildSection(buildCourse("CS520", 3), 30);
-        PlanEntry entry = new PlanEntry(plan, section, "ADD");
+        PlanEntry entry = new PlanEntry(plan, section, PlanEntry.EntryType.SELECTED);
 
         plan.addEntry(entry);
         assertEquals(1, plan.getEntries().size());
@@ -204,9 +203,9 @@ class ModelCoverageTest {
         assertTrue(plan.getEntries().isEmpty());
         assertNull(entry.getPlan());
 
-        plan.setApplyStatus("APPLIED");
+        plan.setApplyStatus(RegistrationPlan.ApplyStatus.APPLIED);
         plan.setApplySummary("ok");
-        assertEquals("APPLIED", plan.getApplyStatus());
+        assertEquals(RegistrationPlan.ApplyStatus.APPLIED, plan.getApplyStatus());
         assertEquals("ok", plan.getApplySummary());
     }
 
@@ -220,15 +219,15 @@ class ModelCoverageTest {
         entry.setEntryId(11);
         entry.setPlan(plan);
         entry.setSection(section);
-        entry.setEntryType("DROP");
-        entry.setStatus("PENDING");
+        entry.setEntryType(PlanEntry.EntryType.WAITLIST);
+        entry.setStatus(PlanEntry.EntryStatus.PENDING);
         entry.setJoinWaitlistOnAddFailure(true);
 
         assertEquals(11, entry.getEntryId());
         assertSame(plan, entry.getPlan());
         assertSame(section, entry.getSection());
-        assertEquals("DROP", entry.getEntryType());
-        assertEquals("PENDING", entry.getStatus());
+        assertEquals(PlanEntry.EntryType.WAITLIST, entry.getEntryType());
+        assertEquals(PlanEntry.EntryStatus.PENDING, entry.getStatus());
         assertTrue(entry.isJoinWaitlistOnAddFailure());
 
         LocalDateTime start = LocalDateTime.of(2026, 4, 1, 0, 0);

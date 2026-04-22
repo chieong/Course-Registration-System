@@ -177,10 +177,7 @@ public class AdministrativeService {
                         .findByCourseCode(courseCode.trim())
                         .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        String newCourseCode =
-                request.getCourseCode() != null && !request.getCourseCode().isBlank()
-                        ? request.getCourseCode().trim()
-                        : existingCourse.getCourseCode();
+        String newCourseCode = request.getCourseCode().trim();
 
         if (!newCourseCode.equals(existingCourse.getCourseCode())
                 && courseRepository.existsByCourseCode(newCourseCode)) {

@@ -100,7 +100,9 @@ Student student = studentRepository.findById(studentId)
             throw new RuntimeException("Section term does not match plan term");
         }
 
-        boolean duplicate = plan.getEntries().stream().anyMatch(e -> e.getSection().getSectionId() == sectionId);
+        boolean duplicate = plan.getEntries().stream()
+            .anyMatch(e -> e.getSection() != null
+                && java.util.Objects.equals(e.getSection().getSectionId(), sectionId));
         if (duplicate) {
             throw new RuntimeException("Section already exists in plan");
         }

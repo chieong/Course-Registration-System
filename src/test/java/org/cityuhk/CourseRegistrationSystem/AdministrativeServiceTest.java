@@ -1,12 +1,19 @@
 package org.cityuhk.CourseRegistrationSystem;
 
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +37,8 @@ class AdministrativeServiceTest {
 
     @Mock private AdminRepositoryPort adminRepository;
     @Mock private CourseRepositoryPort courseRepository;
+    @Mock private SectionRepositoryPort sectionRepository;
+    @Mock private RegistrationPeriodRepository registrationPeriodRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @InjectMocks private AdministrativeService service;
 
@@ -198,6 +207,13 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyCourse_blankCode_throws() {
+        courseReq.setCourseCode("");
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
+    }
+
+    @Test
+    void modifyCourse_nullCode_throws() {
+        courseReq.setCourseCode(null);
         assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
@@ -209,10 +225,23 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyCourse_duplicateNewCode_throws() {
-        when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
-        when(courseRepository.existsByCourseCode(anyString())).thenReturn(true);
         courseReq.setCourseCode("CS999");
+        Course cs101 = new Course("CS101", "Old Title", 3, null, null, Set.of(), Set.of(), null);
+        when(courseRepository.findByCourseCode("CS999")).thenReturn(Optional.of(cs101));
+        when(courseRepository.existsByCourseCode("CS999")).thenReturn(true);
         assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
+    }
+
+    @Test
+    void modifyCourse_renameToNewCode_success() {
+        // newCourseCode differs from existingCourse.getCourseCode() and does NOT already exist
+        courseReq.setCourseCode("CS999");
+        courseReq.setTitle(null);   // also covers title==null branch
+        Course cs101 = new Course("CS101", "Old Title", 3, null, null, Set.of(), Set.of(), null);
+        when(courseRepository.findByCourseCode("CS999")).thenReturn(Optional.of(cs101));
+        when(courseRepository.existsByCourseCode("CS999")).thenReturn(false);
+        when(courseRepository.save(any())).thenReturn(cs101);
+        assertNotNull(service.modifyCourse(courseReq));
     }
 
     @Test
@@ -311,9 +340,441 @@ class AdministrativeServiceTest {
     }
 
     @Test
+    void resolveCourseCodes_nullCodeInSet_success() {
+        // null entry in the code set must be silently skipped
+        java.util.Set<String> codesWithNull = new java.util.HashSet<>();
+        codesWithNull.add(null);
+        courseReq.setPrerequisiteCourseCodes(codesWithNull);
+        when(courseRepository.existsByCourseCode("CS101")).thenReturn(false);
+        when(courseRepository.save(any())).thenReturn(course);
+        assertNotNull(service.createCourse(courseReq));
+    }
+
+    @Test
+    void resolveCourseCodes_blankCodeInSet_success() {
+        // blank entry in the code set must be silently skipped
+        java.util.Set<String> codesWithBlank = new java.util.HashSet<>();
+        codesWithBlank.add("   ");
+        courseReq.setPrerequisiteCourseCodes(codesWithBlank);
+        when(courseRepository.existsByCourseCode("CS101")).thenReturn(false);
+        when(courseRepository.save(any())).thenReturn(course);
+        assertNotNull(service.createCourse(courseReq));
+    }
+
+    @Test
     void resolveCourseCodes_notFound_throws() {
         courseReq.setPrerequisiteCourseCodes(Set.of("INVALID"));
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
+    }
+
+    // ── createUser – null-input guards ───────────────────────────────────────
+
+    @Test
+    void createUser_nullEID_throws() {
+        userReq.setUserEID(null);
+        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+    }
+
+    @Test
+    void createUser_nullName_throws() {
+        userReq.setName(null);
+        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+    }
+
+    @Test
+    void createUser_nullPassword_throws() {
+        userReq.setPassword(null);
+        assertThrows(RuntimeException.class, () -> service.createUser(userReq));
+    }
+
+    // ── modifyUser – remaining branches ──────────────────────────────────────
+
+    @Test
+    void modifyUser_nullEID_throws() {
+        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
+        userReq.setUserEID(null);
+        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+    }
+
+    @Test
+    void modifyUser_nullName_throws() {
+        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
+        userReq.setName(null);
+        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+    }
+
+    @Test
+    void modifyUser_newEIDNotTaken_success() {
+        // EID is changing to one that does not exist in the system yet
+        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(adminRepository.save(any())).thenReturn(admin);
+        assertNotNull(service.modifyUser(1, userReq));
+    }
+
+    @Test
+    void modifyUser_nullPassword_keepsExistingPassword() {
+        // Null password must not re-encode; existing encoded password is preserved
+        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
+        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
+        userReq.setPassword(null);
+        when(adminRepository.save(any())).thenReturn(admin);
+        Admin result = service.modifyUser(1, userReq);
+        assertNotNull(result);
+        // passwordEncoder.encode must NOT have been called
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    // ── createCourse – additional validation paths ────────────────────────────
+
+    @Test
+    void createCourse_nullCode_throws() {
+        courseReq.setCourseCode(null);
+        assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
+    }
+
+    @Test
+    void createCourse_nullTitle_throws() {
+        courseReq.setTitle(null);
+        assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
+    }
+
+    @Test
+    void createCourse_negativeCredits_throws() {
+        courseReq.setCredits(-1);
+        assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
+    }
+
+    @Test
+    void createCourse_exclusiveNotFound_throws() {
+        courseReq.setExclusiveCourseCodes(Set.of("NOTEXIST"));
+        when(courseRepository.existsByCourseCode(anyString())).thenReturn(false);
+        when(courseRepository.findByCourseCode("NOTEXIST")).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
+    }
+
+    // ── modifyCourse – resolveCourseCodes failure paths ───────────────────────
+
+    @Test
+    void modifyCourse_prereqNotFound_throws() {
+        when(courseRepository.findByCourseCode("CS101")).thenReturn(Optional.of(course));
+        when(courseRepository.findByCourseCode("NOTEXIST")).thenReturn(Optional.empty());
+        courseReq.setPrerequisiteCourseCodes(Set.of("NOTEXIST"));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
+    }
+
+    @Test
+    void modifyCourse_exclusiveNotFound_throws() {
+        when(courseRepository.findByCourseCode("CS101")).thenReturn(Optional.of(course));
+        when(courseRepository.findByCourseCode("NOTEXIST")).thenReturn(Optional.empty());
+        courseReq.setExclusiveCourseCodes(Set.of("NOTEXIST"));
+        assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
+    }
+
+    // ── removeCourse – null code ──────────────────────────────────────────────
+
+    @Test
+    void removeCourse_nullCode_throws() {
+        assertThrows(RuntimeException.class, () -> service.removeCourse(null));
+    }
+
+    // ── createSection ─────────────────────────────────────────────────────────
+
+    @Test
+    void createSection_nullVenue_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setCourse(course);
+        req.setSectionType(Section.Type.LECTURE);
+        req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+        req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+        // venue is null by default
+        assertThrows(RuntimeException.class, () -> service.createSection(req));
+    }
+
+    @Test
+    void createSection_nullCourse_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionType(Section.Type.LECTURE);
+        req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+        req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+        req.setVenue("Y101");
+        // course is null by default
+        assertThrows(RuntimeException.class, () -> service.createSection(req));
+    }
+
+    @Test
+    void createSection_nullSectionType_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setCourse(course);
+        req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+        req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+        req.setVenue("Y101");
+        // sectionType is null by default
+        assertThrows(RuntimeException.class, () -> service.createSection(req));
+    }
+
+    @Test
+    void createSection_nullStartTime_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setCourse(course);
+        req.setSectionType(Section.Type.LECTURE);
+        req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+        req.setVenue("Y101");
+        assertThrows(RuntimeException.class, () -> service.createSection(req));
+    }
+
+    @Test
+    void createSection_nullEndTime_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setCourse(course);
+        req.setSectionType(Section.Type.LECTURE);
+        req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+        req.setVenue("Y101");
+        assertThrows(RuntimeException.class, () -> service.createSection(req));
+    }
+
+    @Test
+    void createSection_blankVenue_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setCourse(course);
+        req.setSectionType(Section.Type.LECTURE);
+        req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+        req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+        req.setVenue("");
+        assertThrows(RuntimeException.class, () -> service.createSection(req));
+    }
+
+    @Test
+    void createSection_success() {
+        AdminSectionService req = new AdminSectionService();
+        req.setCourse(course);
+        req.setSectionType(Section.Type.LECTURE);
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+        req.setStartTime(start);
+        req.setEndTime(end);
+        req.setVenue("Y101");
+        req.setEnrollCapacity(50);
+        req.setWaitlistCapacity(10);
+        Section saved = new Section(course, 50, 10, start, end, "Y101");
+        when(sectionRepository.save(any(Section.class))).thenReturn(saved);
+
+        Section result = service.createSection(req);
+
+        assertNotNull(result);
+        verify(sectionRepository).save(any(Section.class));
+    }
+
+    // ── modifySection ─────────────────────────────────────────────────────────
+
+    @Test
+    void modifySection_nullSectionId_throws() {
+        AdminSectionService req = new AdminSectionService();
+        // sectionId is null by default
+        assertThrows(RuntimeException.class, () -> service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_sectionNotFound_throws() {
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(99);
+        when(sectionRepository.findById(99)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_updateVenue_success() {
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+        Section existing = new Section(course, 50, 10, start, end, "OldVenue");
+        existing.setSectionId(10);
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setVenue("NewVenue");
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        Section result = service.modifySection(req);
+        assertNotNull(result);
+        verify(sectionRepository).save(existing);
+    }
+
+    @Test
+    void modifySection_updateCourse_success() {
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+        Section existing = new Section(course, 50, 10, start, end, "Y101");
+        existing.setSectionId(10);
+        Course newCourse = new Course("CS200", "Algorithms", 3, null, "2026A", Set.of(), Set.of(), Set.of());
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setCourse(newCourse);
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        assertNotNull(service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_updateCapacities_success() {
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+        Section existing = new Section(course, 50, 10, start, end, "Y101");
+        existing.setSectionId(10);
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setEnrollCapacity(80);
+        req.setWaitlistCapacity(20);
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        assertNotNull(service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_updateSectionType_success() {
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+        Section existing = new Section(course, 50, 10, start, end, "Y101");
+        existing.setSectionId(10);
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setSectionType(Section.Type.LAB);
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        assertNotNull(service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_blankVenue_skipsFirstCheck_success() {
+        // blank venue: line 307 (venue != null && !blank) is false; line 319 (venue != null) is still true
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+        Section existing = new Section(course, 50, 10, start, end, "OldVenue");
+        existing.setSectionId(10);
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setVenue("  ");   // blank – not null, but isBlank() == true
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        assertNotNull(service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_updateStartTime_success() {
+        LocalDateTime oldStart = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end      = LocalDateTime.of(2026, 9, 1, 10, 50);
+        LocalDateTime newStart = LocalDateTime.of(2026, 9, 1, 8, 30);
+        Section existing = new Section(course, 50, 10, oldStart, end, "Y101");
+        existing.setSectionId(10);
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setStartTime(newStart);
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        assertNotNull(service.modifySection(req));
+    }
+
+    @Test
+    void modifySection_updateEndTime_success() {
+        LocalDateTime start      = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime oldEnd     = LocalDateTime.of(2026, 9, 1, 10, 50);
+        LocalDateTime newEnd     = LocalDateTime.of(2026, 9, 1, 11, 20);
+        Section existing = new Section(course, 50, 10, start, oldEnd, "Y101");
+        existing.setSectionId(10);
+
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        req.setEndTime(newEnd);
+
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+        when(sectionRepository.save(any(Section.class))).thenReturn(existing);
+
+        assertNotNull(service.modifySection(req));
+    }
+
+    // ── deleteSection ─────────────────────────────────────────────────────────
+
+    @Test
+    void deleteSection_nullSectionId_throws() {
+        AdminSectionService req = new AdminSectionService();
+        assertThrows(RuntimeException.class, () -> service.deleteSection(req));
+    }
+
+    @Test
+    void deleteSection_success() {
+        AdminSectionService req = new AdminSectionService();
+        req.setSectionId(10);
+        service.deleteSection(req);
+        verify(sectionRepository).deleteById(10);
+    }
+
+    // ── createRegistrationPeriod ──────────────────────────────────────────────
+
+    @Test
+    void createRegistrationPeriod_nullCohort_throws() {
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        // cohort is null by default (Integer field)
+        assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
+    }
+
+    @Test
+    void createRegistrationPeriod_success() {
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        req.setCohort(2024);
+        req.setTerm("2026A");
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 11, 30, 23, 59);
+        req.setStartDate(start);
+        req.setEndDate(end);
+
+        service.createRegistrationPeriod(req);
+
+        verify(registrationPeriodRepository).save(any(RegistrationPeriod.class));
+    }
+
+    @Test
+    void createRegistrationPeriod_endBeforeStart_throwsFromModel() {
+        // RegistrationPeriod constructor enforces start < end
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        req.setCohort(2024);
+        req.setTerm("2026A");
+        req.setStartDate(LocalDateTime.of(2026, 12, 1, 0, 0));
+        req.setEndDate(LocalDateTime.of(2026, 9, 1, 0, 0));   // end before start
+        assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
+    }
+
+    // ── deleteRegistrationPeriod ──────────────────────────────────────────────
+
+    @Test
+    void deleteRegistrationPeriod_nullPeriodId_throws() {
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        // periodId defaults to null
+        assertThrows(RuntimeException.class, () -> service.deleteRegistrationPeriod(req));
+    }
+
+    @Test
+    void deleteRegistrationPeriod_success() {
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        req.setPeriodId(42);
+        service.deleteRegistrationPeriod(req);
+        verify(registrationPeriodRepository).deleteById(42);
     }
 }
