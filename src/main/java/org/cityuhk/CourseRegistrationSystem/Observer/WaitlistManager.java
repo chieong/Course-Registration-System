@@ -10,20 +10,19 @@ import java.time.LocalDateTime;
 public class WaitlistManager implements SectionVacancyObserver {
     private final WaitlistRecordRepository waitlistRepository;
     private final RegistrationService registrationService;
+    private final Integer studentId;
 
     @Autowired
-    public WaitlistManager(WaitlistRecordRepository waitlistRepository, RegistrationService registrationService) {
+    public WaitlistManager(WaitlistRecordRepository waitlistRepository, RegistrationService registrationService, Integer studentId) {
         this.waitlistRepository = waitlistRepository;
         this.registrationService = registrationService;
-
-        // This is where it survives server restarts!
-        // When Spring boots up, this bean is created and registers itself automatically.
+        this.studentId = studentId;
         this.registrationService.addObserver(this);
     }
 
     @Override
     public void onVacancyOccurred(Integer sectionId) {
-        waitlistRepository.findFirstBySectionSectionIdOrderByTimestampAsc(sectionId)
+        waitlistRepository.findFirstBySectionIdOrderByTimestampAsc(sectionId)
                 .ifPresent(record -> {
                     try {
                         registrationService.addSection(
@@ -38,5 +37,10 @@ public class WaitlistManager implements SectionVacancyObserver {
                         System.err.println("Failed to auto-enroll from waitlist: " + e.getMessage());
                     }
                 });
+    }
+
+    @Override
+    public Integer getStudentId() {
+        return studentId;
     }
 }

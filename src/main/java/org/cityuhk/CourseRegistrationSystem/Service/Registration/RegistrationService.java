@@ -3,6 +3,7 @@ package org.cityuhk.CourseRegistrationSystem.Service.Registration;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Model.WaitlistRecord;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
@@ -92,17 +93,18 @@ public class RegistrationService {
 
     @Transactional
     public void dropSection(Integer studentId, Integer sectionId, LocalDateTime timestamp) {
-        Student student =
-                studentRepository
+        Student student = studentRepository
                         .findById(studentId)
                         .orElseThrow(() -> new RuntimeException("Student not found"));
-        // TODO FIX DUPLICATE TO MAKE INTELLIJ IDEA SHUT UP
+        Section  section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new RuntimeException("Section not found"));
 
         List<Integer> eligibleCohorts =
                 registrationPeriodRepository.getActiveCohortByTime(LocalDateTime.now());
         if (!eligibleCohorts.contains(student.getCohort())) {
             throw new RuntimeException("Student not eligible to register");
         }
+
 
         Optional<RegistrationRecord> existingRecord =
                 registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId);
@@ -117,12 +119,32 @@ public class RegistrationService {
         }
     }
 
-    public void addObserver(SectionVacancyObserver observer) {
-        this.observers.add(observer);
+    public void dropWaitlist(Integer studentId, Integer sectionId) {
+        Student student =
+                studentRepository
+                        .findById(studentId)
+                        .orElseThrow(() -> new RuntimeException("Student not found"));
+
+
+
+        List<Integer> eligibleCohorts =
+                registrationPeriodRepository.getActiveCohortByTime(LocalDateTime.now());
+        if (!eligibleCohorts.contains(student.getCohort())) {
+            throw new RuntimeException("Student not eligible to register");
+        }
+
+        Optional<WaitlistRecord> existingRecord = waitlistRecordRepository.findByStudentIdAndSectionId(studentId, sectionId);
+        if (existingRecord.isEmpty()) {
+            throw new RuntimeException("Not waitlisted");
+        }
+        WaitlistRecord waitlistRecord = existingRecord.get();
+        waitlistRecordRepository.delete(waitlistRecord);
+
+        observers.removeIf(observer -> observer.getStudentId().equals(studentId));
     }
 
-    public void dropWaitlist(Integer studentId, Integer sectionId) {
-
+    public void addObserver(SectionVacancyObserver observer) {
+        this.observers.add(observer);
     }
 
 }

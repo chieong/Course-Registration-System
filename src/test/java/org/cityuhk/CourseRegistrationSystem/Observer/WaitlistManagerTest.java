@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -38,7 +37,7 @@ public class WaitlistManagerTest {
 
     @BeforeEach
     void setUp() {
-        waitlistManager = new WaitlistManager(waitlistRepository, registrationService);
+        waitlistManager = new WaitlistManager(waitlistRepository, registrationService,10);
         sectionId = 1;
         studentId = 10;
         waitlistRecord = mock(WaitlistRecord.class);
@@ -46,7 +45,7 @@ public class WaitlistManagerTest {
 
     @Test
     void onVacancyOccurred_EnrollsFirstInWaitlist() {
-        when(waitlistRepository.findFirstBySectionSectionIdOrderByTimestampAsc(sectionId))
+        when(waitlistRepository.findFirstBySectionIdOrderByTimestampAsc(sectionId))
                 .thenReturn(Optional.of(waitlistRecord));
         when(waitlistRecord.getStudent()).thenReturn(student);
         when(student.getStudentId()).thenReturn(studentId);
@@ -58,7 +57,7 @@ public class WaitlistManagerTest {
 
     @Test
     void onVacancyOccurred_DeletesWaitlistRecord() {
-        when(waitlistRepository.findFirstBySectionSectionIdOrderByTimestampAsc(sectionId))
+        when(waitlistRepository.findFirstBySectionIdOrderByTimestampAsc(sectionId))
                 .thenReturn(Optional.of(waitlistRecord));
         when(waitlistRecord.getStudent()).thenReturn(student);
 
@@ -69,7 +68,7 @@ public class WaitlistManagerTest {
 
     @Test
     void onVacancyOccurred_NoWaitlistedStudents() {
-        when(waitlistRepository.findFirstBySectionSectionIdOrderByTimestampAsc(sectionId))
+        when(waitlistRepository.findFirstBySectionIdOrderByTimestampAsc(sectionId))
                 .thenReturn(Optional.empty());
 
         waitlistManager.onVacancyOccurred(sectionId);
@@ -80,7 +79,7 @@ public class WaitlistManagerTest {
 
     @Test
     void onVacancyOccurred_AddSectionFails() {
-        when(waitlistRepository.findFirstBySectionSectionIdOrderByTimestampAsc(sectionId))
+        when(waitlistRepository.findFirstBySectionIdOrderByTimestampAsc(sectionId))
                 .thenReturn(Optional.of(waitlistRecord));
         when(waitlistRecord.getStudent()).thenReturn(student);
         when(student.getStudentId()).thenReturn(studentId);

@@ -197,6 +197,7 @@ public class RegistrationServiceTest {
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.empty());
 
+
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.dropSection(studentId, sectionId, timestamp));
         assertEquals("Section not found", exception.getMessage());
