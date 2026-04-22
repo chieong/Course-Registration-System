@@ -598,7 +598,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
             throw new IllegalArgumentException("Invalid integer for " + fieldName + ": " + value);
         }
     }
-
+    
     private LocalDateTime parseDateTime(String value, String fieldName) {
         try {
             return LocalDateTime.parse(value);
@@ -610,4 +610,5 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private String valueOrDash(String value) {
         return value == null || value.isBlank() ? "-" : value;
     }
+    
 }
