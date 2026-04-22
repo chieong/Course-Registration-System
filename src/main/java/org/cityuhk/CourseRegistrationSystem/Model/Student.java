@@ -156,20 +156,6 @@ public class Student extends User
         return (additional) > maxSemesterCredit;
     }
 
-    public RegistrationRecord addSection(Section section, LocalDateTime timestamp, int enrolled) {
-        if (!section.canEnroll(this, enrolled)) {
-            throw new RuntimeException(); // TODO logic kinda weird here
-        }
-        return new RegistrationRecord(this, section, timestamp);
-    }
-
-    public WaitlistRecord waitlistSection(Section section, LocalDateTime timestamp, int waitlisted) {
-        if(!section.canWaitlist(this, waitlisted)) {
-            throw new RuntimeException(); // TODO logic kinda weird here
-        }
-        return new WaitlistRecord(this,section,timestamp);
-    }
-
     public RegistrationRecord dropSection(Section section, LocalDateTime timestamp) {
         return new RegistrationRecord(this, section, timestamp);
     }
