@@ -31,4 +31,11 @@ public interface RegistrationPeriodRepository extends JpaRepository<Registration
     @Query("SELECT r.cohort FROM RegistrationPeriod r WHERE :time BETWEEN r.startDateTime AND r.endDateTime")
     List<Integer> getActiveCohortByTime(LocalDateTime time);
 
+    @Query("select p from RegistrationPeriod p where p.cohort = :cohort and p.startDateTime < :endDateTime and p.endDateTime > :startDateTime")
+    List<RegistrationPeriod> findOverlappingPeriods(@Param("cohort") Integer cohort,
+                                                    @Param("startDateTime") LocalDateTime startDateTime,
+                                                    @Param("endDateTime") LocalDateTime endDateTime);
+
+    @Query("select p from RegistrationPeriod p order by p.cohort asc, p.startDateTime asc")
+    List<RegistrationPeriod> findAllOrderByCohortAndStartDateTime();
 }

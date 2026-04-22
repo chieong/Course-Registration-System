@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,18 +29,21 @@ public class AdministrativeService {
     private final SectionRepositoryPort sectionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RegistrationPeriodValidator periodValidator;
 
     public AdministrativeService(
             AdminRepositoryPort adminRepository,
             CourseRepositoryPort courseRepository,
             PasswordEncoder passwordEncoder,
             SectionRepositoryPort sectionRepository,
-            RegistrationPeriodRepository registrationPeriodRepository) {
+            RegistrationPeriodRepository registrationPeriodRepository,
+            RegistrationPeriodValidator periodValidator) {
         this.adminRepository = adminRepository;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
         this.sectionRepository = sectionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
+        this.periodValidator = periodValidator;
     }
 
     @Transactional(readOnly = true)
@@ -336,24 +341,32 @@ public class AdministrativeService {
         sectionRepository.deleteById(request.getSectionId());
     }
 
-    public void createRegistrationPeriod(AdminPeriodRequest request) {
-        if (request.getCohort() == null) {
-            throw new RuntimeException("Cohort is required");
+    @Transactional(readOnly = true)
+    public List<RegistrationPeriod> listRegistrationPeriods(Integer cohort) {
+        if (cohort != null) {
+            return registrationPeriodRepository.findByCohortOrderByStartDateTime(cohort);
         }
+        return registrationPeriodRepository.findAllOrderByCohortAndStartDateTime();
+    }
 
+    @Transactional
+    public RegistrationPeriod createRegistrationPeriod(AdminPeriodRequest request) {
+        periodValidator.validate(request);
         RegistrationPeriod newRegistrationPeriod =
                 new RegistrationPeriod(
                         request.getCohort(), request.getStartDate(), request.getEndDate(), request.getTerm());
-
-        registrationPeriodRepository.save(newRegistrationPeriod);
+        return registrationPeriodRepository.save(newRegistrationPeriod);
     }
 
-    public void deleteRegistrationPeriod(AdminPeriodRequest request) {
-        if (request.getPeriodId() == null) {
-            throw new RuntimeException("PeriodId is required");
+    @Transactional
+    public void deleteRegistrationPeriod(Integer periodId) {
+        if (periodId == null) {
+            throw new RegistrationPeriodValidationException("Period ID is required");
         }
-
-        registrationPeriodRepository.deleteById(request.getPeriodId());
+        if (!registrationPeriodRepository.existsById(periodId)) {
+            throw new RegistrationPeriodValidationException("Registration period not found: " + periodId);
+        }
+        registrationPeriodRepository.deleteById(periodId);
     }
 }
 

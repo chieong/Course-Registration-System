@@ -13,6 +13,9 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodOverlapException;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodValidationException;
+import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodValidator;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,7 @@ class AdministrativeServiceTest {
     @Mock private SectionRepositoryPort sectionRepository;
     @Mock private RegistrationPeriodRepository registrationPeriodRepository;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private RegistrationPeriodValidator periodValidator;
     @InjectMocks private AdministrativeService service;
 
     private AdminUserRequest userReq;
@@ -731,7 +735,8 @@ class AdministrativeServiceTest {
     @Test
     void createRegistrationPeriod_nullCohort_throws() {
         AdminPeriodRequest req = new AdminPeriodRequest();
-        // cohort is null by default (Integer field)
+        doThrow(new RegistrationPeriodValidationException("Cohort is required"))
+                .when(periodValidator).validate(req);
         assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
     }
 
@@ -744,6 +749,8 @@ class AdministrativeServiceTest {
         LocalDateTime end   = LocalDateTime.of(2026, 11, 30, 23, 59);
         req.setStartDate(start);
         req.setEndDate(end);
+        RegistrationPeriod saved = new RegistrationPeriod(2024, start, end, "2026A");
+        when(registrationPeriodRepository.save(any(RegistrationPeriod.class))).thenReturn(saved);
 
         service.createRegistrationPeriod(req);
 
@@ -751,13 +758,36 @@ class AdministrativeServiceTest {
     }
 
     @Test
-    void createRegistrationPeriod_endBeforeStart_throwsFromModel() {
-        // RegistrationPeriod constructor enforces start < end
+    void createRegistrationPeriod_endBeforeStart_throws() {
         AdminPeriodRequest req = new AdminPeriodRequest();
         req.setCohort(2024);
         req.setTerm("2026A");
         req.setStartDate(LocalDateTime.of(2026, 12, 1, 0, 0));
-        req.setEndDate(LocalDateTime.of(2026, 9, 1, 0, 0));   // end before start
+        req.setEndDate(LocalDateTime.of(2026, 9, 1, 0, 0));
+        doThrow(new RegistrationPeriodValidationException("Start date must be before end date"))
+                .when(periodValidator).validate(req);
+        assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
+    }
+
+    @Test
+    void createRegistrationPeriod_blankTerm_throws() {
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        req.setCohort(2024);
+        req.setTerm("");
+        doThrow(new RegistrationPeriodValidationException("Term is required"))
+                .when(periodValidator).validate(req);
+        assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
+    }
+
+    @Test
+    void createRegistrationPeriod_overlap_throws() {
+        AdminPeriodRequest req = new AdminPeriodRequest();
+        req.setCohort(2024);
+        req.setTerm("2026A");
+        req.setStartDate(LocalDateTime.of(2026, 9, 1, 0, 0));
+        req.setEndDate(LocalDateTime.of(2026, 11, 30, 23, 59));
+        doThrow(new RegistrationPeriodOverlapException("Period overlaps with an existing period for cohort 2024"))
+                .when(periodValidator).validate(req);
         assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
     }
 
@@ -765,16 +795,50 @@ class AdministrativeServiceTest {
 
     @Test
     void deleteRegistrationPeriod_nullPeriodId_throws() {
-        AdminPeriodRequest req = new AdminPeriodRequest();
-        // periodId defaults to null
-        assertThrows(RuntimeException.class, () -> service.deleteRegistrationPeriod(req));
+        assertThrows(RuntimeException.class, () -> service.deleteRegistrationPeriod(null));
+    }
+
+    @Test
+    void deleteRegistrationPeriod_notFound_throws() {
+        when(registrationPeriodRepository.existsById(99)).thenReturn(false);
+        assertThrows(RuntimeException.class, () -> service.deleteRegistrationPeriod(99));
     }
 
     @Test
     void deleteRegistrationPeriod_success() {
-        AdminPeriodRequest req = new AdminPeriodRequest();
-        req.setPeriodId(42);
-        service.deleteRegistrationPeriod(req);
+        when(registrationPeriodRepository.existsById(42)).thenReturn(true);
+        service.deleteRegistrationPeriod(42);
         verify(registrationPeriodRepository).deleteById(42);
+    }
+
+    // ── listRegistrationPeriods ───────────────────────────────────────────────
+
+    @Test
+    void listRegistrationPeriods_allCohorts_returnsSortedList() {
+        LocalDateTime s1 = LocalDateTime.of(2026, 9, 1, 0, 0);
+        LocalDateTime e1 = LocalDateTime.of(2026, 11, 30, 23, 59);
+        RegistrationPeriod p1 = new RegistrationPeriod(2024, s1, e1, "2026A");
+        RegistrationPeriod p2 = new RegistrationPeriod(2023, s1, e1, "2026A");
+        when(registrationPeriodRepository.findAllOrderByCohortAndStartDateTime())
+                .thenReturn(List.of(p2, p1));
+
+        List<RegistrationPeriod> result = service.listRegistrationPeriods(null);
+
+        assertEquals(2, result.size());
+        verify(registrationPeriodRepository).findAllOrderByCohortAndStartDateTime();
+    }
+
+    @Test
+    void listRegistrationPeriods_byCohort_returnsCohortPeriods() {
+        LocalDateTime s1 = LocalDateTime.of(2026, 9, 1, 0, 0);
+        LocalDateTime e1 = LocalDateTime.of(2026, 11, 30, 23, 59);
+        RegistrationPeriod p = new RegistrationPeriod(2024, s1, e1, "2026A");
+        when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024))
+                .thenReturn(List.of(p));
+
+        List<RegistrationPeriod> result = service.listRegistrationPeriods(2024);
+
+        assertEquals(1, result.size());
+        verify(registrationPeriodRepository).findByCohortOrderByStartDateTime(2024);
     }
 }

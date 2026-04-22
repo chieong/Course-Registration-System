@@ -18,10 +18,12 @@ import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
@@ -157,6 +159,15 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "admin-remove-course":
                 handleAdminRemoveCourse(args);
                 return;
+            case "admin-list-periods":
+                handleAdminListPeriods(args);
+                return;
+            case "admin-create-period":
+                handleAdminCreatePeriod(args);
+                return;
+            case "admin-delete-period":
+                handleAdminDeletePeriod(args);
+                return;
             default:
                 System.out.println("Unknown command. Type help to see available commands.");
         }
@@ -188,6 +199,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-create-course --code <code> --title <title> --credits <credits> [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
         System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
         System.out.println("  admin-remove-course <courseCode>");
+        System.out.println("  admin-list-periods [--cohort <cohort>]");
+        System.out.println("  admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        System.out.println("  admin-delete-period <periodId>");
         System.out.println("Use double quotes for values with spaces.");
     }
 
@@ -411,6 +425,79 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("Removed course " + args.get(0));
     }
 
+    private void handleAdminListPeriods(List<String> args) {
+        requireAdminSession();
+        Integer cohort = null;
+        if (!args.isEmpty()) {
+            Map<String, String> options = CliCommandParser.parseOptions(args);
+            String cohortStr = options.get("cohort");
+            if (cohortStr != null) {
+                cohort = parseInteger(cohortStr, "cohort");
+            }
+        }
+        List<RegistrationPeriod> periods = administrativeService.listRegistrationPeriods(cohort);
+        printPeriodList(periods);
+    }
+
+    private void handleAdminCreatePeriod(List<String> args) {
+        requireAdminSession();
+        Map<String, String> options = CliCommandParser.parseOptions(args);
+
+        String cohortStr = options.get("cohort");
+        if (cohortStr == null || cohortStr.isBlank()) {
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        }
+        String term = options.get("term");
+        if (term == null || term.isBlank()) {
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        }
+        String startStr = options.get("start");
+        if (startStr == null || startStr.isBlank()) {
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        }
+        String endStr = options.get("end");
+        if (endStr == null || endStr.isBlank()) {
+            throw new IllegalArgumentException("Usage: admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        }
+
+        AdminPeriodRequest request = new AdminPeriodRequest();
+        request.setCohort(parseInteger(cohortStr, "cohort"));
+        request.setTerm(term);
+        request.setStartDate(parseDateTime(startStr, "start"));
+        request.setEndDate(parseDateTime(endStr, "end"));
+
+        administrativeService.createRegistrationPeriod(request);
+        System.out.println("Registration period created.");
+        List<RegistrationPeriod> periods = administrativeService.listRegistrationPeriods(null);
+        printPeriodList(periods);
+    }
+
+    private void handleAdminDeletePeriod(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: admin-delete-period <periodId>");
+        }
+
+        int periodId = parseInteger(args.get(0), "periodId");
+        administrativeService.deleteRegistrationPeriod(periodId);
+        System.out.println("Registration period " + periodId + " deleted.");
+        List<RegistrationPeriod> periods = administrativeService.listRegistrationPeriods(null);
+        printPeriodList(periods);
+    }
+
+    private void printPeriodList(List<RegistrationPeriod> periods) {
+        if (periods.isEmpty()) {
+            System.out.println("No registration periods found.");
+            return;
+        }
+        for (RegistrationPeriod p : periods) {
+            System.out.println(
+                    p.getPeriodId() + " | cohort=" + p.getCohort()
+                            + " | term=" + valueOrDash(p.getTerm())
+                            + " | " + p.getStartDateTime() + " -> " + p.getEndDateTime());
+        }
+    }
+
     private AdminCourseRequest parseCourseRequest(List<String> args, boolean isCreate) {
         Map<String, String> options = CliCommandParser.parseOptions(args);
         String code = options.get("code");
@@ -495,6 +582,14 @@ public class InteractiveCliRunner implements CommandLineRunner {
             return Integer.parseInt(value);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException("Invalid integer for " + fieldName + ": " + value);
+        }
+    }
+
+    private LocalDateTime parseDateTime(String value, String fieldName) {
+        try {
+            return LocalDateTime.parse(value);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid date-time for " + fieldName + " (expected yyyy-MM-ddTHH:mm): " + value);
         }
     }
 

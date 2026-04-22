@@ -32,4 +32,28 @@ public class CliCommandParserTest {
     void parseOptionsThrowsOnMissingValue() {
         assertThrows(IllegalArgumentException.class, () -> CliCommandParser.parseOptions(List.of("--code")));
     }
+
+    @Test
+    void parseOptionsParsesAdminCreatePeriodArgs() {
+        Map<String, String> options = CliCommandParser.parseOptions(
+                List.of("--cohort", "2024", "--term", "2026A", "--start", "2026-09-01T00:00", "--end", "2026-11-30T23:59"));
+        assertEquals("2024", options.get("cohort"));
+        assertEquals("2026A", options.get("term"));
+        assertEquals("2026-09-01T00:00", options.get("start"));
+        assertEquals("2026-11-30T23:59", options.get("end"));
+    }
+
+    @Test
+    void parseOptionsThrowsOnValueStartingWithDash() {
+        assertThrows(IllegalArgumentException.class,
+                () -> CliCommandParser.parseOptions(List.of("--cohort", "--term")));
+    }
+
+    @Test
+    void tokenizeParsesPeriodCommandWithAllOptions() {
+        List<String> tokens = CliCommandParser.tokenize(
+                "admin-create-period --cohort 2024 --term 2026A --start 2026-09-01T00:00 --end 2026-11-30T23:59");
+        assertEquals(List.of("admin-create-period", "--cohort", "2024", "--term", "2026A",
+                "--start", "2026-09-01T00:00", "--end", "2026-11-30T23:59"), tokens);
+    }
 }
