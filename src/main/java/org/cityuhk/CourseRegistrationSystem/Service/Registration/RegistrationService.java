@@ -96,10 +96,6 @@ public class RegistrationService {
                 studentRepository
                         .findById(studentId)
                         .orElseThrow(() -> new RuntimeException("Student not found"));
-        Section section =
-                sectionRepository
-                        .findById(sectionId)
-                        .orElseThrow(() -> new RuntimeException("Section not found"));
         // TODO FIX DUPLICATE TO MAKE INTELLIJ IDEA SHUT UP
 
         List<Integer> eligibleCohorts =
@@ -123,6 +119,10 @@ public class RegistrationService {
 
     public void addObserver(SectionVacancyObserver observer) {
         this.observers.add(observer);
+    }
+
+    public void dropWaitlist(Integer studentId, Integer sectionId) {
+
     }
 
 }
