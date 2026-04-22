@@ -124,36 +124,36 @@ class InteractiveCliRunnerTest {
 
     private Admin mockAdmin(String eid, String pwd, int staffId, String userName) {
         Admin admin = mock(Admin.class);
-        when(admin.getUserEID()).thenReturn(eid);
-        when(admin.getPassword()).thenReturn(pwd);
-        when(admin.getStaffId()).thenReturn(staffId);
-        when(admin.getUserName()).thenReturn(userName);
+        lenient().when(admin.getUserEID()).thenReturn(eid);
+        lenient().when(admin.getPassword()).thenReturn(pwd);
+        lenient().when(admin.getStaffId()).thenReturn(staffId);
+        lenient().when(admin.getUserName()).thenReturn(userName);
         return admin;
     }
 
     private Student mockStudent(String eid, String pwd, int studentId) {
         Student student = mock(Student.class);
-        when(student.getUserEID()).thenReturn(eid);
-        when(student.getPassword()).thenReturn(pwd);
-        when(student.getStudentId()).thenReturn(studentId);
+        lenient().when(student.getUserEID()).thenReturn(eid);
+        lenient().when(student.getPassword()).thenReturn(pwd);
+        lenient().when(student.getStudentId()).thenReturn(studentId);
         return student;
     }
 
 private Course mockCourse(String code, String title, int credits, String term, int sectionCount) {
     Course course = mock(Course.class);
-    when(course.getCourseCode()).thenReturn(code);
-    when(course.getTitle()).thenReturn(title);
-    when(course.getCredits()).thenReturn(credits);
-    when(course.getTerm()).thenReturn(term);
+    lenient().when(course.getCourseCode()).thenReturn(code);
+    lenient().when(course.getTitle()).thenReturn(title);
+    lenient().when(course.getCredits()).thenReturn(credits);
+    lenient().when(course.getTerm()).thenReturn(term);
 
     if (sectionCount < 0) {
-        when(course.getSections()).thenReturn(null);
+        lenient().when(course.getSections()).thenReturn(null);
     } else {
         Set<Section> sections = new HashSet<>();
         for (int i = 0; i < sectionCount; i++) {
             sections.add(mock(Section.class));
         }
-        when(course.getSections()).thenReturn(sections);
+        lenient().when(course.getSections()).thenReturn(sections);
     }
 
     return course;
