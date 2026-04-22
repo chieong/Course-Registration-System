@@ -8,6 +8,8 @@ import org.cityuhk.CourseRegistrationSystem.Model.Student;
 
 
 
+import org.cityuhk.CourseRegistrationSystem.Model.WaitlistRecord;
+import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
@@ -50,6 +52,9 @@ public class RegistrationServiceTest {
 
     @Mock
     private RegistrationPeriodRepository registrationPeriodRepository;
+
+    @Mock
+    private WaitlistRecordRepository waitlistRecordRepository;
 
     @InjectMocks
     private RegistrationService registrationService;
@@ -229,5 +234,70 @@ public class RegistrationServiceTest {
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.dropSection(studentId, sectionId, timestamp));
         assertEquals("Not enrolled", exception.getMessage());
+    }
+
+    @Test
+    void waitListSection_Success() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+        WaitlistRecord record = mock(WaitlistRecord.class);
+
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
+        when(waitlistRecordRepository.exists(studentId, sectionId)).thenReturn(false);
+        when(waitlistRecordRepository.countWaitlisted(sectionId)).thenReturn(0);
+        when(student.waitlistSection(section, timestamp, 0)).thenReturn(record);
+
+        registrationService.waitListSection(studentId, sectionId, timestamp);
+
+        verify(waitlistRecordRepository).save(record);
+    }
+
+    @Test
+    void waitListSection_StudentNotFound() {
+        when(studentRepository.findById(1)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> registrationService.waitListSection(1, 1, timestamp));
+        assertEquals("Student not found", ex.getMessage());
+    }
+
+    @Test
+    void waitListSection_SectionNotFound() {
+        when(studentRepository.findById(1)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(1)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> registrationService.waitListSection(1, 1, timestamp));
+        assertEquals("Section not found", ex.getMessage());
+    }
+
+    @Test
+    void waitListSection_NotEligible() {
+        when(student.getCohort()).thenReturn(99);
+        when(studentRepository.findById(1)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(1)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class)))
+                .thenReturn(eligibleCohorts);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> registrationService.waitListSection(1, 1, timestamp));
+        assertEquals("Student not eligible to register", ex.getMessage());
+    }
+
+    @Test
+    void waitListSection_AlreadyWaitlisted() {
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(1)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(1)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class)))
+                .thenReturn(eligibleCohorts);
+        when(waitlistRecordRepository.exists(1, 1)).thenReturn(true);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> registrationService.waitListSection(1, 1, timestamp));
+        assertEquals("Already waitlisted", ex.getMessage());
     }
 }
