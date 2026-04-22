@@ -67,8 +67,7 @@ public class Section {
         }
     }
 
-    // getter
-    public int getSectionID() {
+    public int getSectionId() {
         return sectionId;
     }
 
@@ -114,10 +113,6 @@ public class Section {
 
     public int addCredits(int sum) {
         return course.addCredits(sum);
-    }
-
-    public int getSectionId() {
-        return sectionId;
     }
 
     public void setCourse(Course course) {
