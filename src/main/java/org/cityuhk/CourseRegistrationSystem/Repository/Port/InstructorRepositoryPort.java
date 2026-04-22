@@ -7,6 +7,9 @@ import java.util.Optional;
 public interface InstructorRepositoryPort {
     Optional<Instructor> findByUserEID(String userEID);
     Optional<Instructor> findById(Integer id);
+    Instructor save(Instructor instructor);
+    void deleteById(Integer id);
+    boolean existsById(Integer id);
     long count();
     List<Instructor> findAll();
 }

@@ -1,8 +1,8 @@
 (function () {
   const state = {
     users: [],
-    editingId: null,
-    deletingId: null,
+    editingKey: null,
+    deletingKey: null,
     notificationTimer: null,
     notificationHideTimer: null,
     initialized: false
@@ -32,7 +32,15 @@
     role: document.getElementById("muRole"),
     status: document.getElementById("muStatus"),
     password: document.getElementById("muPassword"),
-    deleteMsg: document.getElementById("muDeleteMsg"),
+    studentFields: document.getElementById("muStudentFields"),
+    instructorFields: document.getElementById("muInstructorFields"),
+    major: document.getElementById("muMajor"),
+    department: document.getElementById("muDepartment"),
+    cohort: document.getElementById("muCohort"),
+    minCredit: document.getElementById("muMinCredit"),
+    maxCredit: document.getElementById("muMaxCredit"),
+    maxDegreeCredit: document.getElementById("muMaxDegreeCredit"),
+    instructorDepartment: document.getElementById("muInstructorDepartment"),
     deleteDetails: document.getElementById("muDeleteDetails"),
     closeDeleteBtn: document.getElementById("muCloseDeleteBtn"),
     cancelDeleteBtn: document.getElementById("muCancelDeleteBtn"),
@@ -66,6 +74,15 @@
     "role",
     "status",
     "password",
+    "studentFields",
+    "instructorFields",
+    "major",
+    "department",
+    "cohort",
+    "minCredit",
+    "maxCredit",
+    "maxDegreeCredit",
+    "instructorDepartment",
     "deleteDetails",
     "closeDeleteBtn",
     "cancelDeleteBtn",
@@ -79,6 +96,18 @@
     return requiredElementKeys.every(function (key) {
       return !!els[key];
     });
+  }
+
+  function makeUserKey(role, id) {
+    return role + ":" + String(id);
+  }
+
+  function parseUserKey(key) {
+    const parts = String(key || "").split(":");
+    return {
+      role: parts[0] || "",
+      id: Number(parts[1])
+    };
   }
 
   function escapeHtml(value) {
@@ -115,19 +144,70 @@
 
   function mapAdminToUi(admin) {
     return {
+      key: makeUserKey("Admin", admin.staffId),
       id: admin.staffId,
       username: admin.userEID || "",
       fullName: admin.userName || "",
       email: admin.userEID ? (admin.userEID + "@cityu.local") : "",
       role: "Admin",
       status: "Active",
-      password: ""
+      department: "",
+      major: "",
+      cohort: "",
+      minSemesterCredit: "",
+      maxSemesterCredit: "",
+      maxDegreeCredit: ""
+    };
+  }
+
+  function mapStudentToUi(student) {
+    return {
+      key: makeUserKey("Student", student.studentId),
+      id: student.studentId,
+      username: student.userEID || "",
+      fullName: student.name || "",
+      email: student.userEID ? (student.userEID + "@cityu.local") : "",
+      role: "Student",
+      status: "Active",
+      department: student.department || "",
+      major: student.major || "",
+      cohort: student.cohort || "",
+      minSemesterCredit: student.minSemesterCredit || "",
+      maxSemesterCredit: student.maxSemesterCredit || "",
+      maxDegreeCredit: student.maxDegreeCredit || ""
+    };
+  }
+
+  function mapInstructorToUi(instructor) {
+    return {
+      key: makeUserKey("Instructor", instructor.staffId),
+      id: instructor.staffId,
+      username: instructor.userEID || "",
+      fullName: instructor.name || "",
+      email: instructor.userEID ? (instructor.userEID + "@cityu.local") : "",
+      role: "Instructor",
+      status: "Active",
+      department: instructor.department || "",
+      major: "",
+      cohort: "",
+      minSemesterCredit: "",
+      maxSemesterCredit: "",
+      maxDegreeCredit: ""
     };
   }
 
   async function loadUsers() {
-    const data = await apiRequest("/api/admin/users", { method: "GET" });
-    state.users = Array.isArray(data) ? data.map(mapAdminToUi) : [];
+    const responses = await Promise.all([
+      apiRequest("/api/admin/users", { method: "GET" }),
+      apiRequest("/api/admin/students", { method: "GET" }),
+      apiRequest("/api/admin/instructors", { method: "GET" })
+    ]);
+
+    const admins = Array.isArray(responses[0]) ? responses[0].map(mapAdminToUi) : [];
+    const students = Array.isArray(responses[1]) ? responses[1].map(mapStudentToUi) : [];
+    const instructors = Array.isArray(responses[2]) ? responses[2].map(mapInstructorToUi) : [];
+
+    state.users = admins.concat(students, instructors);
     renderAll();
   }
 
@@ -148,11 +228,13 @@
   function renderStats() {
     const total = state.users.length;
     const active = state.users.filter(function (u) { return u.status === "Active"; }).length;
+    const students = state.users.filter(function (u) { return u.role === "Student"; }).length;
+    const staff = state.users.filter(function (u) { return u.role === "Admin" || u.role === "Instructor"; }).length;
 
     els.statTotal.textContent = String(total);
     els.statActive.textContent = String(active);
-    els.statStudent.textContent = "0";
-    els.statStaff.textContent = String(total);
+    els.statStudent.textContent = String(students);
+    els.statStaff.textContent = String(staff);
   }
 
   function renderTable() {
@@ -164,7 +246,7 @@
     }
 
     els.tableBody.innerHTML = rows.map(function (user) {
-      return "\n        <tr>\n          <td>" + escapeHtml(user.username) + "</td>\n          <td>" + escapeHtml(user.fullName) + "</td>\n          <td>" + escapeHtml(user.email) + "</td>\n          <td>" + escapeHtml(user.role) + "</td>\n          <td><span class=\"mu-status-active\">Active</span></td>\n          <td>\n            <div class=\"inline-actions\">\n              <button type=\"button\" class=\"small-btn\" data-action=\"edit\" data-id=\"" + user.id + "\">Edit</button>\n              <button type=\"button\" class=\"small-danger\" data-action=\"delete\" data-id=\"" + user.id + "\">Delete</button>\n            </div>\n          </td>\n        </tr>\n      ";
+      return "\n        <tr>\n          <td>" + escapeHtml(user.username) + "</td>\n          <td>" + escapeHtml(user.fullName) + "</td>\n          <td>" + escapeHtml(user.email) + "</td>\n          <td>" + escapeHtml(user.role) + "</td>\n          <td><span class=\"mu-status-active\">" + escapeHtml(user.status) + "</span></td>\n          <td>\n            <div class=\"inline-actions\">\n              <button type=\"button\" class=\"small-btn\" data-action=\"edit\" data-key=\"" + escapeHtml(user.key) + "\">Edit</button>\n              <button type=\"button\" class=\"small-danger\" data-action=\"delete\" data-key=\"" + escapeHtml(user.key) + "\">Delete</button>\n            </div>\n          </td>\n        </tr>\n      ";
     }).join("");
   }
 
@@ -220,13 +302,34 @@
     els.formError.classList.add("is-hidden");
   }
 
+  function showElement(element, show) {
+    if (!element) {
+      return;
+    }
+    if (show) {
+      element.removeAttribute("hidden");
+      element.classList.remove("is-hidden");
+    } else {
+      element.setAttribute("hidden", "hidden");
+      element.classList.add("is-hidden");
+    }
+  }
+
+  function toggleRoleFields(role) {
+    showElement(els.studentFields, role === "Student");
+    showElement(els.instructorFields, role === "Instructor");
+  }
+
   function resetForm() {
-    state.editingId = null;
+    state.editingKey = null;
     els.dialogTitle.textContent = "Add User";
     els.saveBtn.textContent = "Add User";
     els.form.reset();
     els.status.value = "Active";
     els.role.value = "Admin";
+    els.email.value = "";
+    els.role.disabled = false;
+    toggleRoleFields("Admin");
     els.username.readOnly = false;
     clearFormError();
   }
@@ -256,22 +359,31 @@
     openModal(els.dialog);
   }
 
-  function openEditDialog(id) {
-    const user = state.users.find(function (u) { return u.id === id; });
+  function openEditDialog(key) {
+    const user = state.users.find(function (u) { return u.key === key; });
     if (!user) {
       return;
     }
 
-    state.editingId = id;
+    state.editingKey = key;
     els.dialogTitle.textContent = "Edit User";
     els.saveBtn.textContent = "Save Changes";
     els.username.value = user.username;
     els.fullName.value = user.fullName;
     els.email.value = user.email;
-    els.role.value = "Admin";
+    els.role.value = user.role;
     els.status.value = "Active";
     els.password.value = "";
+    els.major.value = user.major || "";
+    els.department.value = user.department || "";
+    els.cohort.value = user.cohort || "";
+    els.minCredit.value = user.minSemesterCredit || "";
+    els.maxCredit.value = user.maxSemesterCredit || "";
+    els.maxDegreeCredit.value = user.maxDegreeCredit || "";
+    els.instructorDepartment.value = user.department || "";
+    toggleRoleFields(user.role);
     els.username.readOnly = false;
+    els.role.disabled = true;
     clearFormError();
     openModal(els.dialog);
   }
@@ -279,18 +391,19 @@
   function closeDialog(options) {
     const notify = !!(options && options.notifyCancel);
     closeModal(els.dialog);
+    els.role.disabled = false;
     if (notify) {
-      showMessage(state.editingId ? "User modification cancelled." : "User creation cancelled.", "info");
+      showMessage(state.editingKey ? "User modification cancelled." : "User creation cancelled.", "info");
     }
   }
 
-  function openDeleteDialog(id) {
-    const user = state.users.find(function (u) { return u.id === id; });
+  function openDeleteDialog(key) {
+    const user = state.users.find(function (u) { return u.key === key; });
     if (!user) {
       return;
     }
 
-    state.deletingId = id;
+    state.deletingKey = key;
     els.deleteDetails.innerHTML = [
       ["Username", user.username],
       ["Full Name", user.fullName],
@@ -305,7 +418,7 @@
 
   function closeDeleteDialog(options) {
     const notify = !!(options && options.notifyCancel);
-    state.deletingId = null;
+    state.deletingKey = null;
     closeModal(els.deleteDialog);
     if (notify) {
       showMessage("User removal cancelled.", "info");
@@ -315,23 +428,77 @@
   function validateForm() {
     const username = els.username.value.trim();
     const fullName = els.fullName.value.trim();
-    const email = els.email.value.trim();
+    const role = els.role.value;
     const password = els.password.value;
 
-    if (!username || !fullName || !email) {
+    if (!username || !fullName || !role) {
       return "Please fill in all required fields.";
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return "Please enter a valid email address.";
-    }
-
-    if (!state.editingId && password.trim().length < 8) {
+    if (!state.editingKey && password.trim().length < 8) {
       return "Temporary password must be at least 8 characters for new users.";
     }
 
+    if (role === "Student") {
+      const minCredit = Number(els.minCredit.value || 0);
+      const maxCredit = Number(els.maxCredit.value || 0);
+      if (maxCredit < minCredit) {
+        return "Max semester credits cannot be less than min semester credits.";
+      }
+    }
+
     return "";
+  }
+
+  function parseOptionalInteger(value) {
+    const trimmed = String(value || "").trim();
+    if (!trimmed) {
+      return null;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+    return Math.trunc(parsed);
+  }
+
+  function getPayloadByRole(role) {
+    if (role === "Student") {
+      return {
+        userEID: els.username.value.trim(),
+        name: els.fullName.value.trim(),
+        password: els.password.value || null,
+        major: els.major.value.trim(),
+        department: els.department.value.trim(),
+        cohort: parseOptionalInteger(els.cohort.value),
+        minSemesterCredit: parseOptionalInteger(els.minCredit.value),
+        maxSemesterCredit: parseOptionalInteger(els.maxCredit.value),
+        maxDegreeCredit: parseOptionalInteger(els.maxDegreeCredit.value)
+      };
+    }
+    if (role === "Instructor") {
+      return {
+        userEID: els.username.value.trim(),
+        name: els.fullName.value.trim(),
+        password: els.password.value || null,
+        department: els.instructorDepartment.value.trim()
+      };
+    }
+    return {
+      userEID: els.username.value.trim(),
+      name: els.fullName.value.trim(),
+      password: els.password.value || null
+    };
+  }
+
+  function getEndpointByRole(role, isEdit, id) {
+    if (role === "Student") {
+      return isEdit ? "/api/admin/students/" + id : "/api/admin/students";
+    }
+    if (role === "Instructor") {
+      return isEdit ? "/api/admin/instructors/" + id : "/api/admin/instructors";
+    }
+    return isEdit ? "/api/admin/users/" + id : "/api/admin/users";
   }
 
   async function saveUser(event) {
@@ -344,7 +511,10 @@
       return;
     }
 
-    const isEdit = !!state.editingId;
+    const isEdit = !!state.editingKey;
+    const parsed = isEdit ? parseUserKey(state.editingKey) : null;
+    const currentRole = parsed ? parsed.role : els.role.value;
+    const currentId = parsed ? parsed.id : null;
     const confirmed = window.confirm(isEdit
       ? "Are you sure you want to save changes to this user account?"
       : "Are you sure you want to create this user account?");
@@ -354,26 +524,17 @@
       return;
     }
 
-    const payload = {
-      userEID: els.username.value.trim(),
-      name: els.fullName.value.trim(),
-      password: els.password.value || null
-    };
+    const payload = getPayloadByRole(currentRole);
+    const endpoint = getEndpointByRole(currentRole, isEdit, currentId);
 
     try {
-      if (isEdit) {
-        await apiRequest("/api/admin/users/" + state.editingId, {
-          method: "PUT",
-          body: JSON.stringify(payload)
-        });
-      } else {
-        await apiRequest("/api/admin/users", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-      }
+      await apiRequest(endpoint, {
+        method: isEdit ? "PUT" : "POST",
+        body: JSON.stringify(payload)
+      });
 
       closeModal(els.dialog);
+      els.role.disabled = false;
       await loadUsers();
       showMessage(isEdit ? "User account updated successfully." : "New user account created successfully.", "success");
     } catch (requestError) {
@@ -382,11 +543,11 @@
   }
 
   async function confirmDelete() {
-    if (state.deletingId == null) {
+    if (!state.deletingKey) {
       return;
     }
 
-    const user = state.users.find(function (u) { return u.id === state.deletingId; });
+    const user = state.users.find(function (u) { return u.key === state.deletingKey; });
     if (!user) {
       closeDeleteDialog();
       return;
@@ -399,7 +560,7 @@
     }
 
     try {
-      await apiRequest("/api/admin/users/" + state.deletingId, { method: "DELETE" });
+      await apiRequest(getEndpointByRole(user.role, true, user.id), { method: "DELETE" });
       closeDeleteDialog();
       await loadUsers();
       showMessage("User account removed successfully.", "success");
@@ -414,18 +575,18 @@
       return;
     }
 
-    const id = Number(button.getAttribute("data-id"));
-    if (!id) {
+    const key = button.getAttribute("data-key");
+    if (!key) {
       return;
     }
 
     const action = button.getAttribute("data-action");
     if (action === "edit") {
-      openEditDialog(id);
+      openEditDialog(key);
       return;
     }
     if (action === "delete") {
-      openDeleteDialog(id);
+      openDeleteDialog(key);
     }
   }
 
@@ -437,6 +598,9 @@
     els.addBtn.addEventListener("click", openCreateDialog);
     els.form.addEventListener("submit", saveUser);
     els.tableBody.addEventListener("click", onTableClick);
+    els.role.addEventListener("change", function () {
+      toggleRoleFields(els.role.value);
+    });
 
     els.closeDialogBtn.addEventListener("click", function () {
       closeDialog({ notifyCancel: true });
@@ -451,31 +615,27 @@
       closeDeleteDialog({ notifyCancel: true });
     });
     els.confirmDeleteBtn.addEventListener("click", confirmDelete);
-
-    els.dialog.addEventListener("close", clearFormError);
-    els.notificationClose.addEventListener("click", function () {
-      hideNotification();
-      clearTimeout(state.notificationTimer);
-    });
+    els.notificationClose.addEventListener("click", hideNotification);
   }
 
-  async function init() {
-    if (!hasAllRequiredElements() || state.initialized) {
+  async function initialize() {
+    if (state.initialized) {
+      return;
+    }
+    state.initialized = true;
+
+    if (!hasAllRequiredElements()) {
       return;
     }
 
-    state.initialized = true;
-    hideNotification();
     bindEvents();
-
-    try {
-      await loadUsers();
-      showMessage("Users loaded from server.", "info");
-    } catch (error) {
-      els.tableBody.innerHTML = "<tr class=\"empty-row\"><td colspan=\"6\">Failed to load users.</td></tr>";
-      showMessage(error.message || "Failed to load users.", "error");
-    }
+    toggleRoleFields(els.role.value);
+    await loadUsers();
   }
 
-  init();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize);
+  } else {
+    initialize();
+  }
 })();

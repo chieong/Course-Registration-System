@@ -1,12 +1,17 @@
 package org.cityuhk.CourseRegistrationSystem.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodOverlapException;
@@ -28,6 +33,44 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdministrativeRestController {
+
+    public record StudentAdminResponse(
+            Integer studentId,
+            String userEID,
+            String name,
+            String major,
+            String department,
+            Integer cohort,
+            Integer minSemesterCredit,
+            Integer maxSemesterCredit,
+            Integer maxDegreeCredit) {
+        static StudentAdminResponse from(Student student) {
+            return new StudentAdminResponse(
+                    student.getStudentId(),
+                    student.getUserEID(),
+                    student.getUserName(),
+                    student.getMajor(),
+                    student.getDepartment(),
+                    student.getCohort(),
+                    student.getMinSemesterCredit(),
+                    student.getMaxSemesterCredit(),
+                    student.getMaxDegreeCredit());
+        }
+    }
+
+    public record InstructorAdminResponse(
+            Integer staffId,
+            String userEID,
+            String name,
+            String department) {
+        static InstructorAdminResponse from(Instructor instructor) {
+            return new InstructorAdminResponse(
+                    instructor.getStaffId(),
+                    instructor.getUserEID(),
+                    instructor.getUserName(),
+                    instructor.getDepartment());
+        }
+    }
 
     private final AdministrativeService administrativeService;
 
@@ -65,6 +108,88 @@ public class AdministrativeRestController {
     public ResponseEntity<?> removeUser(@PathVariable Integer staffId) {
         try {
             administrativeService.removeUser(staffId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @GetMapping("/students")
+    public ResponseEntity<List<StudentAdminResponse>> listStudents() {
+        List<StudentAdminResponse> response =
+                administrativeService.listStudents().stream()
+                        .map(StudentAdminResponse::from)
+                        .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/students")
+    public ResponseEntity<?> createStudent(@RequestBody AdminStudentRequest request) {
+        try {
+            Student created = administrativeService.createStudent(request);
+            return ResponseEntity.ok(StudentAdminResponse.from(created));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PutMapping("/students/{studentId}")
+    public ResponseEntity<?> modifyStudent(
+            @PathVariable Integer studentId,
+            @RequestBody AdminStudentRequest request) {
+        try {
+            Student updated = administrativeService.modifyStudent(studentId, request);
+            return ResponseEntity.ok(StudentAdminResponse.from(updated));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @DeleteMapping("/students/{studentId}")
+    public ResponseEntity<?> removeStudent(@PathVariable Integer studentId) {
+        try {
+            administrativeService.removeStudent(studentId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @GetMapping("/instructors")
+    public ResponseEntity<List<InstructorAdminResponse>> listInstructors() {
+        List<InstructorAdminResponse> response =
+                administrativeService.listInstructors().stream()
+                        .map(InstructorAdminResponse::from)
+                        .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/instructors")
+    public ResponseEntity<?> createInstructor(@RequestBody AdminInstructorRequest request) {
+        try {
+            Instructor created = administrativeService.createInstructor(request);
+            return ResponseEntity.ok(InstructorAdminResponse.from(created));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @PutMapping("/instructors/{staffId}")
+    public ResponseEntity<?> modifyInstructor(
+            @PathVariable Integer staffId,
+            @RequestBody AdminInstructorRequest request) {
+        try {
+            Instructor updated = administrativeService.modifyInstructor(staffId, request);
+            return ResponseEntity.ok(InstructorAdminResponse.from(updated));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @DeleteMapping("/instructors/{staffId}")
+    public ResponseEntity<?> removeInstructor(@PathVariable Integer staffId) {
+        try {
+            administrativeService.removeInstructor(staffId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());

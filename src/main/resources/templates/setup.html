@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Initial Setup | University Course Registration</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" href="/css/styles.css" />
+</head>
+<body>
+<main class="container">
+    <header class="page-header">
+        <h1>Initial Setup</h1>
+        <p class="muted">Create the first admin account. This page is only available before an admin exists.</p>
+    </header>
+
+    <section class="section-card" aria-label="Initial setup form">
+        <p th:if="${setupError}" class="mu-form-error" th:text="${setupError}"></p>
+        <form th:action="@{/setup}" method="post">
+            <div class="form-group">
+                <label for="userEID">User EID</label>
+                <input id="userEID" name="userEID" type="text" required />
+            </div>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input id="name" name="name" type="text" required />
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" minlength="8" required />
+            </div>
+            <div class="action-row">
+                <button type="submit">Create Admin</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>
