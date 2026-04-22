@@ -159,41 +159,30 @@ public class WaitlistServiceTest {
 
     @Test
     void waitListSection_WaitlistFull() {
-        // 1. Setup Data
         Integer studentId = 1;
         Integer sectionId = 1;
         LocalDateTime timestamp = LocalDateTime.now();
         List<Integer> eligibleCohorts = List.of(1);
 
-        // 2. Mock Repository/Service behavior
-        // Ensure the student belongs to the eligible cohort (1)
         when(student.getCohort()).thenReturn(1);
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
 
-        // Mock eligibility check
+
         when(registrationPeriodRepository.getActiveCohortByTime(any())).thenReturn(eligibleCohorts);
 
-        // Mock existence checks (must be false to reach the waitlist logic)
         when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
         when(waitlistRecordRepository.exists(studentId, sectionId)).thenReturn(false);
 
-        // 3. Mock the Domain Logic failure
-        // We simulate that there are 5 people already on the waitlist
+
         int currentWaitlistCount = 5;
         when(waitlistRecordRepository.countWaitlisted(sectionId)).thenReturn(currentWaitlistCount);
 
-        // This is the crucial part:
-        // Student.waitlistSection calls section.canWaitlist(student, 5).
-        // We force it to return false to simulate a full waitlist.
         when(section.canWaitlist(eq(student), eq(currentWaitlistCount))).thenReturn(false);
 
-        // 4. Execution & Assertion
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> registrationService.waitListSection(studentId, sectionId, timestamp));
 
-        // Note: Ensure your Student.java throws this specific message,
-        // otherwise this assertion will fail.
         assertEquals("Waitlist is full", exception.getMessage());
     }
 }
