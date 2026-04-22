@@ -43,7 +43,7 @@ public class Section {
             LocalDateTime startTime,
             LocalDateTime endTime,
             String venue
-            ) {
+    ) {
         this.course = code;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
@@ -55,18 +55,16 @@ public class Section {
         this.venue = venue;
     }
 
-    public boolean canEnroll(Student student, int enrolled) {
-        return !isFull(enrolled)
-                && hasCredits(student)
-                && student.satisfyPrerequisites(course)
-                && student.notTakenExclusives(course);
-    }
-
-    public boolean canWaitlist(Student student, int waitlistCapacity) {
-        return !isFull(waitlistCapacity)
-                && hasCredits(student)
-                && student.satisfyPrerequisites(course)
-                && student.notTakenExclusives(course);
+    public void assertEnroll(Student student) {
+        if (hasCredits(student)) {
+            throw new RuntimeException("Student has not enough credits");
+        }
+        if (!student.satisfyPrerequisites(course)) {
+            throw new RuntimeException("Student is not satisfying prerequisites");
+        }
+        if (!student.notTakenExclusives(course)) {
+            throw new RuntimeException("Student has taken exclusives course.");
+        }
     }
 
     // getter
