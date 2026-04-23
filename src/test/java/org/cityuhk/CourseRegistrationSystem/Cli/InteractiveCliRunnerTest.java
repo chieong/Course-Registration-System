@@ -422,7 +422,7 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
 
         Path generated1 = tempDir.resolve("generated1.txt");
         Files.writeString(generated1, "hello");
-        when(timetableService.exportTimetable(1001)).thenReturn(generated1);
+        when(timetableService.exportStudentTimetable(1001)).thenReturn(generated1);
 
         invokeHandleLine("export-timetable");
 
@@ -436,7 +436,7 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
 
         Path generated2 = tempDir.resolve("generated2.txt");
         Files.writeString(generated2, "world");
-        when(timetableService.exportTimetable(1001)).thenReturn(generated2);
+        when(timetableService.exportStudentTimetable(1001)).thenReturn(generated2);
 
         Path custom = tempDir.resolve("my-timetable.txt");
         invokeHandleLine("export-timetable \"" + custom.toString() + "\"");
@@ -450,7 +450,6 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
     void exportTimetable_shouldValidateUsage() {
         Student student = mockStudent("student1", "pwd", 1001);
         setStudentSession("student1");
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
 
         Exception ex = assertThrows(Exception.class,
                 () -> invokeHandleLine("export-timetable a b"));

@@ -8,7 +8,7 @@ import java.util.Set;
 
 @Entity
 @Table
-public class Section {
+public class Section implements Comparable<Section>{
     // A section under a course like lab, lecture..etc
 
     public enum Type {
@@ -174,5 +174,10 @@ public class Section {
     public void removeInstructor(Instructor instructor) {
         this.instructors.remove(instructor);
         instructor.removeSection(this);
+    }
+
+    @Override
+    public int compareTo(Section section) {
+        return startTime.compareTo(section.getStartTime());
     }
 }

@@ -1,4 +1,4 @@
-# Timetable Service Refactoring Documentation
+ Timetable Service Refactoring Documentation
 
 ## Overview
 

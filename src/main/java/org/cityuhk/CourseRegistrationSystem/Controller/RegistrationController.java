@@ -44,10 +44,10 @@ public class RegistrationController {
         }
     }
 
-    @GetMapping("/export-timetable")
-    public ResponseEntity<byte[]> exportTimeTable(@RequestParam Integer studentId) {
+    @GetMapping("/export-student-timetable")
+    public ResponseEntity<byte[]> exportStudentTimeTable(@RequestParam Integer studentId) {
         try {
-            Path exportedFile = timetableService.exportTimetable(studentId);
+            Path exportedFile = timetableService.exportStudentTimetable(studentId);
             byte[] fileBytes = Files.readAllBytes(exportedFile);
             Files.deleteIfExists(exportedFile);
 
@@ -67,6 +67,28 @@ public class RegistrationController {
         }
     }
 
+    @GetMapping("/export-instructor-timetable")
+    public ResponseEntity<byte[]> exportInstructorTimeTable(@RequestParam Integer staffId) {
+        try {
+            Path exportedFile = timetableService.exportInstructorTimetable(staffId);
+            byte[] fileBytes = Files.readAllBytes(exportedFile);
+            Files.deleteIfExists(exportedFile);
+
+            String filename = "instructor-" + staffId + "-timetable.txt";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(fileBytes);
+        } catch (TimetableValidationException ex) {
+            // Validation errors are client errors (400 Bad Request)
+            return ResponseEntity.badRequest().body(ex.getMessage().getBytes());
+        } catch (TimetableExportException ex) {
+            // Export errors are server errors (500 Internal Server Error)
+            return ResponseEntity.internalServerError().body(("Export failed: " + ex.getMessage()).getBytes());
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body("Failed to export timetable".getBytes());
+        }
+    }
     @PostMapping("/drop")
     public ResponseEntity<String> dropRegistration(
             @RequestParam Integer studentId,
