@@ -1,5 +1,6 @@
 package org.cityuhk.CourseRegistrationSystem.Model;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -20,6 +21,9 @@ public class Instructor extends User
     private Integer staffId;
 
     private String department;
+
+    @ManyToMany(mappedBy = "instructors")
+    private Set<Section> sections = new HashSet<>();
 
     public Instructor(InstructorBuilder builder) {
         super(builder);
@@ -52,18 +56,34 @@ public class Instructor extends User
         }
     }
 
-    public int getStaffId() {
-        // TODO - implement Instructor.getStaffId
-        throw new UnsupportedOperationException();
+    public Integer getStaffId() {
+        return this.staffId;
     }
 
     public String getDepartment() {
         return this.department;
     }
 
-    public Set<RegistrationRecord> getTimeTable() {
-        // TODO - implement Instructor.getTimeTable
-        throw new UnsupportedOperationException();
+    public Set<Section> getSections() {
+        return sections;
+    }
+
+    public void setSections(Set<Section> sections) {
+        this.sections = sections != null ? sections : new HashSet<>();
+    }
+
+    // Changing the return type from Set<RegistrationRecord> to Set<Section>
+    // since instructors teach sections, they don't have registration records.
+    public Set<Section> getTimeTable() {
+        return this.sections; // Removed UnsupportedOperationException
+    }
+
+    public void addSection(Section section) {
+        this.sections.add(section);
+    }
+
+    public void removeSection(Section section) {
+        this.sections.remove(section);
     }
 }
 

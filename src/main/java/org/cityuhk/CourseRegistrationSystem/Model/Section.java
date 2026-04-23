@@ -3,6 +3,7 @@ package org.cityuhk.CourseRegistrationSystem.Model;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -22,6 +23,13 @@ public class Section {
 
     @ManyToOne(optional = false)
     private Course course;
+
+    @ManyToMany
+    @JoinTable(
+            name = "section_instructor",
+            joinColumns = @JoinColumn(name = "section_id"),
+            inverseJoinColumns = @JoinColumn(name = "staff_id"))
+    private Set<Instructor> instructors = new HashSet<>();
 
     private Integer enrollCapacity;
     private Integer waitlistCapacity;
@@ -140,5 +148,23 @@ public class Section {
 
     public void setWaitlistCapacity(int waitlistCapacity) {
         this.waitlistCapacity = waitlistCapacity;
+    }
+
+    public Set<Instructor> getInstructors() {
+        return instructors;
+    }
+
+    public void setInstructors(Set<Instructor> instructors) {
+        this.instructors = instructors != null ? instructors : new HashSet<>();
+    }
+
+    public void addInstructor(Instructor instructor) {
+        this.instructors.add(instructor);
+        instructor.addSection(this);
+    }
+
+    public void removeInstructor(Instructor instructor) {
+        this.instructors.remove(instructor);
+        instructor.removeSection(this);
     }
 }
