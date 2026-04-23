@@ -155,6 +155,56 @@ public class WaitlistServiceTest {
     }
 
     @Test
+    void waitListSection_SectionOverlappingWithExisting() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+
+        RegistrationRecord registrationRecord = mock(RegistrationRecord.class);
+
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any())).thenReturn(eligibleCohorts);
+        when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
+
+        when(registrationRecordRepository.findByStudentId(studentId)).thenReturn(List.of(registrationRecord));
+        when(registrationRecord.hasTimeConflictWith(section)).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> registrationService.waitListSection(studentId, sectionId, timestamp));
+
+        assertEquals("Time conflict with existing section", exception.getMessage());
+    }
+
+    @Test
+    void waitListSection_SectionOverlappingWithWaitlisted() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+
+        RegistrationRecord registrationRecord = mock(RegistrationRecord.class);
+        WaitlistRecord waitlistRecord = mock(WaitlistRecord.class);
+
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any())).thenReturn(eligibleCohorts);
+        when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
+        when(registrationRecordRepository.findByStudentId(studentId)).thenReturn(List.of(registrationRecord));
+        when(registrationRecord.hasTimeConflictWith(section)).thenReturn(false);
+
+        when(registrationRecordRepository.findByStudentId(studentId)).thenReturn(List.of(registrationRecord));
+        when(registrationRecord.hasTimeConflictWith(section)).thenReturn(false);
+
+        when(waitlistRecordRepository.findByStudentId(studentId)).thenReturn(List.of(waitlistRecord));
+        when(waitlistRecord.hasTimeConflictWith(section)).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> registrationService.waitListSection(studentId, sectionId, timestamp));
+
+        assertEquals("Time conflict with waitlisted section", exception.getMessage());
+    }
+
+    @Test
     void waitListSection_WaitlistFull() {
         Integer studentId = 1;
         Integer sectionId = 1;
