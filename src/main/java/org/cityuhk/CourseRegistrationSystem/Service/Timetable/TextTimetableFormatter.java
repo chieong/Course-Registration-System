@@ -74,7 +74,7 @@ public class TextTimetableFormatter implements TimetableFormatter {
             day,
             timeRange,
             trimToWidth(courseCode, 12),
-            record.getSection().getSectionID(),
+            record.getSection().getSectionId(),
             trimToWidth(sectionType, 18),
             trimToWidth(venue, 22));
     }

@@ -35,32 +35,20 @@ public class AdministrativeCourseRestController {
     }
 
     @PostMapping("courses")
-    public ResponseEntity<?> createCourse(@RequestBody AdminCourseRequest request) {
-        try {
-            Course created = administrativeService.createCourse(request);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Course> createCourse(@RequestBody AdminCourseRequest request) {
+        Course created = administrativeService.createCourse(request);
+        return ResponseEntity.ok(created);
     }
 
     @PutMapping("course")
-    public ResponseEntity<?> modifyCourse(@RequestBody AdminCourseRequest request) {
-        try {
-            Course update = administrativeService.modifyCourse(request);
-            return ResponseEntity.ok(update);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Course> modifyCourse(@RequestBody AdminCourseRequest request) {
+        Course update = administrativeService.modifyCourse(request);
+        return ResponseEntity.ok(update);
     }
 
     @DeleteMapping("course/{courseCode}")
-    public ResponseEntity<?> removeCourse(@PathVariable String courseCode) {
-        try {
-            administrativeService.removeCourse(courseCode);
-            return  ResponseEntity.noContent().build();
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
+    public ResponseEntity<Void> removeCourse(@PathVariable String courseCode) {
+        administrativeService.removeCourse(courseCode);
+        return  ResponseEntity.noContent().build();
     }
 }

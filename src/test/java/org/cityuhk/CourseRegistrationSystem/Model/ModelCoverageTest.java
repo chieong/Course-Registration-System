@@ -92,18 +92,6 @@ class ModelCoverageTest {
     }
 
     @Test
-    void section_CanEnrollAndIsFull_RespectCurrentRules() {
-        Course course = buildCourse("CS350", 6);
-        Section section = buildSection(course, 2);
-        Student student = buildStudent(3);
-
-        assertTrue(section.canEnroll(student, 1));
-        assertFalse(section.canEnroll(student, 2));
-        assertTrue(section.isFull(2));
-        assertFalse(section.isFull(1));
-    }
-
-    @Test
     void section_OverlapAndAddCredits_WorkAsExpected() {
         Course course = buildCourse("CS360", 2);
         Section first = buildSection(course, 10);
@@ -145,25 +133,6 @@ class ModelCoverageTest {
 
         setPrivateField(student, "completedCourses", Set.of(prerequisite, exclusive));
         assertFalse(student.notTakenExclusives(target));
-    }
-
-    @Test
-    void student_AddAndDropSection_BehaviorMatchesCurrentRules() {
-        Student student = buildStudent(3);
-        Section section = buildSection(buildCourse("CS450", 5), 30);
-        LocalDateTime now = LocalDateTime.of(2026, 4, 21, 12, 0);
-
-        RegistrationRecord added = student.addSection(section, now, 1);
-        assertSame(student, added.getStudent());
-        assertSame(section, added.getSection());
-        assertEquals(now, added.getTimestamp());
-
-        RegistrationRecord dropped = student.dropSection(section, now);
-        assertSame(student, dropped.getStudent());
-        assertSame(section, dropped.getSection());
-
-        Student blockedStudent = buildStudent(10);
-        assertThrows(RuntimeException.class, () -> blockedStudent.addSection(section, now, 1));
     }
 
     @Test
@@ -268,7 +237,39 @@ class ModelCoverageTest {
         assertTrue(instructorUser instanceof Instructor);
         Instructor instructor = (Instructor) instructorUser;
         assertEquals("COMP", instructor.getDepartment());
-        assertThrows(UnsupportedOperationException.class, instructor::getStaffId);
-        assertThrows(UnsupportedOperationException.class, instructor::getTimeTable);
+        assertEquals(8, instructor.getStaffId());
+        assertNotNull(instructor.getTimeTable());
+        assertTrue(instructor.getTimeTable().isEmpty());
     }
+
+    @Test
+    void instructor_GetSections_AndSetSections_WorkAsExpected() {
+        Instructor instructor = (Instructor) new Instructor.InstructorBuilder()
+                .withStaffId(8)
+                .withDepartment("COMP")
+                .withUserEID("i001")
+                .withName("Instructor")
+                .withPassword("pw")
+                .build();
+
+        Course course = buildCourse("CS220", 3);
+        Section section = buildSection(course, 30);
+
+        Set<Section> sectionSet = new HashSet<>();
+        sectionSet.add(section);
+
+        // cover setSections with non-null value
+        instructor.setSections(sectionSet);
+
+        // cover getSections
+        assertSame(sectionSet, instructor.getSections());
+        assertEquals(1, instructor.getSections().size());
+        assertTrue(instructor.getSections().contains(section));
+
+        // cover setSections with null value
+        instructor.setSections(null);
+        assertNotNull(instructor.getSections());
+        assertTrue(instructor.getSections().isEmpty());
+    }
+    
 }

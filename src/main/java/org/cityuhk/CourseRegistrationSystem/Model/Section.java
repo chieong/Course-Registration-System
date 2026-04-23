@@ -3,6 +3,7 @@ package org.cityuhk.CourseRegistrationSystem.Model;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -22,6 +23,13 @@ public class Section {
 
     @ManyToOne(optional = false)
     private Course course;
+
+    @ManyToMany
+    @JoinTable(
+            name = "section_instructor",
+            joinColumns = @JoinColumn(name = "section_id"),
+            inverseJoinColumns = @JoinColumn(name = "staff_id"))
+    private Set<Instructor> instructors = new HashSet<>();
 
     private Integer enrollCapacity;
     private Integer waitlistCapacity;
@@ -43,7 +51,7 @@ public class Section {
             LocalDateTime startTime,
             LocalDateTime endTime,
             String venue
-            ) {
+    ) {
         this.course = code;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
@@ -55,22 +63,19 @@ public class Section {
         this.venue = venue;
     }
 
-    public boolean canEnroll(Student student, int enrolled) {
-        return !isFull(enrolled)
-                && hasCredits(student)
-                && student.satisfyPrerequisites(course)
-                && student.notTakenExclusives(course);
+    public void assertEnroll(Student student) {
+        if (hasCredits(student)) {
+            throw new RuntimeException("Student has not enough credits");
+        }
+        if (!student.satisfyPrerequisites(course)) {
+            throw new RuntimeException("Student is not satisfying prerequisites");
+        }
+        if (!student.notTakenExclusives(course)) {
+            throw new RuntimeException("Student has taken exclusives course.");
+        }
     }
 
-    public boolean canWaitlist(Student student, int waitlistCapacity) {
-        return !isFull(waitlistCapacity)
-                && hasCredits(student)
-                && student.satisfyPrerequisites(course)
-                && student.notTakenExclusives(course);
-    }
-
-    // getter
-    public int getSectionID() {
+    public int getSectionId() {
         return sectionId;
     }
 
@@ -118,10 +123,6 @@ public class Section {
         return course.addCredits(sum);
     }
 
-    public int getSectionId() {
-        return sectionId;
-    }
-
     public void setCourse(Course course) {
         this.course = course;
     }
@@ -147,5 +148,23 @@ public class Section {
 
     public void setWaitlistCapacity(int waitlistCapacity) {
         this.waitlistCapacity = waitlistCapacity;
+    }
+
+    public Set<Instructor> getInstructors() {
+        return instructors;
+    }
+
+    public void setInstructors(Set<Instructor> instructors) {
+        this.instructors = instructors != null ? instructors : new HashSet<>();
+    }
+
+    public void addInstructor(Instructor instructor) {
+        this.instructors.add(instructor);
+        instructor.addSection(this);
+    }
+
+    public void removeInstructor(Instructor instructor) {
+        this.instructors.remove(instructor);
+        instructor.removeSection(this);
     }
 }

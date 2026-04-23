@@ -1,11 +1,11 @@
 package org.cityuhk.CourseRegistrationSystem.Repository;
 
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.WaitlistRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface WaitlistRecordRepository extends JpaRepository<WaitlistRecord,Integer> {
@@ -23,4 +23,7 @@ public interface WaitlistRecordRepository extends JpaRepository<WaitlistRecord,I
     @Query("select e from WaitlistRecord e " +
             "where e.student.studentId = :studentId and e.section.sectionId = :sectionId")
     Optional<WaitlistRecord> findByStudentIdAndSectionId(@Param("studentId") Integer studentId, @Param("sectionId") Integer sectionId);
+
+    @Query("select e from WaitlistRecord e where e.student.studentId = :studentId order by e.timestamp asc")
+    List<WaitlistRecord> findByStudentId(@Param("studentId") Integer studentId);
 }
