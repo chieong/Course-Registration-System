@@ -551,11 +551,12 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         Course created = mockCourse("CS211", "OOP", 3, 1);
         Course updated = mockCourse("CS211", "Advanced OOP", 4, 2);
 
+        when(courseService.getCourse("CS211")).thenReturn(null, created);
         when(administrativeService.createCourse(any(AdminCourseRequest.class))).thenReturn(created);
         when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
         invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --description core subject --prereq CS101,CS102 --exclusive CS999, CS998");
-        invokeHandleLine("admin-modify-course --code CS211 --title Advanced OOP --credits 4 --description updated --prereq CS101 --exclusive CS998");
+        invokeHandleLine("admin-create-course --code CS211 --title Advanced OOP --credits 4 --description updated --prereq CS101 --exclusive CS998");
         invokeHandleLine("admin-remove-course CS211");
 
         String out = output();
@@ -594,14 +595,16 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
 
         Exception ex2 = assertThrows(Exception.class,
                 () -> invokeHandleLine("admin-create-course --code CS100 --credits 3"));
-        assertTrue(ex2.getMessage().contains("--title is required"));
+        assertTrue(ex2.getMessage().contains("--title is required when creating a new course"));
 
         Exception ex3 = assertThrows(Exception.class,
                 () -> invokeHandleLine("admin-create-course --code CS100 --title T"));
-        assertTrue(ex3.getMessage().contains("--credits is required"));
+        assertTrue(ex3.getMessage().contains("--credits is required when creating a new course"));
 
+        Course existing = mockCourse("CS100", "Old", 3, 0);
+        when(courseService.getCourse("CS100")).thenReturn(existing);
         Exception ex4 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-modify-course --code CS100 --credits x"));
+                () -> invokeHandleLine("admin-create-course --code CS100 --credits x"));
         assertTrue(ex4.getMessage().contains("Invalid integer for credits"));
 
         Exception ex5 = assertThrows(Exception.class,
@@ -618,8 +621,8 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         assertTrue(ex1.getMessage().contains("Unknown option(s) for admin-create-course: --term"));
 
         Exception ex2 = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-modify-course --code CS211 --wrongField abc"));
-        assertTrue(ex2.getMessage().contains("Unknown option(s) for admin-modify-course: --wrongfield"));
+            () -> invokeHandleLine("admin-create-course --code CS211 --wrongField abc"));
+        assertTrue(ex2.getMessage().contains("Unknown option(s) for admin-create-course: --wrongfield"));
         }
 
     // ---------------------------
@@ -748,13 +751,14 @@ void adminRemoveUser_shouldThrowWhenArgumentCountIsWrong() {
 }
 
 @Test
-void adminModifyCourse_shouldCoverSplitCsvNullBranch() {
+void adminUpsertCourse_shouldCoverSplitCsvNullBranch() {
     setAdminSession("admin1");
 
     Course updated = mockCourse("CS100", "Title", 3, 0);
+    when(courseService.getCourse("CS100")).thenReturn(updated);
     when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-    invokeHandleLine("admin-modify-course --code CS100 --title \"New Title\"");
+    invokeHandleLine("admin-create-course --code CS100 --title \"New Title\"");
 
     ArgumentCaptor<AdminCourseRequest> captor = ArgumentCaptor.forClass(AdminCourseRequest.class);
     verify(administrativeService).modifyCourse(captor.capture());
@@ -764,13 +768,14 @@ void adminModifyCourse_shouldCoverSplitCsvNullBranch() {
 }
 
 @Test
-void adminModifyCourse_shouldCoverSplitCsvEmptySetBranch() {
+void adminUpsertCourse_shouldCoverSplitCsvEmptySetBranch() {
     setAdminSession("admin1");
 
     Course updated = mockCourse("CS101", "Title", 3, 0);
+    when(courseService.getCourse("CS101")).thenReturn(updated);
     when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-    invokeHandleLine("admin-modify-course --code CS101 --prereq \" , , \" --exclusive \" , , \"");
+    invokeHandleLine("admin-create-course --code CS101 --prereq \" , , \" --exclusive \" , , \"");
 
     ArgumentCaptor<AdminCourseRequest> captor = ArgumentCaptor.forClass(AdminCourseRequest.class);
     verify(administrativeService).modifyCourse(captor.capture());

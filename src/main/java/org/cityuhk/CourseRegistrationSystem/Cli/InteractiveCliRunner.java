@@ -269,8 +269,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
         System.out.println("  admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
         System.out.println("  admin-remove-instructor <staffId>");
-        System.out.println("  admin-create-course --code <code> --title <title> --credits <credits> [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
-        System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
+        System.out.println("  admin-create-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)");
         System.out.println("  admin-remove-course <courseCode>");
         System.out.println("  admin-list-periods [--cohort <cohort>]");
         System.out.println("  admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
@@ -767,17 +766,33 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
 
     private void handleAdminCreateCourse(List<String> args) {
-        requireAdminSession();
-        AdminCourseRequest request = parseCourseRequest(args, true);
-        Course created = administrativeService.createCourse(request);
-        System.out.println("Created course " + created.getCourseCode());
+        handleAdminUpsertCourse(args, "admin-create-course");
     }
 
     private void handleAdminModifyCourse(List<String> args) {
+        // Backward-compatible alias for the combined upsert command.
+        handleAdminUpsertCourse(args, "admin-modify-course");
+    }
+
+    private void handleAdminUpsertCourse(List<String> args, String commandName) {
         requireAdminSession();
-        AdminCourseRequest request = parseCourseRequest(args, false);
-        Course updated = administrativeService.modifyCourse(request);
-        System.out.println("Updated course " + updated.getCourseCode());
+        Map<String, String> options = parseCourseOptions(args, commandName);
+
+        String code = options.get("code").trim();
+        boolean courseExists = courseService.getCourse(code) != null;
+        if (!courseExists) {
+            validateRequiredCreateCourseFields(options);
+        }
+
+        AdminCourseRequest request = buildCourseRequest(options);
+        if (courseExists) {
+            Course updated = administrativeService.modifyCourse(request);
+            System.out.println("Updated course " + updated.getCourseCode());
+            return;
+        }
+
+        Course created = administrativeService.createCourse(request);
+        System.out.println("Created course " + created.getCourseCode());
     }
 
     private void handleAdminRemoveCourse(List<String> args) {
@@ -857,29 +872,38 @@ public class InteractiveCliRunner implements CommandLineRunner {
         }
     }
 
-    private AdminCourseRequest parseCourseRequest(List<String> args, boolean isCreate) {
+    private Map<String, String> parseCourseOptions(List<String> args, String commandName) {
         Map<String, String> options = CliCommandParser.parseOptions(args);
-        validateCourseOptions(options, isCreate);
+        validateCourseOptions(options, commandName);
         String code = options.get("code");
 
         if (code == null || code.isBlank()) {
             throw new IllegalArgumentException("--code is required");
         }
 
+        return options;
+    }
+
+    private void validateRequiredCreateCourseFields(Map<String, String> options) {
+        String title = options.get("title");
+        String credits = options.get("credits");
+
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("--title is required when creating a new course");
+        }
+        if (credits == null || credits.isBlank()) {
+            throw new IllegalArgumentException("--credits is required when creating a new course");
+        }
+    }
+
+    private AdminCourseRequest buildCourseRequest(Map<String, String> options) {
+        String code = options.get("code");
+
         AdminCourseRequest request = new AdminCourseRequest();
         request.setCourseCode(code);
 
         String title = options.get("title");
         String credits = options.get("credits");
-
-        if (isCreate) {
-            if (title == null || title.isBlank()) {
-                throw new IllegalArgumentException("--title is required");
-            }
-            if (credits == null || credits.isBlank()) {
-                throw new IllegalArgumentException("--credits is required");
-            }
-        }
 
         if (title != null) {
             request.setTitle(title);
@@ -896,7 +920,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         return request;
     }
 
-    private void validateCourseOptions(Map<String, String> options, boolean isCreate) {
+    private void validateCourseOptions(Map<String, String> options, String commandName) {
         Set<String> allowed = Set.of("code", "title", "credits", "description", "prereq", "exclusive");
         List<String> unknown = options.keySet().stream()
                 .filter(key -> !allowed.contains(key))
@@ -904,11 +928,10 @@ public class InteractiveCliRunner implements CommandLineRunner {
                 .collect(Collectors.toList());
 
         if (!unknown.isEmpty()) {
-            String command = isCreate ? "admin-create-course" : "admin-modify-course";
             String unknownOptions = unknown.stream()
                     .map(key -> "--" + key)
                     .collect(Collectors.joining(", "));
-            throw new IllegalArgumentException("Unknown option(s) for " + command + ": " + unknownOptions);
+            throw new IllegalArgumentException("Unknown option(s) for " + commandName + ": " + unknownOptions);
         }
     }
 
