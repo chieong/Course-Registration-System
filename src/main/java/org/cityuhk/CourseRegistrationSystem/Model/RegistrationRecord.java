@@ -75,4 +75,8 @@ public class RegistrationRecord implements Comparable<RegistrationRecord> {
     public LocalDateTime getEndTime() {
         return section != null ? section.getEndTime() : null;
     }
+
+    public Course getCourse() {
+        return section != null ? section.getCourse() : null;
+    }
 }
