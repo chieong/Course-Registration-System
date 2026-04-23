@@ -1,6 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 
 /**
  * Formatter interface for timetable rows.
@@ -16,7 +17,7 @@ public interface TimetableFormatter {
      * @param record the registration record to format
      * @return formatted row string, or null if record cannot be formatted
      */
-    String formatRow(RegistrationRecord record);
+    String formatRow(Section record);
     
     /**
      * Formats the header for the timetable.
@@ -31,5 +32,5 @@ public interface TimetableFormatter {
      * @param studentId the student ID
      * @return formatted title section
      */
-    String formatTitle(Integer studentId);
+    String formatTitle(Integer studentId, TimetableData.UserType userType);
 }

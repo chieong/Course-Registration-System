@@ -1,11 +1,16 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Service for managing timetable operations.
@@ -20,13 +25,16 @@ import java.time.format.DateTimeFormatter;
 public class TimetableService {
     
     private final RegistrationRecordRepositoryPort registrationRecordRepository;
+    private final InstructorRepository instructorRepository;
     private final TimetableValidator validator;
     private final TimetableExporter defaultExporter;
     
     public TimetableService(RegistrationRecordRepositoryPort registrationRecordRepository,
+                           InstructorRepository instructorRepository,
                            TimetableValidator validator,
                            TextTimetableExporter defaultExporter) {
         this.registrationRecordRepository = registrationRecordRepository;
+        this.instructorRepository = instructorRepository;
         this.validator = validator;
         this.defaultExporter = defaultExporter;
     }
@@ -62,7 +70,7 @@ public class TimetableService {
         Student student = validator.validateStudentForExport(studentId);
         
         // Step 2: Build timetable data
-        TimetableData timetableData = buildTimetableData(studentId);
+        TimetableData timetableData = buildStudentTimetableData(studentId);
         
         // Step 3: Validate built data
         validator.validateTimetableData(timetableData);
@@ -90,8 +98,8 @@ public class TimetableService {
         
         // Build timetable data with custom formatters
         TimetableData timetableData = new TimetableData.Builder()
-            .studentId(studentId)
-            .registrationRecords(registrationRecordRepository.findByStudentId(studentId))
+            .ownerId(studentId)
+            .userType(TimetableData.UserType.Student)
             .dayFormatter(dayFormatter)
             .timeFormatter(timeFormatter)
             .build();
@@ -109,8 +117,12 @@ public class TimetableService {
      * @return the timetable data
      * @throws TimetableValidationException if validation fails
      */
-    public TimetableData getTimetableData(Integer studentId) throws TimetableValidationException {
-        return buildTimetableData(studentId);
+    public TimetableData getStudentTimetableData(Integer studentId) throws TimetableValidationException {
+        return buildStudentTimetableData(studentId);
+    }
+
+    public TimetableData getInstructorTimetableData(Integer staffId) throws TimetableValidationException {
+        return buildInstructorTimetableData(staffId);
     }
     
     /**
@@ -121,12 +133,29 @@ public class TimetableService {
      * @return the constructed TimetableData
      * @throws TimetableValidationException if build fails
      */
-    private TimetableData buildTimetableData(Integer studentId) throws TimetableValidationException {
+    private TimetableData buildStudentTimetableData(Integer studentId) throws TimetableValidationException {
         try {
             return new TimetableData.Builder()
-                .studentId(studentId)
-                .registrationRecords(registrationRecordRepository.findByStudentId(studentId))
-                .build();
+                    .ownerId(studentId)
+                    .userType(TimetableData.UserType.Student)
+                    .build();
+        } catch (IllegalStateException ex) {
+            throw new TimetableValidationException("Failed to build timetable data: " + ex.getMessage());
+        }
+    }
+
+    private TimetableData buildInstructorTimetableData(Integer staffId) throws TimetableValidationException {
+        try{
+            Optional<Instructor> instructor = instructorRepository.findById(staffId);
+            if(instructor.isEmpty()) {
+                throw new TimetableValidationException("Instructor does not exist");
+            }
+            Set<Section> sections = instructor.get().getSections();
+            return new TimetableData.Builder()
+                    .ownerId(staffId)
+                    .userType(TimetableData.UserType.Instructor)
+                    .sections(sections)
+                    .build();
         } catch (IllegalStateException ex) {
             throw new TimetableValidationException("Failed to build timetable data: " + ex.getMessage());
         }

@@ -1,6 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -24,9 +25,10 @@ public class TextTimetableFormatter implements TimetableFormatter {
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
     @Override
-    public String formatTitle(Integer studentId) {
+    public String formatTitle(Integer studentId, TimetableData.UserType userType) {
         StringBuilder title = new StringBuilder();
-        title.append("STUDENT TIMETABLE\n");
+        title.append(userType.toString());
+        title.append(" TIMETABLE\n");
         title.append(String.format("Student ID: %d\n", studentId));
         title.append(String.format("Generated At: %s\n", LocalDateTime.now().format(dateFormatter)));
         title.append("\n");
@@ -44,29 +46,27 @@ public class TextTimetableFormatter implements TimetableFormatter {
     }
     
     @Override
-    public String formatRow(RegistrationRecord record) {
-        if (record == null || record.getSection() == null) {
-            return null;
-        }
+    public String formatRow(Section section) {
+        if (section == null) return "";
         
-        String courseCode = record.getSection().getCourse() != null 
-            ? record.getSection().getCourse().getCourseCode() 
+        String courseCode = section.getCourse() != null
+            ? section.getCourse().getCourseCode()
             : "";
-        String sectionType = record.getSection().getType() != null 
-            ? record.getSection().getType().name() 
+        String sectionType = section.getType() != null
+            ? section.getType().name()
             : "";
-        String venue = record.getSection().getVenue() != null 
-            ? record.getSection().getVenue() 
+        String venue = section.getVenue() != null
+            ? section.getVenue()
             : "";
         
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         
-        String day = record.getSection().getStartTime() != null 
-            ? record.getSection().getStartTime().format(dayFormatter) 
+        String day = section.getStartTime() != null
+            ? section.getStartTime().format(dayFormatter)
             : "N/A";
-        String timeRange = (record.getSection().getStartTime() != null && record.getSection().getEndTime() != null)
-            ? record.getSection().getStartTime().format(timeFormatter) + "-" + record.getSection().getEndTime().format(timeFormatter)
+        String timeRange = (section.getStartTime() != null && section.getEndTime() != null)
+            ? section.getStartTime().format(timeFormatter) + "-" + section.getEndTime().format(timeFormatter)
             : "N/A";
         
         return String.format(
@@ -74,7 +74,7 @@ public class TextTimetableFormatter implements TimetableFormatter {
             day,
             timeRange,
             trimToWidth(courseCode, 12),
-            record.getSection().getSectionId(),
+            section.getSectionId(),
             trimToWidth(sectionType, 18),
             trimToWidth(venue, 22));
     }

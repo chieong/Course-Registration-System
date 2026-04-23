@@ -1,11 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Validator for timetable export requirements.
@@ -17,11 +21,14 @@ import java.util.List;
 public class TimetableValidator {
     
     private final StudentRepositoryPort studentRepository;
+    private final InstructorRepositoryPort instructorRepository;
     private final RegistrationRecordRepositoryPort registrationRecordRepository;
     
-    public TimetableValidator(StudentRepositoryPort studentRepository, 
+    public TimetableValidator(StudentRepositoryPort studentRepository,
+                            InstructorRepositoryPort instructorRepository,
                             RegistrationRecordRepositoryPort registrationRecordRepository) {
         this.studentRepository = studentRepository;
+        this.instructorRepository = instructorRepository;
         this.registrationRecordRepository = registrationRecordRepository;
     }
     
@@ -47,6 +54,20 @@ public class TimetableValidator {
         
         return student;
     }
+
+    public Instructor validateInstructorForExport(Integer staffId) throws TimetableValidationException {
+        if (staffId == null || staffId <= 0) {
+            throw new TimetableValidationException("Invalid staff ID: " + staffId);
+        }
+
+        Instructor instructor =  instructorRepository.findById(staffId).orElseThrow(() -> new TimetableValidationException("Instructor not found with ID: " + staffId));
+
+        Set<Section> sections = instructor.getSections();
+        if (sections == null || sections.isEmpty()) {
+            throw new TimetableValidationException("Instructor has no sections");
+        }
+        return instructor;
+    }
     
     /**
      * Validates that timetable data is complete.
@@ -59,11 +80,11 @@ public class TimetableValidator {
             throw new TimetableValidationException("Timetable data cannot be null");
         }
         
-        if (timetableData.getStudentId() == null) {
+        if (timetableData.getOwnerId() == null) {
             throw new TimetableValidationException("Student ID is missing from timetable data");
         }
         
-        if (timetableData.getRegistrationRecords() == null || timetableData.getRegistrationRecords().isEmpty()) {
+        if (timetableData.getSections() == null || timetableData.getSections().isEmpty()) {
             throw new TimetableValidationException("Timetable data has no registration records");
         }
         

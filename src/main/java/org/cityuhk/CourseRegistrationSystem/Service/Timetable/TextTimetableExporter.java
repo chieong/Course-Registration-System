@@ -1,12 +1,13 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,8 +32,8 @@ public class TextTimetableExporter implements TimetableExporter {
             throw new TimetableExportException("Timetable data cannot be null");
         }
         
-        if (timetableData.getRegistrationRecords().isEmpty()) {
-            throw new TimetableExportException("No registration records to export");
+        if (timetableData.getSections().isEmpty()) {
+            throw new TimetableExportException("No section records to export");
         }
         
         try {
@@ -54,22 +55,22 @@ public class TextTimetableExporter implements TimetableExporter {
     
     private Path writeToFile(TimetableData timetableData) throws Exception {
         Path outputPath = Files.createTempFile(
-            "student-" + timetableData.getStudentId() + "-timetable-", 
+            timetableData.getUserType().toString() + timetableData.getOwnerId() + "-timetable-",
             getFileExtension());
         
         try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
             // Write title section
-            writer.write(formatter.formatTitle(timetableData.getStudentId()));
+            writer.write(formatter.formatTitle(timetableData.getOwnerId(), timetableData.getUserType()));
             
             // Write header
             writer.write(formatter.formatHeader());
             
             // Write sorted registration records
-            List<RegistrationRecord> sortedRecords = new java.util.ArrayList<>(timetableData.getRegistrationRecords());
-            Collections.sort(sortedRecords);
+            List<Section> sections = new ArrayList<>(timetableData.getSections());
+            Collections.sort(sections);
             
-            for (RegistrationRecord record : sortedRecords) {
-                String row = formatter.formatRow(record);
+            for (Section section : sections) {
+                String row = formatter.formatRow(section);
                 if (row != null) {
                     writer.write(row);
                     writer.newLine();
