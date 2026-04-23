@@ -4,6 +4,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public class AdminSectionService {
     private Integer sectionId;
@@ -14,6 +15,7 @@ public class AdminSectionService {
     private LocalDateTime endTime;
     private Section.Type sectionType;
     private String venue;
+    private Set<Integer> instructorStaffIds;
 
     public Integer getSectionId() {
         return sectionId;
@@ -31,7 +33,6 @@ public class AdminSectionService {
         this.course = course;
     }
 
-    // Getter and Setter for enrollCapacity
     public Integer getEnrollCapacity() {
         return enrollCapacity;
     }
@@ -40,7 +41,6 @@ public class AdminSectionService {
         this.enrollCapacity = enrollCapacity;
     }
 
-    // Getter and Setter for waitlistCapacity
     public Integer getWaitlistCapacity() {
         return waitlistCapacity;
     }
@@ -49,7 +49,6 @@ public class AdminSectionService {
         this.waitlistCapacity = waitlistCapacity;
     }
 
-    // Getter and Setter for startTime
     public LocalDateTime getStartTime() {
         return startTime;
     }
@@ -58,7 +57,6 @@ public class AdminSectionService {
         this.startTime = startTime;
     }
 
-    // Getter and Setter for endTime
     public LocalDateTime getEndTime() {
         return endTime;
     }
@@ -67,7 +65,6 @@ public class AdminSectionService {
         this.endTime = endTime;
     }
 
-    // Getter and Setter for sectionType
     public Section.Type getSectionType() {
         return sectionType;
     }
@@ -76,7 +73,6 @@ public class AdminSectionService {
         this.sectionType = sectionType;
     }
 
-    // Getter and Setter for venue
     public String getVenue() {
         return venue;
     }
@@ -85,4 +81,11 @@ public class AdminSectionService {
         this.venue = venue;
     }
 
+    public Set<Integer> getInstructorStaffIds() {
+        return instructorStaffIds;
+    }
+
+    public void setInstructorStaffIds(Set<Integer> instructorStaffIds) {
+        this.instructorStaffIds = instructorStaffIds;
+    }
 }

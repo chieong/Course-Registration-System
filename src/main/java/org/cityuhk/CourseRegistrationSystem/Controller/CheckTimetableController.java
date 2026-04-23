@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class CheckTimetableController {
-    @GetMapping("/Timetable")
+    @GetMapping("/timetable")
     public String checkTimetable(Model model) {
-        return "Timetable";
+        return "timetable";
     }
 }

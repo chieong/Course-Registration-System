@@ -66,13 +66,24 @@ final class CliCommandParser {
                 throw new IllegalArgumentException("Missing value for option --" + key);
             }
 
-            String value = args.get(i + 1);
-            if (value.startsWith("--")) {
+            int valueStart = i + 1;
+            if (args.get(valueStart).startsWith("--")) {
                 throw new IllegalArgumentException("Missing value for option --" + key);
             }
 
+            StringBuilder valueBuilder = new StringBuilder();
+            int j = valueStart;
+            while (j < args.size() && !args.get(j).startsWith("--")) {
+                if (valueBuilder.length() > 0) {
+                    valueBuilder.append(' ');
+                }
+                valueBuilder.append(args.get(j));
+                j++;
+            }
+
+            String value = valueBuilder.toString();
             options.put(key, value);
-            i++;
+            i = j - 1;
         }
         return options;
     }

@@ -12,7 +12,7 @@
     <main class="container">
         <header class="page-header">
             <h1>Manage Users</h1>
-            <p class="muted">Create, update, and remove user accounts for students and staff.</p>
+            <p class="muted">Create, update, and remove user accounts for students, instructors, and admins.</p>
         </header>
 
         <div id="muNotification" class="mu-notification is-hidden" role="status" aria-live="polite" hidden>
@@ -55,7 +55,7 @@
                     <select id="muRoleFilter">
                         <option value="">All Roles</option>
                         <option value="Student">Student</option>
-                        <option value="Staff">Staff</option>
+                        <option value="Instructor">Instructor</option>
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
@@ -125,7 +125,7 @@
                         <select id="muRole">
                             <option value="">Select role</option>
                             <option value="Student">Student</option>
-                            <option value="Staff">Staff</option>
+                            <option value="Instructor">Instructor</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
@@ -139,6 +139,38 @@
                     <div class="form-group">
                         <label for="muPassword">Temporary Password</label>
                         <input id="muPassword" type="password" placeholder="At least 8 characters" />
+                    </div>
+                    <div id="muStudentFields" class="mu-role-fields is-hidden" hidden>
+                        <div class="form-group">
+                            <label for="muMajor">Major</label>
+                            <input id="muMajor" type="text" placeholder="e.g. Computer Science" />
+                        </div>
+                        <div class="form-group">
+                            <label for="muDepartment">Department</label>
+                            <input id="muDepartment" type="text" placeholder="e.g. CS" />
+                        </div>
+                        <div class="form-group">
+                            <label for="muCohort">Cohort</label>
+                            <input id="muCohort" type="number" min="1900" max="3000" placeholder="e.g. 2024" />
+                        </div>
+                        <div class="form-group">
+                            <label for="muMinCredit">Min Semester Credits</label>
+                            <input id="muMinCredit" type="number" min="0" placeholder="e.g. 9" />
+                        </div>
+                        <div class="form-group">
+                            <label for="muMaxCredit">Max Semester Credits</label>
+                            <input id="muMaxCredit" type="number" min="0" placeholder="e.g. 18" />
+                        </div>
+                        <div class="form-group">
+                            <label for="muMaxDegreeCredit">Max Degree Credits</label>
+                            <input id="muMaxDegreeCredit" type="number" min="0" placeholder="e.g. 120" />
+                        </div>
+                    </div>
+                    <div id="muInstructorFields" class="mu-role-fields is-hidden" hidden>
+                        <div class="form-group">
+                            <label for="muInstructorDepartment">Department</label>
+                            <input id="muInstructorDepartment" type="text" placeholder="e.g. CS" />
+                        </div>
                     </div>
                 </div>
                 <p class="mu-form-error is-hidden" id="muFormError" role="alert"></p>

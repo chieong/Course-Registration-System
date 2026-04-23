@@ -21,16 +21,21 @@ import java.util.Set;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationPlanService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.junit.jupiter.api.AfterEach;
@@ -57,9 +62,13 @@ class InteractiveCliRunnerTest {
     @Mock
     private AdministrativeService administrativeService;
     @Mock
+    private RegistrationPlanService registrationPlanService;
+    @Mock
     private AdminRepository adminRepository;
     @Mock
     private StudentRepository studentRepository;
+    @Mock
+    private InstructorRepository instructorRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -542,11 +551,12 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         Course created = mockCourse("CS211", "OOP", 3, 1);
         Course updated = mockCourse("CS211", "Advanced OOP", 4, 2);
 
+        when(courseService.getCourse("CS211")).thenReturn(null, created);
         when(administrativeService.createCourse(any(AdminCourseRequest.class))).thenReturn(created);
         when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-        invokeHandleLine("admin-create-course --code CS211 --title \"Object Oriented Programming\" --credits 3 --description \"core subject\" --prereq \"CS101,CS102\" --exclusive \"CS999, CS998\"");
-        invokeHandleLine("admin-modify-course --code CS211 --title \"Advanced OOP\" --credits 4 --description \"updated\" --prereq \"CS101\" --exclusive \"CS998\"");
+        invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --description core subject --prereq CS101,CS102 --exclusive CS999, CS998");
+        invokeHandleLine("admin-create-course --code CS211 --title Advanced OOP --credits 4 --description updated --prereq CS101 --exclusive CS998");
         invokeHandleLine("admin-remove-course CS211");
 
         String out = output();
@@ -585,20 +595,35 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
 
         Exception ex2 = assertThrows(Exception.class,
                 () -> invokeHandleLine("admin-create-course --code CS100 --credits 3"));
-        assertTrue(ex2.getMessage().contains("--title is required"));
+        assertTrue(ex2.getMessage().contains("--title is required when creating a new course"));
 
         Exception ex3 = assertThrows(Exception.class,
                 () -> invokeHandleLine("admin-create-course --code CS100 --title T"));
-        assertTrue(ex3.getMessage().contains("--credits is required"));
+        assertTrue(ex3.getMessage().contains("--credits is required when creating a new course"));
 
+        Course existing = mockCourse("CS100", "Old", 3, 0);
+        when(courseService.getCourse("CS100")).thenReturn(existing);
         Exception ex4 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-modify-course --code CS100 --credits x"));
+                () -> invokeHandleLine("admin-create-course --code CS100 --credits x"));
         assertTrue(ex4.getMessage().contains("Invalid integer for credits"));
 
         Exception ex5 = assertThrows(Exception.class,
                 () -> invokeHandleLine("admin-remove-course"));
         assertTrue(ex5.getMessage().contains("Usage: admin-remove-course <courseCode>"));
     }
+
+        @Test
+        void adminCourseCommands_shouldRejectUnknownOptions() {
+        setAdminSession("admin1");
+
+        Exception ex1 = assertThrows(Exception.class,
+            () -> invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --semester 2026A"));
+        assertTrue(ex1.getMessage().contains("Unknown option(s) for admin-create-course: --semester"));
+
+        Exception ex2 = assertThrows(Exception.class,
+            () -> invokeHandleLine("admin-create-course --code CS211 --wrongField abc"));
+        assertTrue(ex2.getMessage().contains("Unknown option(s) for admin-create-course: --wrongfield"));
+        }
 
     // ---------------------------
     // admin period commands
@@ -726,13 +751,14 @@ void adminRemoveUser_shouldThrowWhenArgumentCountIsWrong() {
 }
 
 @Test
-void adminModifyCourse_shouldCoverSplitCsvNullBranch() {
+void adminUpsertCourse_shouldCoverSplitCsvNullBranch() {
     setAdminSession("admin1");
 
     Course updated = mockCourse("CS100", "Title", 3, 0);
+    when(courseService.getCourse("CS100")).thenReturn(updated);
     when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-    invokeHandleLine("admin-modify-course --code CS100 --title \"New Title\"");
+    invokeHandleLine("admin-create-course --code CS100 --title \"New Title\"");
 
     ArgumentCaptor<AdminCourseRequest> captor = ArgumentCaptor.forClass(AdminCourseRequest.class);
     verify(administrativeService).modifyCourse(captor.capture());
@@ -742,13 +768,14 @@ void adminModifyCourse_shouldCoverSplitCsvNullBranch() {
 }
 
 @Test
-void adminModifyCourse_shouldCoverSplitCsvEmptySetBranch() {
+void adminUpsertCourse_shouldCoverSplitCsvEmptySetBranch() {
     setAdminSession("admin1");
 
     Course updated = mockCourse("CS101", "Title", 3, 0);
+    when(courseService.getCourse("CS101")).thenReturn(updated);
     when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-    invokeHandleLine("admin-modify-course --code CS101 --prereq \" , , \" --exclusive \" , , \"");
+    invokeHandleLine("admin-create-course --code CS101 --prereq \" , , \" --exclusive \" , , \"");
 
     ArgumentCaptor<AdminCourseRequest> captor = ArgumentCaptor.forClass(AdminCourseRequest.class);
     verify(administrativeService).modifyCourse(captor.capture());
@@ -762,5 +789,84 @@ void adminModifyCourse_shouldCoverSplitCsvEmptySetBranch() {
 void handleLine_shouldReturnWhenTokenListIsEmpty() {
     assertDoesNotThrow(() -> invokeHandleLine(""));
 }
+
+@Test
+void studentPlanCommands_shouldListCreateRemoveAddEntryRemoveEntryAndReorder() {
+    Student student = mockStudent("student1", "pwd", 1001);
+    setStudentSession("student1");
+    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+
+    RegistrationPlan plan = new RegistrationPlan();
+    plan.setPlanId(11);
+    plan.setPriority(1);
+    plan.setApplyStatus(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED);
+    plan.setApplySummary("Awaiting period start");
+
+    Section section = new Section();
+    section.setSectionId(88);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryId(22);
+    entry.setSection(section);
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setStatus(PlanEntry.EntryStatus.PENDING);
+    entry.setJoinWaitlistOnAddFailure(true);
+    plan.addEntry(entry);
+
+    when(registrationPlanService.getPlanSet(1001)).thenReturn(List.of(plan));
+    when(registrationPlanService.createPlan(1001, 2)).thenReturn(plan);
+    when(registrationPlanService.addEntry(11, 88, PlanEntry.EntryType.SELECTED, true)).thenReturn(entry);
+    when(registrationPlanService.reorderPlans(1001, List.of(11))).thenReturn(List.of(plan));
+
+    invokeHandleLine("list-plans");
+    invokeHandleLine("create-plan 2");
+    invokeHandleLine("add-plan-entry 11 88 selected true");
+    invokeHandleLine("remove-plan-entry 11 22");
+    invokeHandleLine("reorder-plans 11");
+    invokeHandleLine("remove-plan 11");
+
+    verify(registrationPlanService).getPlanSet(1001);
+    verify(registrationPlanService).createPlan(1001, 2);
+    verify(registrationPlanService).addEntry(11, 88, PlanEntry.EntryType.SELECTED, true);
+    verify(registrationPlanService).removeEntry(11, 22);
+    verify(registrationPlanService).reorderPlans(1001, List.of(11));
+    verify(registrationPlanService).removePlan(11);
+
+    String out = output();
+    assertTrue(out.contains("planId=11 | priority=1"));
+    assertTrue(out.contains("Created plan 11 with priority=1"));
+    assertTrue(out.contains("Added plan entry 22"));
+    assertTrue(out.contains("Removed plan entry 22"));
+    assertTrue(out.contains("Plans reordered."));
+    assertTrue(out.contains("Removed plan 11"));
 }
+
+@Test
+void studentPlanCommands_shouldValidateUsageAndRole() {
+    setAdminSession("admin1");
+    Exception roleEx = assertThrows(Exception.class, () -> invokeHandleLine("list-plans"));
+    assertTrue(roleEx.getMessage().contains("This command requires STUDENT role"));
+
+    Student student = mockStudent("student1", "pwd", 1001);
+    setStudentSession("student1");
+    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+
+    Exception usageEx1 = assertThrows(Exception.class, () -> invokeHandleLine("create-plan 1 2"));
+    assertTrue(usageEx1.getMessage().contains("Usage: create-plan [priority]"));
+
+    Exception usageEx2 = assertThrows(Exception.class, () -> invokeHandleLine("remove-plan"));
+    assertTrue(usageEx2.getMessage().contains("Usage: remove-plan <planId>"));
+
+    Exception usageEx3 = assertThrows(Exception.class, () -> invokeHandleLine("add-plan-entry 1 2 badType"));
+    assertTrue(usageEx3.getMessage().contains("Invalid entry type. Use SELECTED or WAITLIST"));
+
+    Exception usageEx4 = assertThrows(Exception.class, () -> invokeHandleLine("remove-plan-entry 1"));
+    assertTrue(usageEx4.getMessage().contains("Usage: remove-plan-entry <planId> <entryId>"));
+
+    Exception usageEx5 = assertThrows(Exception.class, () -> invokeHandleLine("reorder-plans"));
+    assertTrue(usageEx5.getMessage().contains("Usage: reorder-plans <planIdCsv>"));
+}
+}
+
+
 

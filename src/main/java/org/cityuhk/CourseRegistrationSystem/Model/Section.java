@@ -111,6 +111,14 @@ public class Section implements Comparable<Section>{
         return waitlisted >= waitlistCapacity;
     }
 
+    public Integer getEnrollCapacity() {
+        return enrollCapacity;
+    }
+
+    public Integer getWaitlistCapacity() {
+        return waitlistCapacity;
+    }
+
     private boolean hasCredits(Student student) {
         return course.hasCredits(student);
     }

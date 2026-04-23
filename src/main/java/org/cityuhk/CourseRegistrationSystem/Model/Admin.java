@@ -12,7 +12,7 @@ public class Admin extends User
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int staffId;
+    private Integer staffId;
 
     protected Admin() {
         // Required by JPA for entity instantiation.
@@ -24,9 +24,9 @@ public class Admin extends User
     }
 
     public static class AdminBuilder extends User.Builder<AdminBuilder> {
-        private int staffId;
+        private Integer staffId;
 
-        public AdminBuilder withStaffId(int staffId) {
+        public AdminBuilder withStaffId(Integer staffId) {
             this.staffId = staffId;
             return self();
         }
@@ -42,7 +42,7 @@ public class Admin extends User
         }
     }
 
-    public int getStaffId() {
+    public Integer getStaffId() {
         return this.staffId;
     }
 }

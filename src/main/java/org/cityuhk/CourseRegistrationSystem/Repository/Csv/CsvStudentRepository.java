@@ -87,6 +87,7 @@ public class CsvStudentRepository implements StudentRepositoryPort {
                 .findFirst();
     }
 
+    @Override
     public synchronized Student save(Student student) {
         List<Student> all = loadAll();
         if (student.getStudentId() == null || student.getStudentId() == 0) {
@@ -111,5 +112,27 @@ public class CsvStudentRepository implements StudentRepositoryPort {
         }
         saveAll(all);
         return student;
+    }
+
+    @Override
+    public synchronized void deleteById(Integer id) {
+        List<Student> all = loadAll();
+        all.removeIf(s -> Objects.equals(s.getStudentId(), id));
+        saveAll(all);
+    }
+
+    @Override
+    public List<Student> findAll() {
+        return loadAll();
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        return findById(id).isPresent();
+    }
+
+    @Override
+    public long count() {
+        return loadAll().size();
     }
 }

@@ -140,4 +140,16 @@ public class CsvCourseRepository implements CourseRepositoryPort {
     public List<Course> findAll() {
         return loadAll();
     }
+
+    @Override
+    public List<Course> findAllWithSections() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findAllWithSections'");
+    }
+
+    @Override
+    public List<Course> findAllWithAllData() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findAllWithAllData'");
+    }
 }

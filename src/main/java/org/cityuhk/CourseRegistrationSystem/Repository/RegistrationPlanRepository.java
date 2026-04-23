@@ -20,11 +20,11 @@ public interface RegistrationPlanRepository extends JpaRepository<RegistrationPl
     long countByStudentId(@Param("studentId") Integer studentId);
 
     @Query("select count(p) from RegistrationPlan p where p.student.studentId = :studentId")
-    long countByStudentIdAndTerm(@Param("studentId") Integer studentId);
+    long countByStudentIdForPlanLimit(@Param("studentId") Integer studentId);
 
-    @Query("select case when count(p) > 0 then true else false end from RegistrationPlan p where p.student.studentId = :studentId  and p.priority = :priority")
-    boolean existsByStudentIdAndTermAndPriority(@Param("studentId") Integer studentId,
-                                                @Param("priority") Integer priority);
+    @Query("select case when count(p) > 0 then true else false end from RegistrationPlan p where p.student.studentId = :studentId and p.priority = :priority")
+    boolean existsByStudentIdAndPriority(@Param("studentId") Integer studentId,
+                                         @Param("priority") Integer priority);
 
     @Query("select p from RegistrationPlan p where p.student.studentId = :studentId  and p.priority = :priority")
     Optional<RegistrationPlan> findByStudentIdAndPriority(@Param("studentId") Integer studentId,

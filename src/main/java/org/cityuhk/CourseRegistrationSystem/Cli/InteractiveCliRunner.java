@@ -20,11 +20,16 @@ import org.cityuhk.CourseRegistrationSystem.Model.*;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
+import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationPlanService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
 import org.springframework.boot.CommandLineRunner;
@@ -40,8 +45,12 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private final RegistrationService registrationService;
     private final TimetableService timetableService;
     private final AdministrativeService administrativeService;
+    private final RegistrationPlanService registrationPlanService;
     private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;
+    private final InstructorRepository instructorRepository;
+    private final RegistrationRecordRepository registrationRecordRepository;
+    private final WaitlistRecordRepository waitlistRecordRepository;
     private final PasswordEncoder passwordEncoder;
     private final CliSessionStore sessionStore;
     private final InstructorRepository instructorRepository;
@@ -54,8 +63,12 @@ public class InteractiveCliRunner implements CommandLineRunner {
             RegistrationService registrationService,
             TimetableService timetableService,
             AdministrativeService administrativeService,
+            RegistrationPlanService registrationPlanService,
             AdminRepository adminRepository,
             StudentRepository studentRepository,
+            InstructorRepository instructorRepository,
+            RegistrationRecordRepository registrationRecordRepository,
+            WaitlistRecordRepository waitlistRecordRepository,
             PasswordEncoder passwordEncoder,
             CliSessionStore sessionStore,
             InstructorRepository instructorRepository) {
@@ -63,8 +76,12 @@ public class InteractiveCliRunner implements CommandLineRunner {
         this.registrationService = registrationService;
         this.timetableService = timetableService;
         this.administrativeService = administrativeService;
+        this.registrationPlanService = registrationPlanService;
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
+        this.instructorRepository = instructorRepository;
+        this.registrationRecordRepository = registrationRecordRepository;
+        this.waitlistRecordRepository = waitlistRecordRepository;
         this.passwordEncoder = passwordEncoder;
         this.sessionStore = sessionStore;
         this.instructorRepository = instructorRepository;
@@ -130,6 +147,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "list-courses":
                 handleListCourses();
                 return;
+            case "view-master-schedule":
+                handleViewMasterSchedule();
+                return;
             case "add-section":
                 handleAddSection(args);
                 return;
@@ -141,6 +161,24 @@ public class InteractiveCliRunner implements CommandLineRunner {
                 return;
             case "export-timetable":
                 handleExportTimetable(args);
+                return;
+            case "list-plans":
+                handleListPlans();
+                return;
+            case "create-plan":
+                handleCreatePlan(args);
+                return;
+            case "remove-plan":
+                handleRemovePlan(args);
+                return;
+            case "add-plan-entry":
+                handleAddPlanEntry(args);
+                return;
+            case "remove-plan-entry":
+                handleRemovePlanEntry(args);
+                return;
+            case "reorder-plans":
+                handleReorderPlans(args);
                 return;
             case "admin-list-users":
                 handleAdminListUsers();
@@ -154,6 +192,30 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "admin-remove-user":
                 handleAdminRemoveUser(args);
                 return;
+            case "admin-list-students":
+                handleAdminListStudents();
+                return;
+            case "admin-create-student":
+                handleAdminCreateStudent(args);
+                return;
+            case "admin-modify-student":
+                handleAdminModifyStudent(args);
+                return;
+            case "admin-remove-student":
+                handleAdminRemoveStudent(args);
+                return;
+            case "admin-list-instructors":
+                handleAdminListInstructors();
+                return;
+            case "admin-create-instructor":
+                handleAdminCreateInstructor(args);
+                return;
+            case "admin-modify-instructor":
+                handleAdminModifyInstructor(args);
+                return;
+            case "admin-remove-instructor":
+                handleAdminRemoveInstructor(args);
+                return;
             case "admin-create-course":
                 handleAdminCreateCourse(args);
                 return;
@@ -162,6 +224,18 @@ public class InteractiveCliRunner implements CommandLineRunner {
                 return;
             case "admin-remove-course":
                 handleAdminRemoveCourse(args);
+                return;
+            case "admin-list-sections":
+                handleAdminListSections(args);
+                return;
+            case "admin-create-section":
+                handleAdminCreateSection(args);
+                return;
+            case "admin-modify-section":
+                handleAdminModifySection(args);
+                return;
+            case "admin-remove-section":
+                handleAdminRemoveSection(args);
                 return;
             case "admin-list-periods":
                 handleAdminListPeriods(args);
@@ -193,19 +267,38 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  logout");
         System.out.println("  whoami");
         System.out.println("  list-courses");
+        System.out.println("  view-master-schedule");
         System.out.println("  add-section <sectionId>");
         System.out.println("  drop-section <sectionId>");
         System.out.println("  join-waitlist <sectionId>");
         System.out.println("  export-timetable [outputPath]");
+        System.out.println("  list-plans");
+        System.out.println("  create-plan [priority]");
+        System.out.println("  remove-plan <planId>");
+        System.out.println("  add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure]");
+        System.out.println("  remove-plan-entry <planId> <entryId>");
+        System.out.println("  reorder-plans <planIdCsv>");
         System.out.println("  admin-list-users");
         System.out.println("  admin-create-user <userEID> <name> <password>");
         System.out.println("  admin-modify-user <staffId> <userEID> <name> [password]");
         System.out.println("  admin-remove-user <staffId>");
-        System.out.println("  admin-create-course --code <code> --title <title> --credits <credits> [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
-        System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
+        System.out.println("  admin-list-students");
+        System.out.println("  admin-create-student <userEID> <name> <password> [--major <major>] [--dept <dept>]");
+        System.out.println("  admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]");
+        System.out.println("  admin-remove-student <studentId>");
+        System.out.println("  admin-list-instructors");
+        System.out.println("  admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
+        System.out.println("  admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
+        System.out.println("  admin-remove-instructor <staffId>");
+        System.out.println("  admin-create-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)");
+        System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (alias of admin-create-course)");
         System.out.println("  admin-remove-course <courseCode>");
+        System.out.println("  admin-list-sections [--course <courseCode>]");
+        System.out.println("  admin-create-section --course <courseCode> --type <LECTURE|TUTORIAL|LAB> --enroll-capacity <int> --waitlist-capacity <int> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm> --venue <venue> [--instructors <idCsv>]");
+        System.out.println("  admin-modify-section --section-id <id> [--course <courseCode>] [--type <LECTURE|TUTORIAL|LAB>] [--enroll-capacity <int>] [--waitlist-capacity <int>] [--start <yyyy-MM-ddTHH:mm>] [--end <yyyy-MM-ddTHH:mm>] [--venue <venue>] [--instructors <idCsv>]");
+        System.out.println("  admin-remove-section <sectionId>");
         System.out.println("  admin-list-periods [--cohort <cohort>]");
-        System.out.println("  admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        System.out.println("  admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
         System.out.println("  admin-delete-period <periodId>");
         System.out.println("Use double quotes for values with spaces.");
     }
@@ -220,6 +313,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
         boolean valid;
         if (session.getRole() == CliRole.ADMIN) {
             valid = adminRepository.findByUserEID(session.getUserEid()).isPresent();
+        } else if (session.getRole() == CliRole.INSTRUCTOR) {
+            valid = instructorRepository.findByUserEID(session.getUserEid()).isPresent();
         } else {
             valid = studentRepository.findByUserEID(session.getUserEid()).isPresent();
         }
@@ -257,6 +352,15 @@ public class InteractiveCliRunner implements CommandLineRunner {
             activeSession = new CliSession(student.get().getUserEID(), CliRole.STUDENT);
             sessionStore.save(activeSession);
             System.out.println("Logged in as STUDENT: " + student.get().getUserEID());
+            return;
+        }
+
+        Optional<Instructor> instructor = instructorRepository.findByUserEID(userEid)
+                .filter(i -> passwordMatches(password, i.getPassword()));
+        if (instructor.isPresent()) {
+            activeSession = new CliSession(instructor.get().getUserEID(), CliRole.INSTRUCTOR);
+            sessionStore.save(activeSession);
+            System.out.println("Logged in as INSTRUCTOR: " + instructor.get().getUserEID());
             return;
         }
 
@@ -306,6 +410,97 @@ public class InteractiveCliRunner implements CommandLineRunner {
                             + course.getTitle() + " | credits=" + course.getCredits()
                             + " | sections=" + sectionCount);
         }
+    }
+
+    private void handleViewMasterSchedule() {
+        // Allow both Student and Admin to access
+        requireAuthenticated();
+
+        List<Course> courses = courseService.getAllCoursesWithAllData();
+        if (courses.isEmpty()) {
+            System.out.println("No courses found.");
+            return;
+        }
+
+        System.out.println("\n========== MASTER CLASS SCHEDULE ==========\n");
+
+        for (Course course : courses) {
+            // Print course header
+            System.out.println("COURSE: " + course.getCourseCode() + " - " + course.getTitle());
+            System.out.println("Credits: " + course.getCredits());
+
+            // Print description if available
+            if (course.getDescription() != null && !course.getDescription().isEmpty()) {
+                System.out.println("Description: " + course.getDescription());
+            }
+
+            // Print prerequisites if available
+            if (course.getPrerequisiteCourses() != null && !course.getPrerequisiteCourses().isEmpty()) {
+                String prereqs = course.getPrerequisiteCourses().stream()
+                        .map(Course::getCourseCode)
+                        .collect(Collectors.joining(", "));
+                System.out.println("Prerequisites: " + prereqs);
+            }
+
+            // Print exclusives if available
+            if (course.getExclusiveCourses() != null && !course.getExclusiveCourses().isEmpty()) {
+                String exclusives = course.getExclusiveCourses().stream()
+                        .map(Course::getCourseCode)
+                        .collect(Collectors.joining(", "));
+                System.out.println("Exclusive Courses: " + exclusives);
+            }
+
+            // Print sections
+            Set<Section> sections = course.getSections();
+            if (sections == null || sections.isEmpty()) {
+                System.out.println("  [No sections available]");
+            } else {
+                System.out.println("  Sections:");
+                for (Section section : sections) {
+                    System.out.println("    ─────────────────────────────────────────");
+                    System.out.println("    Section ID: " + section.getSectionId());
+                    System.out.println("    Type: " + (section.getType() != null ? section.getType() : "N/A"));
+                    System.out.println("    Time: " + formatDateTime(section.getStartTime()) + " to " +
+                            formatDateTime(section.getEndTime()));
+                    System.out.println("    Venue: " + (section.getVenue() != null ? section.getVenue() : "N/A"));
+
+                    // Print instructors
+                    Set<Instructor> instructors = section.getInstructors();
+                    if (instructors != null && !instructors.isEmpty()) {
+                        String instructorNames = instructors.stream()
+                                .map(Instructor::getUserName)
+                                .collect(Collectors.joining(", "));
+                        System.out.println("    Instructors: " + instructorNames);
+                    } else {
+                        System.out.println("    Instructors: N/A");
+                    }
+
+                    // Print enrollment information
+                    int enrolled = registrationRecordRepository.countEnrolled(section.getSectionId());
+                    int waitlisted = waitlistRecordRepository.countWaitlisted(section.getSectionId());
+                    int enrollCapacity = section.getEnrollCapacity();
+                    int waitlistCapacity = section.getWaitlistCapacity();
+
+                    System.out.println("    Enrollment: " + enrolled + "/" + enrollCapacity +
+                            " (Available: " + (enrollCapacity - enrolled) + ")");
+                    System.out.println("    Waitlist: " + waitlisted + "/" + waitlistCapacity +
+                            " (Available: " + Math.max(0, waitlistCapacity - waitlisted) + ")");
+                }
+            }
+
+            System.out.println();
+        }
+
+        System.out.println("==========================================\n");
+    }
+
+    private String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "N/A";
+        }
+        return String.format("%04d-%02d-%02d %02d:%02d",
+                dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth(),
+                dateTime.getHour(), dateTime.getMinute());
     }
 
     private void handleAddSection(List<String> args) {
@@ -372,6 +567,122 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("Timetable exported to " + outputPath);
     }
 
+    private void handleListPlans() {
+        Student student = requireStudent();
+        List<RegistrationPlan> plans = registrationPlanService.getPlanSet(student.getStudentId());
+        if (plans.isEmpty()) {
+            System.out.println("No plans found.");
+            return;
+        }
+
+        List<RegistrationPlan> sortedPlans = plans.stream()
+                .sorted((a, b) -> Integer.compare(a.getPriority(), b.getPriority()))
+                .collect(Collectors.toList());
+
+        for (RegistrationPlan plan : sortedPlans) {
+            int entryCount = plan.getEntries() == null ? 0 : plan.getEntries().size();
+            System.out.println(
+                    "planId=" + plan.getPlanId()
+                            + " | priority=" + plan.getPriority()
+                            + " | status=" + plan.getApplyStatus()
+                            + " | entries=" + entryCount
+                            + " | summary=" + valueOrDash(plan.getApplySummary()));
+            if (plan.getEntries() == null) {
+                continue;
+            }
+            for (PlanEntry entry : plan.getEntries()) {
+                Integer sectionId = entry.getSection() == null ? null : entry.getSection().getSectionId();
+                String sectionText = sectionId == null ? "-" : sectionId.toString();
+                System.out.println(
+                        "  entryId=" + entry.getEntryId()
+                                + " | sectionId=" + sectionText
+                                + " | type=" + entry.getEntryType()
+                                + " | status=" + entry.getStatus()
+                                + " | joinWaitlistOnAddFailure=" + entry.isJoinWaitlistOnAddFailure()
+                                + " | reason=" + valueOrDash(entry.getFailureReason()));
+            }
+        }
+    }
+
+    private void handleCreatePlan(List<String> args) {
+        Student student = requireStudent();
+        if (args.size() > 1) {
+            throw new IllegalArgumentException("Usage: create-plan [priority]");
+        }
+
+        Integer priority = args.isEmpty() ? null : parseInteger(args.get(0), "priority");
+        RegistrationPlan plan = registrationPlanService.createPlan(student.getStudentId(), priority);
+        System.out.println("Created plan " + plan.getPlanId() + " with priority=" + plan.getPriority());
+    }
+
+    private void handleRemovePlan(List<String> args) {
+        requireStudent();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: remove-plan <planId>");
+        }
+
+        int planId = parseInteger(args.get(0), "planId");
+        registrationPlanService.removePlan(planId);
+        System.out.println("Removed plan " + planId);
+    }
+
+    private void handleAddPlanEntry(List<String> args) {
+        requireStudent();
+        if (args.size() != 3 && args.size() != 4) {
+            throw new IllegalArgumentException("Usage: add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure]");
+        }
+
+        int planId = parseInteger(args.get(0), "planId");
+        int sectionId = parseInteger(args.get(1), "sectionId");
+
+        PlanEntry.EntryType entryType;
+        try {
+            entryType = PlanEntry.EntryType.valueOf(args.get(2).trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid entry type. Use SELECTED or WAITLIST");
+        }
+
+        boolean joinWaitlistOnAddFailure = args.size() == 4 && Boolean.parseBoolean(args.get(3));
+        PlanEntry created = registrationPlanService.addEntry(planId, sectionId, entryType, joinWaitlistOnAddFailure);
+        System.out.println("Added plan entry " + created.getEntryId());
+    }
+
+    private void handleRemovePlanEntry(List<String> args) {
+        requireStudent();
+        if (args.size() != 2) {
+            throw new IllegalArgumentException("Usage: remove-plan-entry <planId> <entryId>");
+        }
+
+        int planId = parseInteger(args.get(0), "planId");
+        int entryId = parseInteger(args.get(1), "entryId");
+        registrationPlanService.removeEntry(planId, entryId);
+        System.out.println("Removed plan entry " + entryId);
+    }
+
+    private void handleReorderPlans(List<String> args) {
+        Student student = requireStudent();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: reorder-plans <planIdCsv>");
+        }
+
+        String csv = args.get(0);
+        List<Integer> planIds = Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(value -> parseInteger(value, "planId"))
+                .collect(Collectors.toList());
+
+        if (planIds.isEmpty()) {
+            throw new IllegalArgumentException("planIdCsv must contain at least one planId");
+        }
+
+        List<RegistrationPlan> reordered = registrationPlanService.reorderPlans(student.getStudentId(), planIds);
+        System.out.println("Plans reordered.");
+        for (RegistrationPlan plan : reordered) {
+            System.out.println("planId=" + plan.getPlanId() + " | priority=" + plan.getPriority());
+        }
+    }
+
     private void handleAdminListUsers() {
         requireAdminSession();
         List<Admin> users = administrativeService.listUsers();
@@ -430,18 +741,190 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("Removed admin user " + staffId);
     }
 
-    private void handleAdminCreateCourse(List<String> args) {
+    private void handleAdminListStudents() {
         requireAdminSession();
-        AdminCourseRequest request = parseCourseRequest(args, true);
-        Course created = administrativeService.createCourse(request);
-        System.out.println("Created course " + created.getCourseCode());
+        List<Student> students = administrativeService.listStudents();
+        if (students.isEmpty()) {
+            System.out.println("No students found.");
+            return;
+        }
+        for (Student s : students) {
+            System.out.println(s.getStudentId() + " | " + s.getUserEID() + " | " + s.getUserName()
+                    + " | major=" + valueOrDash(s.getMajor())
+                    + " | dept=" + valueOrDash(s.getDepartment()));
+        }
+    }
+
+    private void handleAdminCreateStudent(List<String> args) {
+        requireAdminSession();
+        if (args.size() < 3) {
+            throw new IllegalArgumentException(
+                    "Usage: admin-create-student <userEID> <name> <password> [--major <major>] [--dept <dept>]");
+        }
+
+        List<String> positional = args.subList(0, 3);
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(3, args.size()));
+
+        StudentUserRequest request = new StudentUserRequest();
+        request.setUserEID(positional.get(0));
+        request.setName(positional.get(1));
+        request.setPassword(positional.get(2));
+        request.setMajor(options.get("major"));
+        request.setDepartment(options.get("dept"));
+
+        Student created = administrativeService.createStudent(request);
+        System.out.println("Created student with studentId=" + created.getStudentId());
+    }
+
+    private void handleAdminModifyStudent(List<String> args) {
+        requireAdminSession();
+        if (args.size() < 3) {
+            throw new IllegalArgumentException(
+                    "Usage: admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]");
+        }
+
+        int studentId = parseInteger(args.get(0), "studentId");
+
+        // Separate positional from option args (options start with --)
+        int optionStart = 1;
+        while (optionStart < args.size() && !args.get(optionStart).startsWith("--")) {
+            optionStart++;
+        }
+        List<String> positional = args.subList(1, optionStart);
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(optionStart, args.size()));
+
+        if (positional.size() < 2) {
+            throw new IllegalArgumentException(
+                    "Usage: admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]");
+        }
+
+        StudentUserRequest request = new StudentUserRequest();
+        request.setUserEID(positional.get(0));
+        request.setName(positional.get(1));
+        if (positional.size() >= 3) {
+            request.setPassword(positional.get(2));
+        }
+        request.setMajor(options.get("major"));
+        request.setDepartment(options.get("dept"));
+
+        Student updated = administrativeService.modifyStudent(studentId, request);
+        System.out.println("Updated student " + updated.getStudentId());
+    }
+
+    private void handleAdminRemoveStudent(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: admin-remove-student <studentId>");
+        }
+        int studentId = parseInteger(args.get(0), "studentId");
+        administrativeService.removeStudent(studentId);
+        System.out.println("Removed student " + studentId);
+    }
+
+    private void handleAdminListInstructors() {
+        requireAdminSession();
+        List<Instructor> instructors = administrativeService.listInstructors();
+        if (instructors.isEmpty()) {
+            System.out.println("No instructors found.");
+            return;
+        }
+        for (Instructor i : instructors) {
+            System.out.println(i.getStaffId() + " | " + i.getUserEID() + " | " + i.getUserName()
+                    + " | dept=" + valueOrDash(i.getDepartment()));
+        }
+    }
+
+    private void handleAdminCreateInstructor(List<String> args) {
+        requireAdminSession();
+        if (args.size() < 3) {
+            throw new IllegalArgumentException(
+                    "Usage: admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
+        }
+
+        List<String> positional = args.subList(0, 3);
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(3, args.size()));
+
+        InstructorUserRequest request = new InstructorUserRequest();
+        request.setUserEID(positional.get(0));
+        request.setName(positional.get(1));
+        request.setPassword(positional.get(2));
+        request.setDepartment(options.get("dept"));
+
+        Instructor created = administrativeService.createInstructor(request);
+        System.out.println("Created instructor with staffId=" + created.getStaffId());
+    }
+
+    private void handleAdminModifyInstructor(List<String> args) {
+        requireAdminSession();
+        if (args.size() < 3) {
+            throw new IllegalArgumentException(
+                    "Usage: admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
+        }
+
+        int staffId = parseInteger(args.get(0), "staffId");
+
+        int optionStart = 1;
+        while (optionStart < args.size() && !args.get(optionStart).startsWith("--")) {
+            optionStart++;
+        }
+        List<String> positional = args.subList(1, optionStart);
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(optionStart, args.size()));
+
+        if (positional.size() < 2) {
+            throw new IllegalArgumentException(
+                    "Usage: admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
+        }
+
+        InstructorUserRequest request = new InstructorUserRequest();
+        request.setUserEID(positional.get(0));
+        request.setName(positional.get(1));
+        if (positional.size() >= 3) {
+            request.setPassword(positional.get(2));
+        }
+        request.setDepartment(options.get("dept"));
+
+        Instructor updated = administrativeService.modifyInstructor(staffId, request);
+        System.out.println("Updated instructor " + updated.getStaffId());
+    }
+
+    private void handleAdminRemoveInstructor(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: admin-remove-instructor <staffId>");
+        }
+        int staffId = parseInteger(args.get(0), "staffId");
+        administrativeService.removeInstructor(staffId);
+        System.out.println("Removed instructor " + staffId);
+    }
+
+    private void handleAdminCreateCourse(List<String> args) {
+        handleAdminUpsertCourse(args, "admin-create-course");
     }
 
     private void handleAdminModifyCourse(List<String> args) {
+        // Backward-compatible alias for the combined upsert command.
+        handleAdminUpsertCourse(args, "admin-modify-course");
+    }
+
+    private void handleAdminUpsertCourse(List<String> args, String commandName) {
         requireAdminSession();
-        AdminCourseRequest request = parseCourseRequest(args, false);
-        Course updated = administrativeService.modifyCourse(request);
-        System.out.println("Updated course " + updated.getCourseCode());
+        Map<String, String> options = parseCourseOptions(args, commandName);
+
+        String code = options.get("code").trim();
+        boolean courseExists = courseService.getCourse(code) != null;
+        if (!courseExists) {
+            validateRequiredCreateCourseFields(options);
+        }
+
+        AdminCourseRequest request = buildCourseRequest(options);
+        if (courseExists) {
+            Course updated = administrativeService.modifyCourse(request);
+            System.out.println("Updated course " + updated.getCourseCode());
+            return;
+        }
+
+        Course created = administrativeService.createCourse(request);
+        System.out.println("Created course " + created.getCourseCode());
     }
 
     private void handleAdminRemoveCourse(List<String> args) {
@@ -452,6 +935,223 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
         administrativeService.removeCourse(args.get(0));
         System.out.println("Removed course " + args.get(0));
+    }
+
+    private void handleAdminListSections(List<String> args) {
+        requireAdminSession();
+        String courseCode = null;
+        if (!args.isEmpty()) {
+            Map<String, String> options = CliCommandParser.parseOptions(args);
+            Set<String> allowed = Set.of("course");
+            List<String> unknown = options.keySet().stream()
+                    .filter(key -> !allowed.contains(key))
+                    .sorted()
+                    .collect(Collectors.toList());
+            if (!unknown.isEmpty()) {
+                String unknownOptions = unknown.stream().map(key -> "--" + key).collect(Collectors.joining(", "));
+                throw new IllegalArgumentException("Unknown option(s) for admin-list-sections: " + unknownOptions);
+            }
+            courseCode = options.get("course");
+        }
+
+        List<Section> sections = administrativeService.listSections(courseCode);
+        if (sections.isEmpty()) {
+            System.out.println("No sections found.");
+            return;
+        }
+
+        for (Section section : sections) {
+            String code = section.getCourse() == null ? "-" : section.getCourse().getCourseCode();
+            String type = section.getType() == null ? "-" : section.getType().name();
+            String start = section.getStartTime() == null ? "-" : section.getStartTime().toString();
+            String end = section.getEndTime() == null ? "-" : section.getEndTime().toString();
+            String venue = section.getVenue() == null || section.getVenue().isBlank() ? "-" : section.getVenue();
+            String instructors = section.getInstructors() == null
+                    ? "-"
+                    : section.getInstructors().stream()
+                            .map(Instructor::getStaffId)
+                            .filter(java.util.Objects::nonNull)
+                            .sorted()
+                            .map(String::valueOf)
+                            .collect(Collectors.joining(","));
+            if (instructors.isBlank()) {
+                instructors = "-";
+            }
+
+            System.out.println(
+                    "sectionId=" + section.getSectionId()
+                            + " | course=" + code
+                            + " | type=" + type
+                            + " | start=" + start
+                            + " | end=" + end
+                            + " | enrollCap=" + section.getEnrollCapacity()
+                            + " | waitlistCap=" + section.getWaitlistCapacity()
+                            + " | venue=" + venue
+                            + " | instructors=" + instructors);
+        }
+    }
+
+    private void handleAdminCreateSection(List<String> args) {
+        requireAdminSession();
+        Map<String, String> options = parseSectionOptions(args, "admin-create-section");
+        validateRequiredCreateSectionFields(options);
+
+        AdminSectionService request = buildSectionRequest(options, false);
+        Section created = administrativeService.createSection(request);
+        System.out.println("Created section " + created.getSectionId());
+    }
+
+    private void handleAdminModifySection(List<String> args) {
+        requireAdminSession();
+        Map<String, String> options = parseSectionOptions(args, "admin-modify-section");
+
+        AdminSectionService request = buildSectionRequest(options, true);
+        if (request.getSectionId() == null) {
+            throw new IllegalArgumentException("--section-id is required");
+        }
+        Section updated = administrativeService.modifySection(request);
+        System.out.println("Updated section " + updated.getSectionId());
+    }
+
+    private void handleAdminRemoveSection(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: admin-remove-section <sectionId>");
+        }
+
+        int sectionId = parseInteger(args.get(0), "sectionId");
+        AdminSectionService request = new AdminSectionService();
+        request.setSectionId(sectionId);
+        administrativeService.deleteSection(request);
+        System.out.println("Removed section " + sectionId);
+    }
+
+    private Map<String, String> parseSectionOptions(List<String> args, String commandName) {
+        Map<String, String> options = CliCommandParser.parseOptions(args);
+        Set<String> allowed = Set.of(
+                "section-id",
+                "course",
+                "type",
+                "enroll-capacity",
+                "waitlist-capacity",
+                "start",
+                "end",
+                "venue",
+                "instructors");
+        List<String> unknown = options.keySet().stream()
+                .filter(key -> !allowed.contains(key))
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (!unknown.isEmpty()) {
+            String unknownOptions = unknown.stream().map(key -> "--" + key).collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Unknown option(s) for " + commandName + ": " + unknownOptions);
+        }
+
+        return options;
+    }
+
+    private void validateRequiredCreateSectionFields(Map<String, String> options) {
+        if (options.get("course") == null || options.get("course").isBlank()) {
+            throw new IllegalArgumentException("--course is required");
+        }
+        if (options.get("type") == null || options.get("type").isBlank()) {
+            throw new IllegalArgumentException("--type is required");
+        }
+        if (options.get("enroll-capacity") == null || options.get("enroll-capacity").isBlank()) {
+            throw new IllegalArgumentException("--enroll-capacity is required");
+        }
+        if (options.get("waitlist-capacity") == null || options.get("waitlist-capacity").isBlank()) {
+            throw new IllegalArgumentException("--waitlist-capacity is required");
+        }
+        if (options.get("start") == null || options.get("start").isBlank()) {
+            throw new IllegalArgumentException("--start is required");
+        }
+        if (options.get("end") == null || options.get("end").isBlank()) {
+            throw new IllegalArgumentException("--end is required");
+        }
+        if (options.get("venue") == null || options.get("venue").isBlank()) {
+            throw new IllegalArgumentException("--venue is required");
+        }
+    }
+
+    private AdminSectionService buildSectionRequest(Map<String, String> options, boolean allowPartial) {
+        AdminSectionService request = new AdminSectionService();
+
+        String sectionId = options.get("section-id");
+        if (sectionId != null && !sectionId.isBlank()) {
+            request.setSectionId(parseInteger(sectionId, "section-id"));
+        }
+
+        String courseCode = options.get("course");
+        if (courseCode != null && !courseCode.isBlank()) {
+            Course course = courseService.getCourse(courseCode.trim());
+            if (course == null) {
+                throw new IllegalArgumentException("Course not found: " + courseCode.trim());
+            }
+            request.setCourse(course);
+        }
+
+        String type = options.get("type");
+        if (type != null && !type.isBlank()) {
+            try {
+                request.setSectionType(Section.Type.valueOf(type.trim().toUpperCase()));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid section type. Use LECTURE, TUTORIAL, or LAB");
+            }
+        }
+
+        String enrollCapacity = options.get("enroll-capacity");
+        if (enrollCapacity != null && !enrollCapacity.isBlank()) {
+            request.setEnrollCapacity(parseInteger(enrollCapacity, "enroll-capacity"));
+        }
+
+        String waitlistCapacity = options.get("waitlist-capacity");
+        if (waitlistCapacity != null && !waitlistCapacity.isBlank()) {
+            request.setWaitlistCapacity(parseInteger(waitlistCapacity, "waitlist-capacity"));
+        }
+
+        String start = options.get("start");
+        if (start != null && !start.isBlank()) {
+            request.setStartTime(parseDateTime(start, "start"));
+        }
+
+        String end = options.get("end");
+        if (end != null && !end.isBlank()) {
+            request.setEndTime(parseDateTime(end, "end"));
+        }
+
+        String venue = options.get("venue");
+        if (venue != null) {
+            request.setVenue(venue);
+        }
+
+        String instructors = options.get("instructors");
+        if (instructors != null) {
+            request.setInstructorStaffIds(parseIntegerCsv(instructors, "instructors"));
+        } else if (!allowPartial) {
+            request.setInstructorStaffIds(Collections.emptySet());
+        }
+
+        return request;
+    }
+
+    private Set<Integer> parseIntegerCsv(String csv, String fieldName) {
+        if (csv == null || csv.isBlank()) {
+            return Collections.emptySet();
+        }
+
+        Set<Integer> values = Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(value -> parseInteger(value, fieldName))
+                .collect(Collectors.toSet());
+
+        if (values.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return values;
     }
 
     private void handleAdminListPeriods(List<String> args) {
@@ -521,28 +1221,38 @@ public class InteractiveCliRunner implements CommandLineRunner {
         }
     }
 
-    private AdminCourseRequest parseCourseRequest(List<String> args, boolean isCreate) {
+    private Map<String, String> parseCourseOptions(List<String> args, String commandName) {
         Map<String, String> options = CliCommandParser.parseOptions(args);
+        validateCourseOptions(options, commandName);
         String code = options.get("code");
 
         if (code == null || code.isBlank()) {
             throw new IllegalArgumentException("--code is required");
         }
 
+        return options;
+    }
+
+    private void validateRequiredCreateCourseFields(Map<String, String> options) {
+        String title = options.get("title");
+        String credits = options.get("credits");
+
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("--title is required when creating a new course");
+        }
+        if (credits == null || credits.isBlank()) {
+            throw new IllegalArgumentException("--credits is required when creating a new course");
+        }
+    }
+
+    private AdminCourseRequest buildCourseRequest(Map<String, String> options) {
+        String code = options.get("code");
+
         AdminCourseRequest request = new AdminCourseRequest();
         request.setCourseCode(code);
 
         String title = options.get("title");
         String credits = options.get("credits");
-
-        if (isCreate) {
-            if (title == null || title.isBlank()) {
-                throw new IllegalArgumentException("--title is required");
-            }
-            if (credits == null || credits.isBlank()) {
-                throw new IllegalArgumentException("--credits is required");
-            }
-        }
 
         if (title != null) {
             request.setTitle(title);
@@ -557,6 +1267,21 @@ public class InteractiveCliRunner implements CommandLineRunner {
         request.setExclusiveCourseCodes(splitCsv(options.get("exclusive")));
 
         return request;
+    }
+
+    private void validateCourseOptions(Map<String, String> options, String commandName) {
+        Set<String> allowed = Set.of("code", "title", "credits", "description", "prereq", "exclusive");
+        List<String> unknown = options.keySet().stream()
+                .filter(key -> !allowed.contains(key))
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (!unknown.isEmpty()) {
+            String unknownOptions = unknown.stream()
+                    .map(key -> "--" + key)
+                    .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Unknown option(s) for " + commandName + ": " + unknownOptions);
+        }
     }
 
     private Set<String> splitCsv(String csv) {
@@ -629,3 +1354,10 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
     
 }
+
+
+
+
+
+
+

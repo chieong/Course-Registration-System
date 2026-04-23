@@ -55,6 +55,33 @@ nav a:hover {
   margin-left: auto;
 }
 
+.nav-username {
+  color: #fff;
+  font-size: 14px;
+  opacity: 0.85;
+  margin-right: 8px;
+}
+
+.nav-logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.6);
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.nav-logout-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.nav-logout-form {
+  display: inline;
+}
+
 /* =========================
    GENERAL PAGE CONTAINER
 ========================= */

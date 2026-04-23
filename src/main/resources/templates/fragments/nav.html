@@ -1,16 +1,31 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <body>
         <nav th:fragment="nav">
             <a th:href="@{/}">Home</a>
-            <a th:href="@{/ViewMasterClassSchedule}">View Master Class Schedule</a> <!--/ViewMasterClassSchedule in the {} box is refering to java file-->
-            <a th:href="@{/timetable}">View Timetable</a>
-            <a th:href="@{/manageplan}">Manage Plan</a>
-            <a th:href="@{/ManageCourse}">Manage Course</a>
-            <a th:href="@{/ManageUser}">Manage User</a>
-            <a th:href="@{/studentlist}">View Student List</a>
+            <a th:href="@{/ViewMasterClassSchedule}"
+               sec:authorize="isAuthenticated()">View Master Class Schedule</a>
+            <a th:href="@{/timetable}"
+               sec:authorize="hasAnyRole('ADMIN','STUDENT','INSTRUCTOR')">View Timetable</a>
+            <a th:href="@{/manageplan}"
+               sec:authorize="hasAnyRole('ADMIN','STUDENT')">Manage Plan</a>
+            <a th:href="@{/ManageCourse}"
+               sec:authorize="hasRole('ADMIN')">Manage Course</a>
+            <a th:href="@{/ManageUser}"
+               sec:authorize="hasRole('ADMIN')">Manage User</a>
+            <a th:href="@{/studentlist}"
+               sec:authorize="hasAnyRole('ADMIN','INSTRUCTOR')">View Student List</a>
             <span class="nav-spacer"></span>
-            <a th:href="@{/login}">Log In</a>
+            <span sec:authorize="isAuthenticated()" class="nav-username">
+                <span sec:authentication="name"></span>
+            </span>
+            <form th:action="@{/logout}" method="post"
+                  sec:authorize="isAuthenticated()" class="nav-logout-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="nav-logout-btn">Log Out</button>
+            </form>
+            <a th:href="@{/login}" sec:authorize="!isAuthenticated()">Log In</a>
         </nav>
     </body>
 </html>

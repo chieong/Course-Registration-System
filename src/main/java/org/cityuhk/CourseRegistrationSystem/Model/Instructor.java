@@ -7,21 +7,25 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 
 @Entity
-public class Instructor extends User
-// implements IStaff, IAcademic
-{
+@Table(name = "instructor")
+public class Instructor extends User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer staffId;
 
     private String department;
+
+    protected Instructor() {
+        // Required by JPA for entity instantiation.
+    }
 
     @ManyToMany(mappedBy = "instructors")
     private Set<Section> sections = new HashSet<>();
@@ -33,10 +37,10 @@ public class Instructor extends User
     }
 
     public static class InstructorBuilder extends User.Builder<InstructorBuilder> {
-        private int staffId;
+        private Integer staffId;
         private String department;
 
-        public InstructorBuilder withStaffId(int staffId) {
+        public InstructorBuilder withStaffId(Integer staffId) {
             this.staffId = staffId;
             return self();
         }
@@ -52,7 +56,7 @@ public class Instructor extends User
         }
 
         @Override
-        public User build() {
+        public Instructor build() {
             return new Instructor(this);
         }
     }

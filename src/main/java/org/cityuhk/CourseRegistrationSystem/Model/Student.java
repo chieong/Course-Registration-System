@@ -47,6 +47,10 @@ public class Student extends User
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private Set<RegistrationPlan> registrationPlans = new HashSet<>();
 
+    protected Student() {
+        // Required by JPA for entity instantiation.
+    }
+
     public Student(StudentBuilder builder) {
         super(builder);
         this.studentId = builder.studentId;
@@ -61,7 +65,7 @@ public class Student extends User
     }
 
     public static class StudentBuilder extends User.Builder<StudentBuilder> {
-        private int studentId;
+        private Integer studentId;
         private int minSemesterCredit;
         private int maxSemesterCredit;
         private String major;
@@ -72,7 +76,7 @@ public class Student extends User
         // private Set<Course> completedCourses = new HashSet<>();
         // private Set<Section> enrolledSections = new HashSet<>();
 
-        public StudentBuilder withStudentId(int studentId) {
+        public StudentBuilder withStudentId(Integer studentId) {
             this.studentId = studentId;
             return self();
         }
