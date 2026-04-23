@@ -6,20 +6,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Set;
 
-
 public class TimetableData {
     private final Integer ownerId;
+    private final String ownerIdLabel;
     private final UserType userType;
     private final Set<Section> sections;
     private final DateTimeFormatter dayFormatter;
     private final DateTimeFormatter timeFormatter;
 
-    public enum UserType{
-        Student,Instructor
+    public enum UserType {
+        Student, Instructor
     }
 
     private TimetableData(Builder builder) {
         this.ownerId = builder.ownerId;
+        this.ownerIdLabel = builder.ownerIdLabel;
         this.userType = builder.userType;
         this.dayFormatter = builder.dayFormatter;
         this.timeFormatter = builder.timeFormatter;
@@ -30,6 +31,10 @@ public class TimetableData {
         return ownerId;
     }
 
+    public String getOwnerIdLabel() {
+        return ownerIdLabel;
+    }
+
     public UserType getUserType() {
         return userType;
     }
@@ -37,6 +42,7 @@ public class TimetableData {
     public Set<Section> getSections() {
         return sections;
     }
+
     public DateTimeFormatter getDayFormatter() {
         return dayFormatter;
     }
@@ -47,18 +53,17 @@ public class TimetableData {
 
     @Override
     public String toString() {
+        int count = (sections == null) ? 0 : sections.size();
         return "TimetableData{" +
                 "ownerId=" + ownerId +
-                ", recordCount=" + sections.size() +
+                ", userType=" + userType +
+                ", recordCount=" + count +
                 '}';
     }
 
-    /**
-     * Builder for flexible TimetableData construction.
-     * Follows the Builder pattern to handle multiple optional parameters.
-     */
     public static class Builder {
         private Integer ownerId;
+        private String ownerIdLabel = "Owner ID";
         private UserType userType;
         private Set<Section> sections;
         private DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
@@ -66,6 +71,11 @@ public class TimetableData {
 
         public Builder ownerId(Integer ownerId) {
             this.ownerId = Objects.requireNonNull(ownerId, "owner ID cannot be null");
+            return this;
+        }
+
+        public Builder ownerIdLabel(String ownerIdLabel) {
+            this.ownerIdLabel = Objects.requireNonNull(ownerIdLabel, "owner ID label cannot be null");
             return this;
         }
 
@@ -93,7 +103,7 @@ public class TimetableData {
             if (ownerId == null) {
                 throw new IllegalStateException("Owner ID is required");
             }
-            if(userType == null) {
+            if (userType == null) {
                 throw new IllegalStateException("UserType is required");
             }
             return new TimetableData(this);

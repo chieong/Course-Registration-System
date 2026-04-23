@@ -343,7 +343,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
             throw new IllegalArgumentException("Usage: export-timetable [outputPath]");
         }
 
-        Path generated = timetableService.exportTimetable(student.getStudentId());
+        Path generated = timetableService.exportStudentTimetable(student.getStudentId());
         Path outputPath;
         if (args.isEmpty()) {
             outputPath = Paths.get("student-" + student.getStudentId() + "-timetable.txt").toAbsolutePath();
