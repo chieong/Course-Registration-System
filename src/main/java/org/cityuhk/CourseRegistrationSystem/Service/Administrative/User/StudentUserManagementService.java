@@ -8,6 +8,7 @@ import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,12 +16,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class StudentUserManagementService implements StudentUserManagementOperations {
 
-    private final StudentRepository studentRepository;
+    private final StudentRepositoryPort studentRepository;
     private final PasswordEncoder passwordEncoder;
     private final GlobalUserEidUniquenessPolicy eidPolicy;
 
     public StudentUserManagementService(
-            StudentRepository studentRepository,
+            StudentRepositoryPort studentRepository,
             PasswordEncoder passwordEncoder,
             GlobalUserEidUniquenessPolicy eidPolicy) {
         this.studentRepository = studentRepository;

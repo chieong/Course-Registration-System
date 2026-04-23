@@ -7,7 +7,7 @@ import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,12 +15,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminUserManagementService implements AdminUserManagementOperations {
 
-    private final AdminRepository adminRepository;
+    private final AdminRepositoryPort adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final GlobalUserEidUniquenessPolicy eidPolicy;
 
     public AdminUserManagementService(
-            AdminRepository adminRepository,
+            AdminRepositoryPort adminRepository,
             PasswordEncoder passwordEncoder,
             GlobalUserEidUniquenessPolicy eidPolicy) {
         this.adminRepository = adminRepository;
