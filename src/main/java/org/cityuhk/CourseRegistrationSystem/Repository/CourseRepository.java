@@ -14,6 +14,13 @@ public interface CourseRepository extends JpaRepository<Course, Integer>, Course
 	@Query("select distinct c from Course c left join fetch c.sections")
 	List<Course> findAllWithSections();
 
+	@Query("select distinct c from Course c " +
+		   "left join fetch c.sections s " +
+		   "left join fetch s.instructors " +
+		   "left join fetch c.prerequisiteCourses " +
+		   "left join fetch c.exclusiveCourses")
+	List<Course> findAllWithAllData();
+
 	@Query("select case when count(c) > 0 then true else false end from Course c where c.courseCode = :courseCode")
 	boolean existsByCourseCode(String courseCode);
 

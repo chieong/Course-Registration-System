@@ -26,7 +26,9 @@ import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
@@ -55,6 +57,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;
     private final InstructorRepository instructorRepository;
+    private final RegistrationRecordRepository registrationRecordRepository;
+    private final WaitlistRecordRepository waitlistRecordRepository;
     private final PasswordEncoder passwordEncoder;
     private final CliSessionStore sessionStore;
 
@@ -70,6 +74,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
             AdminRepository adminRepository,
             StudentRepository studentRepository,
             InstructorRepository instructorRepository,
+            RegistrationRecordRepository registrationRecordRepository,
+            WaitlistRecordRepository waitlistRecordRepository,
             PasswordEncoder passwordEncoder,
             CliSessionStore sessionStore) {
         this.courseService = courseService;
@@ -80,6 +86,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.instructorRepository = instructorRepository;
+        this.registrationRecordRepository = registrationRecordRepository;
+        this.waitlistRecordRepository = waitlistRecordRepository;
         this.passwordEncoder = passwordEncoder;
         this.sessionStore = sessionStore;
     }
@@ -143,6 +151,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
                 return;
             case "list-courses":
                 handleListCourses();
+                return;
+            case "view-master-schedule":
+                handleViewMasterSchedule();
                 return;
             case "add-section":
                 handleAddSection(args);
@@ -261,6 +272,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  logout");
         System.out.println("  whoami");
         System.out.println("  list-courses");
+        System.out.println("  view-master-schedule");
         System.out.println("  add-section <sectionId>");
         System.out.println("  drop-section <sectionId>");
         System.out.println("  join-waitlist <sectionId>");
@@ -403,6 +415,97 @@ public class InteractiveCliRunner implements CommandLineRunner {
                             + course.getTitle() + " | credits=" + course.getCredits()
                             + " | sections=" + sectionCount);
         }
+    }
+
+    private void handleViewMasterSchedule() {
+        // Allow both Student and Admin to access
+        requireAuthenticated();
+
+        List<Course> courses = courseService.getAllCoursesWithAllData();
+        if (courses.isEmpty()) {
+            System.out.println("No courses found.");
+            return;
+        }
+
+        System.out.println("\n========== MASTER CLASS SCHEDULE ==========\n");
+
+        for (Course course : courses) {
+            // Print course header
+            System.out.println("COURSE: " + course.getCourseCode() + " - " + course.getTitle());
+            System.out.println("Credits: " + course.getCredits());
+
+            // Print description if available
+            if (course.getDescription() != null && !course.getDescription().isEmpty()) {
+                System.out.println("Description: " + course.getDescription());
+            }
+
+            // Print prerequisites if available
+            if (course.getPrerequisiteCourses() != null && !course.getPrerequisiteCourses().isEmpty()) {
+                String prereqs = course.getPrerequisiteCourses().stream()
+                        .map(Course::getCourseCode)
+                        .collect(Collectors.joining(", "));
+                System.out.println("Prerequisites: " + prereqs);
+            }
+
+            // Print exclusives if available
+            if (course.getExclusiveCourses() != null && !course.getExclusiveCourses().isEmpty()) {
+                String exclusives = course.getExclusiveCourses().stream()
+                        .map(Course::getCourseCode)
+                        .collect(Collectors.joining(", "));
+                System.out.println("Exclusive Courses: " + exclusives);
+            }
+
+            // Print sections
+            Set<Section> sections = course.getSections();
+            if (sections == null || sections.isEmpty()) {
+                System.out.println("  [No sections available]");
+            } else {
+                System.out.println("  Sections:");
+                for (Section section : sections) {
+                    System.out.println("    ─────────────────────────────────────────");
+                    System.out.println("    Section ID: " + section.getSectionId());
+                    System.out.println("    Type: " + (section.getType() != null ? section.getType() : "N/A"));
+                    System.out.println("    Time: " + formatDateTime(section.getStartTime()) + " to " +
+                            formatDateTime(section.getEndTime()));
+                    System.out.println("    Venue: " + (section.getVenue() != null ? section.getVenue() : "N/A"));
+
+                    // Print instructors
+                    Set<Instructor> instructors = section.getInstructors();
+                    if (instructors != null && !instructors.isEmpty()) {
+                        String instructorNames = instructors.stream()
+                                .map(Instructor::getUserName)
+                                .collect(Collectors.joining(", "));
+                        System.out.println("    Instructors: " + instructorNames);
+                    } else {
+                        System.out.println("    Instructors: N/A");
+                    }
+
+                    // Print enrollment information
+                    int enrolled = registrationRecordRepository.countEnrolled(section.getSectionId());
+                    int waitlisted = waitlistRecordRepository.countWaitlisted(section.getSectionId());
+                    int enrollCapacity = section.getEnrollCapacity();
+                    int waitlistCapacity = section.getWaitlistCapacity();
+
+                    System.out.println("    Enrollment: " + enrolled + "/" + enrollCapacity +
+                            " (Available: " + (enrollCapacity - enrolled) + ")");
+                    System.out.println("    Waitlist: " + waitlisted + "/" + waitlistCapacity +
+                            " (Available: " + Math.max(0, waitlistCapacity - waitlisted) + ")");
+                }
+            }
+
+            System.out.println();
+        }
+
+        System.out.println("==========================================\n");
+    }
+
+    private String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "N/A";
+        }
+        return String.format("%04d-%02d-%02d %02d:%02d",
+                dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth(),
+                dateTime.getHour(), dateTime.getMinute());
     }
 
     private void handleAddSection(List<String> args) {

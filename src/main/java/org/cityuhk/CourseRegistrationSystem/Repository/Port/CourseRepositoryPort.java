@@ -12,4 +12,5 @@ public interface CourseRepositoryPort {
     void delete(Course course);
     List<Course> findAll();
     List<Course> findAllWithSections();
+    List<Course> findAllWithAllData();
 }

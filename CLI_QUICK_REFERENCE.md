@@ -22,6 +22,7 @@ A local session file is saved at:
 
 ### Registration
 - `list-courses`
+- `view-master-schedule`
 - `add-section <sectionId>`
 - `drop-section <sectionId>`
 - `join-waitlist <sectionId>`
