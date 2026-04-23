@@ -67,6 +67,12 @@ public class RegistrationService {
             throw new RuntimeException("Already enrolled");
         }
 
+        for(RegistrationRecord record : registrationRecordRepository.findByStudentId(studentId)) {
+            if (record.hasTimeConflictWith(section)) {
+                throw new RuntimeException("Time conflict with existing section");
+            }
+        }
+
         int enrolled = registrationRecordRepository.countEnrolled(sectionId);
         if(section.isFull(enrolled)) {
             throw new RuntimeException("Section is already full");
@@ -94,6 +100,18 @@ public class RegistrationService {
 
         if (waitlistRecordRepository.exists(studentId,sectionId)) {
             throw new RuntimeException("Already waitlisted");
+        }
+
+        for(RegistrationRecord record : registrationRecordRepository.findByStudentId(studentId)) {
+            if (record.hasTimeConflictWith(section)) {
+                throw new RuntimeException("Time conflict with existing section");
+            }
+        }
+
+        for(WaitlistRecord record : waitlistRecordRepository.findByStudentId(studentId)) {
+            if (record.hasTimeConflictWith(section)) {
+                throw new RuntimeException("Time conflict with waitlisted section");
+            }
         }
 
         int waitlisted = waitlistRecordRepository.countWaitlisted(sectionId);

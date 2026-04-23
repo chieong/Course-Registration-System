@@ -60,4 +60,8 @@ public class WaitlistRecord implements Comparable<WaitlistRecord> {
     public LocalDateTime getEndTime() {
         return section != null ? section.getEndTime() : null;
     }
+
+    public boolean hasTimeConflictWith(Section section) {
+        return section.overlaps(this.section);
+    }
 }

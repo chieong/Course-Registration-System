@@ -182,6 +182,25 @@ public class RegistrationServiceTest {
     }
 
     @Test
+    void addSection_SectionOverlapping() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+        RegistrationRecord registrationRecord = mock(RegistrationRecord.class);
+
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
+        when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
+
+        when(registrationRecordRepository.findByStudentId(studentId)).thenReturn(List.of(registrationRecord));
+        when(registrationRecord.hasTimeConflictWith(section)).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.addSection(studentId, sectionId, timestamp));
+        assertEquals("Time conflict with existing section",exception.getMessage());
+    }
+
+    @Test
     void dropSection_Success() {
         Integer studentId = 1;
         Integer sectionId = 1;
