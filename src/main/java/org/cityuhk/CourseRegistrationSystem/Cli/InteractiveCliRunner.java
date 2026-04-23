@@ -23,11 +23,13 @@ import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
@@ -217,6 +219,18 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "admin-remove-course":
                 handleAdminRemoveCourse(args);
                 return;
+            case "admin-list-sections":
+                handleAdminListSections(args);
+                return;
+            case "admin-create-section":
+                handleAdminCreateSection(args);
+                return;
+            case "admin-modify-section":
+                handleAdminModifySection(args);
+                return;
+            case "admin-remove-section":
+                handleAdminRemoveSection(args);
+                return;
             case "admin-list-periods":
                 handleAdminListPeriods(args);
                 return;
@@ -270,9 +284,14 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
         System.out.println("  admin-remove-instructor <staffId>");
         System.out.println("  admin-create-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)");
+        System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (alias of admin-create-course)");
         System.out.println("  admin-remove-course <courseCode>");
+        System.out.println("  admin-list-sections [--course <courseCode>]");
+        System.out.println("  admin-create-section --course <courseCode> --type <LECTURE|TUTORIAL|LAB> --enroll-capacity <int> --waitlist-capacity <int> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm> --venue <venue> [--instructors <idCsv>]");
+        System.out.println("  admin-modify-section --section-id <id> [--course <courseCode>] [--type <LECTURE|TUTORIAL|LAB>] [--enroll-capacity <int>] [--waitlist-capacity <int>] [--start <yyyy-MM-ddTHH:mm>] [--end <yyyy-MM-ddTHH:mm>] [--venue <venue>] [--instructors <idCsv>]");
+        System.out.println("  admin-remove-section <sectionId>");
         System.out.println("  admin-list-periods [--cohort <cohort>]");
-        System.out.println("  admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
+        System.out.println("  admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
         System.out.println("  admin-delete-period <periodId>");
         System.out.println("Use double quotes for values with spaces.");
     }
@@ -805,6 +824,223 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("Removed course " + args.get(0));
     }
 
+    private void handleAdminListSections(List<String> args) {
+        requireAdminSession();
+        String courseCode = null;
+        if (!args.isEmpty()) {
+            Map<String, String> options = CliCommandParser.parseOptions(args);
+            Set<String> allowed = Set.of("course");
+            List<String> unknown = options.keySet().stream()
+                    .filter(key -> !allowed.contains(key))
+                    .sorted()
+                    .collect(Collectors.toList());
+            if (!unknown.isEmpty()) {
+                String unknownOptions = unknown.stream().map(key -> "--" + key).collect(Collectors.joining(", "));
+                throw new IllegalArgumentException("Unknown option(s) for admin-list-sections: " + unknownOptions);
+            }
+            courseCode = options.get("course");
+        }
+
+        List<Section> sections = administrativeService.listSections(courseCode);
+        if (sections.isEmpty()) {
+            System.out.println("No sections found.");
+            return;
+        }
+
+        for (Section section : sections) {
+            String code = section.getCourse() == null ? "-" : section.getCourse().getCourseCode();
+            String type = section.getType() == null ? "-" : section.getType().name();
+            String start = section.getStartTime() == null ? "-" : section.getStartTime().toString();
+            String end = section.getEndTime() == null ? "-" : section.getEndTime().toString();
+            String venue = section.getVenue() == null || section.getVenue().isBlank() ? "-" : section.getVenue();
+            String instructors = section.getInstructors() == null
+                    ? "-"
+                    : section.getInstructors().stream()
+                            .map(Instructor::getStaffId)
+                            .filter(java.util.Objects::nonNull)
+                            .sorted()
+                            .map(String::valueOf)
+                            .collect(Collectors.joining(","));
+            if (instructors.isBlank()) {
+                instructors = "-";
+            }
+
+            System.out.println(
+                    "sectionId=" + section.getSectionId()
+                            + " | course=" + code
+                            + " | type=" + type
+                            + " | start=" + start
+                            + " | end=" + end
+                            + " | enrollCap=" + section.getEnrollCapacity()
+                            + " | waitlistCap=" + section.getWaitlistCapacity()
+                            + " | venue=" + venue
+                            + " | instructors=" + instructors);
+        }
+    }
+
+    private void handleAdminCreateSection(List<String> args) {
+        requireAdminSession();
+        Map<String, String> options = parseSectionOptions(args, "admin-create-section");
+        validateRequiredCreateSectionFields(options);
+
+        AdminSectionService request = buildSectionRequest(options, false);
+        Section created = administrativeService.createSection(request);
+        System.out.println("Created section " + created.getSectionId());
+    }
+
+    private void handleAdminModifySection(List<String> args) {
+        requireAdminSession();
+        Map<String, String> options = parseSectionOptions(args, "admin-modify-section");
+
+        AdminSectionService request = buildSectionRequest(options, true);
+        if (request.getSectionId() == null) {
+            throw new IllegalArgumentException("--section-id is required");
+        }
+        Section updated = administrativeService.modifySection(request);
+        System.out.println("Updated section " + updated.getSectionId());
+    }
+
+    private void handleAdminRemoveSection(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: admin-remove-section <sectionId>");
+        }
+
+        int sectionId = parseInteger(args.get(0), "sectionId");
+        AdminSectionService request = new AdminSectionService();
+        request.setSectionId(sectionId);
+        administrativeService.deleteSection(request);
+        System.out.println("Removed section " + sectionId);
+    }
+
+    private Map<String, String> parseSectionOptions(List<String> args, String commandName) {
+        Map<String, String> options = CliCommandParser.parseOptions(args);
+        Set<String> allowed = Set.of(
+                "section-id",
+                "course",
+                "type",
+                "enroll-capacity",
+                "waitlist-capacity",
+                "start",
+                "end",
+                "venue",
+                "instructors");
+        List<String> unknown = options.keySet().stream()
+                .filter(key -> !allowed.contains(key))
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (!unknown.isEmpty()) {
+            String unknownOptions = unknown.stream().map(key -> "--" + key).collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Unknown option(s) for " + commandName + ": " + unknownOptions);
+        }
+
+        return options;
+    }
+
+    private void validateRequiredCreateSectionFields(Map<String, String> options) {
+        if (options.get("course") == null || options.get("course").isBlank()) {
+            throw new IllegalArgumentException("--course is required");
+        }
+        if (options.get("type") == null || options.get("type").isBlank()) {
+            throw new IllegalArgumentException("--type is required");
+        }
+        if (options.get("enroll-capacity") == null || options.get("enroll-capacity").isBlank()) {
+            throw new IllegalArgumentException("--enroll-capacity is required");
+        }
+        if (options.get("waitlist-capacity") == null || options.get("waitlist-capacity").isBlank()) {
+            throw new IllegalArgumentException("--waitlist-capacity is required");
+        }
+        if (options.get("start") == null || options.get("start").isBlank()) {
+            throw new IllegalArgumentException("--start is required");
+        }
+        if (options.get("end") == null || options.get("end").isBlank()) {
+            throw new IllegalArgumentException("--end is required");
+        }
+        if (options.get("venue") == null || options.get("venue").isBlank()) {
+            throw new IllegalArgumentException("--venue is required");
+        }
+    }
+
+    private AdminSectionService buildSectionRequest(Map<String, String> options, boolean allowPartial) {
+        AdminSectionService request = new AdminSectionService();
+
+        String sectionId = options.get("section-id");
+        if (sectionId != null && !sectionId.isBlank()) {
+            request.setSectionId(parseInteger(sectionId, "section-id"));
+        }
+
+        String courseCode = options.get("course");
+        if (courseCode != null && !courseCode.isBlank()) {
+            Course course = courseService.getCourse(courseCode.trim());
+            if (course == null) {
+                throw new IllegalArgumentException("Course not found: " + courseCode.trim());
+            }
+            request.setCourse(course);
+        }
+
+        String type = options.get("type");
+        if (type != null && !type.isBlank()) {
+            try {
+                request.setSectionType(Section.Type.valueOf(type.trim().toUpperCase()));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Invalid section type. Use LECTURE, TUTORIAL, or LAB");
+            }
+        }
+
+        String enrollCapacity = options.get("enroll-capacity");
+        if (enrollCapacity != null && !enrollCapacity.isBlank()) {
+            request.setEnrollCapacity(parseInteger(enrollCapacity, "enroll-capacity"));
+        }
+
+        String waitlistCapacity = options.get("waitlist-capacity");
+        if (waitlistCapacity != null && !waitlistCapacity.isBlank()) {
+            request.setWaitlistCapacity(parseInteger(waitlistCapacity, "waitlist-capacity"));
+        }
+
+        String start = options.get("start");
+        if (start != null && !start.isBlank()) {
+            request.setStartTime(parseDateTime(start, "start"));
+        }
+
+        String end = options.get("end");
+        if (end != null && !end.isBlank()) {
+            request.setEndTime(parseDateTime(end, "end"));
+        }
+
+        String venue = options.get("venue");
+        if (venue != null) {
+            request.setVenue(venue);
+        }
+
+        String instructors = options.get("instructors");
+        if (instructors != null) {
+            request.setInstructorStaffIds(parseIntegerCsv(instructors, "instructors"));
+        } else if (!allowPartial) {
+            request.setInstructorStaffIds(Collections.emptySet());
+        }
+
+        return request;
+    }
+
+    private Set<Integer> parseIntegerCsv(String csv, String fieldName) {
+        if (csv == null || csv.isBlank()) {
+            return Collections.emptySet();
+        }
+
+        Set<Integer> values = Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(value -> parseInteger(value, fieldName))
+                .collect(Collectors.toSet());
+
+        if (values.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return values;
+    }
+
     private void handleAdminListPeriods(List<String> args) {
         requireAdminSession();
         Integer cohort = null;
@@ -996,3 +1232,10 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
     
 }
+
+
+
+
+
+
+

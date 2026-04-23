@@ -100,7 +100,7 @@ public class AdministrativeService {
         this.periodValidator = periodValidator;
     }
 
-    // â”€â”€ Admin user operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ?€?€ Admin user operations ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
     @Transactional(readOnly = true)
     public List<Admin> listUsers() {
@@ -182,7 +182,7 @@ public class AdministrativeService {
         adminUserManagementService.removeUser(staffId);
     }
 
-    // â”€â”€ Student user operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ?€?€ Student user operations ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
     @Transactional(readOnly = true)
     public List<Student> listStudents() {
@@ -204,7 +204,7 @@ public class AdministrativeService {
         studentUserManagementService.removeStudent(studentId);
     }
 
-    // â”€â”€ Instructor user operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ?€?€ Instructor user operations ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
     @Transactional(readOnly = true)
     public List<Instructor> listInstructors() {
@@ -561,13 +561,18 @@ public class AdministrativeService {
         if (request.getSectionType() == null) {
             throw new RuntimeException("SectionType is required");
         }
+        if (request.getEnrollCapacity() == null) {
+            throw new RuntimeException("Enroll capacity is required");
+        }
+        if (request.getWaitlistCapacity() == null) {
+            throw new RuntimeException("Waitlist capacity is required");
+        }
         if (request.getStartTime() == null || request.getEndTime() == null) {
             throw new RuntimeException("Start and end time is required");
         }
         if (request.getVenue() == null || request.getVenue().isBlank()) {
             throw new RuntimeException("Venue is required");
         }
-
 
         Section newSection =
                 new Section(
@@ -577,6 +582,10 @@ public class AdministrativeService {
                         request.getStartTime(),
                         request.getEndTime(),
                         request.getVenue());
+        newSection.setType(request.getSectionType());
+        if (request.getInstructorStaffIds() != null) {
+            newSection.setInstructors(resolveInstructorIds(request.getInstructorStaffIds()));
+        }
 
         return sectionRepository.save(newSection);
     }
@@ -593,9 +602,6 @@ public class AdministrativeService {
 
         if (request.getCourse() != null) {
             existingSection.setCourse(request.getCourse());
-        }
-        if (request.getVenue() != null && !request.getVenue().isBlank()) {
-            existingSection.setVenue(request.getVenue());
         }
         if (request.getStartTime() != null) {
             existingSection.setTime(request.getStartTime(), existingSection.getEndTime());
@@ -615,6 +621,9 @@ public class AdministrativeService {
         if (request.getWaitlistCapacity() != null) {
             existingSection.setWaitlistCapacity(request.getWaitlistCapacity());
         }
+        if (request.getInstructorStaffIds() != null) {
+            existingSection.setInstructors(resolveInstructorIds(request.getInstructorStaffIds()));
+        }
         return sectionRepository.save(existingSection);
     }
 
@@ -627,6 +636,31 @@ public class AdministrativeService {
     }
 
     @Transactional(readOnly = true)
+    public List<Section> listSections(String courseCode) {
+        List<Section> all = sectionRepository.findAll();
+        if (courseCode == null || courseCode.isBlank()) {
+            return all;
+        }
+        String normalized = courseCode.trim();
+        return all.stream()
+                .filter(s -> s.getCourse() != null && normalized.equals(s.getCourse().getCourseCode()))
+                .toList();
+    }
+
+    private Set<Instructor> resolveInstructorIds(Set<Integer> instructorIds) {
+        Set<Instructor> resolved = new HashSet<>();
+        for (Integer id : instructorIds) {
+            if (id == null) {
+                continue;
+            }
+            Instructor instructor = instructorRepository
+                    .findById(id)
+                    .orElseThrow(() -> new RuntimeException("Instructor not found: " + id));
+            resolved.add(instructor);
+        }
+        return resolved;
+    }
+@Transactional(readOnly = true)
     public List<RegistrationPeriod> listRegistrationPeriods(Integer cohort) {
         if (cohort != null) {
             return registrationPeriodRepository.findByCohortOrderByStartDateTime(cohort);
@@ -678,4 +712,5 @@ public class AdministrativeService {
         section.removeInstructor(instructor);
     }
 }
+
 
