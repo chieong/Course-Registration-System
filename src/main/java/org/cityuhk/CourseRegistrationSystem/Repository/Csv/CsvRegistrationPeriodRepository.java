@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class CsvRegistrationPeriodRepository implements RegistrationPeriodRepositoryPort {
 
     static final String FILE = "registration_periods.csv";
-    static final String[] HEADER = {"periodId", "cohort", "startDateTime", "endDateTime", "term"};
+    static final String[] HEADER = {"periodId", "cohort", "startDateTime", "endDateTime"};
 
     private final CsvFileStore store;
     private final CsvIdGenerator idGen;
@@ -29,14 +29,13 @@ public class CsvRegistrationPeriodRepository implements RegistrationPeriodReposi
     private List<RegistrationPeriod> loadAll() {
         List<RegistrationPeriod> periods = new ArrayList<>();
         for (String[] row : store.readRows(FILE)) {
-            if (row.length < 5) continue;
+            if (row.length < 4) continue;
             try {
                 RegistrationPeriod rp = new RegistrationPeriod();
                 rp.setPeriodId(Integer.parseInt(row[0]));
                 rp.setCohort(Integer.parseInt(row[1]));
                 rp.setStartDateTime(row[2].isBlank() ? null : LocalDateTime.parse(row[2]));
                 rp.setEndDateTime(row[3].isBlank() ? null : LocalDateTime.parse(row[3]));
-                rp.setTerm(row[4]);
                 periods.add(rp);
             } catch (Exception ignored) {
             }
@@ -49,8 +48,7 @@ public class CsvRegistrationPeriodRepository implements RegistrationPeriodReposi
                 String.valueOf(p.getPeriodId()),
                 String.valueOf(p.getCohort()),
                 p.getStartDateTime() == null ? "" : p.getStartDateTime().toString(),
-                p.getEndDateTime() == null ? "" : p.getEndDateTime().toString(),
-                safe(p.getTerm())
+                p.getEndDateTime() == null ? "" : p.getEndDateTime().toString()
         }).collect(Collectors.toList());
         store.writeRows(FILE, HEADER, rows);
     }

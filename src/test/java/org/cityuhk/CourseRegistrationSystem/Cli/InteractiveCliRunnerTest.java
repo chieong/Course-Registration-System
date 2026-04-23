@@ -139,12 +139,11 @@ class InteractiveCliRunnerTest {
         return student;
     }
 
-private Course mockCourse(String code, String title, int credits, String term, int sectionCount) {
+private Course mockCourse(String code, String title, int credits, int sectionCount) {
     Course course = mock(Course.class);
     lenient().when(course.getCourseCode()).thenReturn(code);
     lenient().when(course.getTitle()).thenReturn(title);
     lenient().when(course.getCredits()).thenReturn(credits);
-    lenient().when(course.getTerm()).thenReturn(term);
 
     if (sectionCount < 0) {
         lenient().when(course.getSections()).thenReturn(null);
@@ -159,11 +158,10 @@ private Course mockCourse(String code, String title, int credits, String term, i
     return course;
 }
 
-    private RegistrationPeriod mockPeriod(int id, int cohort, String term, LocalDateTime start, LocalDateTime end) {
+    private RegistrationPeriod mockPeriod(int id, int cohort, LocalDateTime start, LocalDateTime end) {
         RegistrationPeriod period = mock(RegistrationPeriod.class);
         when(period.getPeriodId()).thenReturn(id);
         when(period.getCohort()).thenReturn(cohort);
-        when(period.getTerm()).thenReturn(term);
         when(period.getStartDateTime()).thenReturn(start);
         when(period.getEndDateTime()).thenReturn(end);
         return period;
@@ -355,15 +353,15 @@ private Course mockCourse(String code, String title, int credits, String term, i
 
         outContent.reset();
 
-        Course c1 = mockCourse("CS101", "Intro Programming", 3, "", 2); // term blank => '-'
-        Course c2 = mockCourse("CS102", "Data Structures", 4, "Semester A", -1); // sections null => 0
+        Course c1 = mockCourse("CS101", "Intro Programming", 3, 2);
+        Course c2 = mockCourse("CS102", "Data Structures", 4, -1);
         when(courseService.getAllCourses()).thenReturn(List.of(c1, c2));
 
         invokeHandleLine("list-courses");
 
         String out = output();
-        assertTrue(out.contains("CS101 | Intro Programming | credits=3 | term=- | sections=2"));
-        assertTrue(out.contains("CS102 | Data Structures | credits=4 | term=Semester A | sections=0"));
+        assertTrue(out.contains("CS101 | Intro Programming | credits=3 | sections=2"));
+        assertTrue(out.contains("CS102 | Data Structures | credits=4 | sections=0"));
     }
 
     // ---------------------------
@@ -542,14 +540,14 @@ private Course mockCourse(String code, String title, int credits, String term, i
     void adminCourseCommands_shouldCreateModifyAndRemoveCourse() {
         setAdminSession("admin1");
 
-        Course created = mockCourse("CS211", "OOP", 3, "A", 1);
-        Course updated = mockCourse("CS211", "Advanced OOP", 4, "B", 2);
+        Course created = mockCourse("CS211", "OOP", 3, 1);
+        Course updated = mockCourse("CS211", "Advanced OOP", 4, 2);
 
         when(administrativeService.createCourse(any(AdminCourseRequest.class))).thenReturn(created);
         when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-        invokeHandleLine("admin-create-course --code CS211 --title \"Object Oriented Programming\" --credits 3 --term \"Semester A\" --description \"core subject\" --prereq \"CS101,CS102\" --exclusive \"CS999, CS998\"");
-        invokeHandleLine("admin-modify-course --code CS211 --title \"Advanced OOP\" --credits 4 --term \"Semester B\" --description \"updated\" --prereq \"CS101\" --exclusive \"CS998\"");
+        invokeHandleLine("admin-create-course --code CS211 --title \"Object Oriented Programming\" --credits 3 --description \"core subject\" --prereq \"CS101,CS102\" --exclusive \"CS999, CS998\"");
+        invokeHandleLine("admin-modify-course --code CS211 --title \"Advanced OOP\" --credits 4 --description \"updated\" --prereq \"CS101\" --exclusive \"CS998\"");
         invokeHandleLine("admin-remove-course CS211");
 
         String out = output();
@@ -563,7 +561,6 @@ private Course mockCourse(String code, String title, int credits, String term, i
         assertEquals("CS211", createReq.getCourseCode());
         assertEquals("Object Oriented Programming", createReq.getTitle());
         assertEquals(3, createReq.getCredits());
-        assertEquals("Semester A", createReq.getTerm());
         assertEquals("core subject", createReq.getDescription());
         assertEquals(Set.of("CS101", "CS102"), createReq.getPrerequisiteCourseCodes());
         assertEquals(Set.of("CS999", "CS998"), createReq.getExclusiveCourseCodes());
@@ -574,7 +571,6 @@ private Course mockCourse(String code, String title, int credits, String term, i
         assertEquals("CS211", modifyReq.getCourseCode());
         assertEquals("Advanced OOP", modifyReq.getTitle());
         assertEquals(4, modifyReq.getCredits());
-        assertEquals("Semester B", modifyReq.getTerm());
         assertEquals("updated", modifyReq.getDescription());
         assertEquals(Set.of("CS101"), modifyReq.getPrerequisiteCourseCodes());
         assertEquals(Set.of("CS998"), modifyReq.getExclusiveCourseCodes());
@@ -614,26 +610,26 @@ private Course mockCourse(String code, String title, int credits, String term, i
         setAdminSession("admin1");
 
         RegistrationPeriod p1 = mockPeriod(
-                1, 2024, "", 
-                LocalDateTime.of(2025, 1, 1, 9, 0),
-                LocalDateTime.of(2025, 1, 10, 18, 0));
+            1, 2024,
+            LocalDateTime.of(2025, 1, 1, 9, 0),
+            LocalDateTime.of(2025, 1, 10, 18, 0));
 
         RegistrationPeriod p2 = mockPeriod(
-                2, 2025, "Semester B",
-                LocalDateTime.of(2025, 2, 1, 9, 0),
-                LocalDateTime.of(2025, 2, 10, 18, 0));
+            2, 2025,
+            LocalDateTime.of(2025, 2, 1, 9, 0),
+            LocalDateTime.of(2025, 2, 10, 18, 0));
 
         when(administrativeService.listRegistrationPeriods(2024)).thenReturn(List.of(p1));
         when(administrativeService.listRegistrationPeriods(null)).thenReturn(List.of(p1, p2));
 
         invokeHandleLine("admin-list-periods --cohort 2024");
         invokeHandleLine("admin-list-periods");
-        invokeHandleLine("admin-create-period --cohort 2025 --term \"Semester B\" --start 2025-02-01T09:00 --end 2025-02-10T18:00");
+        invokeHandleLine("admin-create-period --cohort 2025 --start 2025-02-01T09:00 --end 2025-02-10T18:00");
         invokeHandleLine("admin-delete-period 2");
 
         String out = output();
-        assertTrue(out.contains("1 | cohort=2024 | term=- | 2025-01-01T09:00 -> 2025-01-10T18:00"));
-        assertTrue(out.contains("2 | cohort=2025 | term=Semester B | 2025-02-01T09:00 -> 2025-02-10T18:00"));
+        assertTrue(out.contains("1 | cohort=2024 | 2025-01-01T09:00 -> 2025-01-10T18:00"));
+        assertTrue(out.contains("2 | cohort=2025 | 2025-02-01T09:00 -> 2025-02-10T18:00"));
         assertTrue(out.contains("Registration period created."));
         assertTrue(out.contains("Registration period 2 deleted."));
 
@@ -641,7 +637,6 @@ private Course mockCourse(String code, String title, int credits, String term, i
         verify(administrativeService).createRegistrationPeriod(captor.capture());
         AdminPeriodRequest req = captor.getValue();
         assertEquals(2025, req.getCohort());
-        assertEquals("Semester B", req.getTerm());
         assertEquals(LocalDateTime.of(2025, 2, 1, 9, 0), req.getStartDate());
         assertEquals(LocalDateTime.of(2025, 2, 10, 18, 0), req.getEndDate());
     }
@@ -659,23 +654,19 @@ private Course mockCourse(String code, String title, int credits, String term, i
         assertTrue(ex1.getMessage().contains("Invalid integer for cohort"));
 
         Exception ex2 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --term T --start 2025-01-01T09:00 --end 2025-01-02T09:00"));
+                () -> invokeHandleLine("admin-create-period --start 2025-01-01T09:00 --end 2025-01-02T09:00"));
         assertTrue(ex2.getMessage().contains("Usage: admin-create-period"));
 
-        Exception ex3 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --start 2025-01-01T09:00 --end 2025-01-02T09:00"));
-        assertTrue(ex3.getMessage().contains("Usage: admin-create-period"));
-
         Exception ex4 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --term T --end 2025-01-02T09:00"));
+                () -> invokeHandleLine("admin-create-period --cohort 2024 --end 2025-01-02T09:00"));
         assertTrue(ex4.getMessage().contains("Usage: admin-create-period"));
 
         Exception ex5 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --term T --start 2025-01-01T09:00"));
+                () -> invokeHandleLine("admin-create-period --cohort 2024 --start 2025-01-01T09:00"));
         assertTrue(ex5.getMessage().contains("Usage: admin-create-period"));
 
         Exception ex6 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --term T --start bad-date --end 2025-01-02T09:00"));
+                () -> invokeHandleLine("admin-create-period --cohort 2024 --start bad-date --end 2025-01-02T09:00"));
         assertTrue(ex6.getMessage().contains("Invalid date-time for start"));
 
         Exception ex7 = assertThrows(Exception.class,
@@ -739,7 +730,7 @@ void adminRemoveUser_shouldThrowWhenArgumentCountIsWrong() {
 void adminModifyCourse_shouldCoverSplitCsvNullBranch() {
     setAdminSession("admin1");
 
-    Course updated = mockCourse("CS100", "Title", 3, "A", 0);
+    Course updated = mockCourse("CS100", "Title", 3, 0);
     when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
     invokeHandleLine("admin-modify-course --code CS100 --title \"New Title\"");
@@ -755,7 +746,7 @@ void adminModifyCourse_shouldCoverSplitCsvNullBranch() {
 void adminModifyCourse_shouldCoverSplitCsvEmptySetBranch() {
     setAdminSession("admin1");
 
-    Course updated = mockCourse("CS101", "Title", 3, "A", 0);
+    Course updated = mockCourse("CS101", "Title", 3, 0);
     when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
     invokeHandleLine("admin-modify-course --code CS101 --prereq \" , , \" --exclusive \" , , \"");

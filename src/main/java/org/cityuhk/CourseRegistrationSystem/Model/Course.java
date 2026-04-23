@@ -47,8 +47,6 @@ public class Course { // for creating a course
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<Section> sections = new HashSet<>();
 
-    private String term;
-
     public Course() {}
 
     /** Constructor without a generated ID; used in tests and ad-hoc construction. */
@@ -57,7 +55,6 @@ public class Course { // for creating a course
             String title,
             int credits,
             String description,
-            String term,
             Set<Course> prerequisiteCourses,
             Set<Course> exclusiveCourses,
             Set<Section> sections) {
@@ -65,7 +62,6 @@ public class Course { // for creating a course
         this.title = title;
         this.credits = credits;
         this.description = description;
-        this.term = term;
         this.prerequisiteCourses = prerequisiteCourses != null ? new HashSet<>(prerequisiteCourses) : new HashSet<>();
         this.exclusiveCourses = exclusiveCourses != null ? new HashSet<>(exclusiveCourses) : new HashSet<>();
         this.sections = sections != null ? new HashSet<>(sections) : new HashSet<>();
@@ -134,14 +130,6 @@ public class Course { // for creating a course
 
     public void setSections(Set<Section> sections) {
         this.sections = sections != null ? sections : new HashSet<>();
-    }
-
-    public String getTerm() {
-        return term;
-    }
-
-    public void setTerm(String term) {
-        this.term = term;
     }
 
     public boolean satisfyPrerequisites(Set<Course> enrolledCourses) {

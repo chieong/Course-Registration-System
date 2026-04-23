@@ -35,8 +35,8 @@ class SectionServiceTest {
 
     @Test
     void getAllSections_ReturnsRepositoryListInSameOrder() {
-        Course c1 = new Course("CS101", "Intro CS", 3, "Basics", "2026A", Set.of(), Set.of(), Set.of());
-        Course c2 = new Course("CS102", "Data Structures", 3, "Core", "2026A", Set.of(), Set.of(), Set.of());
+        Course c1 = new Course("CS101", "Intro CS", 3, "Basics", Set.of(), Set.of(), Set.of());
+        Course c2 = new Course("CS102", "Data Structures", 3, "Core", Set.of(), Set.of(), Set.of());
         Section s1 = new Section(c1, 50, 10, LocalDateTime.of(2026, 9, 1, 9, 0), LocalDateTime.of(2026, 9, 1, 10, 50), "Y123");
         Section s2 = new Section(c2, 40, 8, LocalDateTime.of(2026, 9, 2, 11, 0), LocalDateTime.of(2026, 9, 2, 12, 50), "Y456");
         List<Section> expected = List.of(s1, s2);

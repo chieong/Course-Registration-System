@@ -30,23 +30,22 @@ public class RegistrationPlanRestController {
         this.registrationPlanService = registrationPlanService;
     }
 
-    @GetMapping("/{studentId}/{term}")
-    public ResponseEntity<?> getPlanSet(@PathVariable Integer studentId, @PathVariable String term) {
+    @GetMapping("/{studentId}")
+    public ResponseEntity<?> getPlanSet(@PathVariable Integer studentId) {
         try {
-            List<RegistrationPlan> plans = registrationPlanService.getPlanSet(studentId, term);
+            List<RegistrationPlan> plans = registrationPlanService.getPlanSet(studentId);
             return ResponseEntity.ok(plans);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
-    @PostMapping("/{studentId}/{term}")
+    @PostMapping("/{studentId}")
     public ResponseEntity<?> createPlan(@PathVariable Integer studentId,
-                                        @PathVariable String term,
                                         @RequestBody(required = false) PlanCreateRequest request) {
         try {
             Integer requestedPriority = request != null ? request.getPriority() : null;
-            RegistrationPlan created = registrationPlanService.createPlan(studentId, term, requestedPriority);
+            RegistrationPlan created = registrationPlanService.createPlan(studentId, requestedPriority);
             return ResponseEntity.ok(created);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -94,15 +93,14 @@ public class RegistrationPlanRestController {
         }
     }
 
-    @PutMapping("/{studentId}/{term}/reorder")
+    @PutMapping("/{studentId}/reorder")
     public ResponseEntity<?> reorder(@PathVariable Integer studentId,
-                                     @PathVariable String term,
                                      @RequestBody PlanReorderRequest request) {
         try {
             if (request.getOrderedPlanIds() == null || request.getOrderedPlanIds().isEmpty()) {
                 throw new RuntimeException("orderedPlanIds is required");
             }
-            List<RegistrationPlan> reordered = registrationPlanService.reorderPlans(studentId, term, request.getOrderedPlanIds());
+            List<RegistrationPlan> reordered = registrationPlanService.reorderPlans(studentId, request.getOrderedPlanIds());
             return ResponseEntity.ok(reordered);
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());

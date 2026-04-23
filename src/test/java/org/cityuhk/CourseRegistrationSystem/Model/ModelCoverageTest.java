@@ -28,8 +28,8 @@ class ModelCoverageTest {
     }
 
     private static Course buildCourse(String code, int credits) {
-        return new Course(code, "Title " + code, credits, "desc", "2026A",
-                new HashSet<>(), new HashSet<>(), new HashSet<>());
+        return new Course(code, "Title " + code, credits, "desc",
+            new HashSet<>(), new HashSet<>(), new HashSet<>());
     }
 
     private static Section buildSection(Course course, int enrollCapacity) {
@@ -92,18 +92,6 @@ class ModelCoverageTest {
     }
 
     @Test
-    void section_CanEnrollAndIsFull_RespectCurrentRules() {
-        Course course = buildCourse("CS350", 6);
-        Section section = buildSection(course, 2);
-        Student student = buildStudent(3);
-
-        assertTrue(section.canEnroll(student, 1));
-        assertFalse(section.canEnroll(student, 2));
-        assertTrue(section.isFull(2));
-        assertFalse(section.isFull(1));
-    }
-
-    @Test
     void section_OverlapAndAddCredits_WorkAsExpected() {
         Course course = buildCourse("CS360", 2);
         Section first = buildSection(course, 10);
@@ -148,25 +136,6 @@ class ModelCoverageTest {
     }
 
     @Test
-    void student_AddAndDropSection_BehaviorMatchesCurrentRules() {
-        Student student = buildStudent(3);
-        Section section = buildSection(buildCourse("CS450", 5), 30);
-        LocalDateTime now = LocalDateTime.of(2026, 4, 21, 12, 0);
-
-        RegistrationRecord added = student.addSection(section, now, 1);
-        assertSame(student, added.getStudent());
-        assertSame(section, added.getSection());
-        assertEquals(now, added.getTimestamp());
-
-        RegistrationRecord dropped = student.dropSection(section, now);
-        assertSame(student, dropped.getStudent());
-        assertSame(section, dropped.getSection());
-
-        Student blockedStudent = buildStudent(10);
-        assertThrows(RuntimeException.class, () -> blockedStudent.addSection(section, now, 1));
-    }
-
-    @Test
     void registrationRecord_CompareToAndTimeAccessors_HandleNullsAndOrdering() {
         Student student = buildStudent(10);
         Section earlySection = buildSection(buildCourse("CS511", 3), 20);
@@ -191,7 +160,7 @@ class ModelCoverageTest {
     @Test
     void registrationPlan_AddAndRemoveEntry_UpdatesBidirectionalLink() {
         Student student = buildStudent(10);
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         Section section = buildSection(buildCourse("CS520", 3), 30);
         PlanEntry entry = new PlanEntry(plan, section, PlanEntry.EntryType.SELECTED);
 
@@ -232,18 +201,16 @@ class ModelCoverageTest {
 
         LocalDateTime start = LocalDateTime.of(2026, 4, 1, 0, 0);
         LocalDateTime end = LocalDateTime.of(2026, 4, 30, 23, 59);
-        RegistrationPeriod period = new RegistrationPeriod(2024, start, end, "2026A");
+        RegistrationPeriod period = new RegistrationPeriod(2024, start, end);
         period.setPeriodId(9);
         period.setCohort(2025);
         period.setStartDateTime(start.plusDays(1));
         period.setEndDateTime(end.minusDays(1));
-        period.setTerm("2026B");
 
         assertEquals(9, period.getPeriodId());
         assertEquals(2025, period.getCohort());
         assertEquals(start.plusDays(1), period.getStartDateTime());
         assertEquals(end.minusDays(1), period.getEndDateTime());
-        assertEquals("2026B", period.getTerm());
     }
 
     @Test

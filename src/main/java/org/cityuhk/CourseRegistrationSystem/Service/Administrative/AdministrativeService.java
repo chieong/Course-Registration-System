@@ -162,7 +162,6 @@ public class AdministrativeService {
                         request.getTitle().trim(),
                         request.getCredits(),
                         request.getDescription(),
-                        request.getTerm(),
                         prerequisites,
                         exclusives,
                         null);
@@ -201,9 +200,6 @@ public class AdministrativeService {
         }
         if (request.getDescription() != null) {
             existingCourse.setDescription(request.getDescription());
-        }
-        if (request.getTerm() != null) {
-            existingCourse.setTerm(request.getTerm());
         }
         if (request.getCredits() > 0) {
             existingCourse.setCredits(request.getCredits());
@@ -356,7 +352,7 @@ public class AdministrativeService {
         periodValidator.validate(request);
         RegistrationPeriod newRegistrationPeriod =
                 new RegistrationPeriod(
-                        request.getCohort(), request.getStartDate(), request.getEndDate(), request.getTerm());
+                        request.getCohort(), request.getStartDate(), request.getEndDate());
         return registrationPeriodRepository.save(newRegistrationPeriod);
     }
 

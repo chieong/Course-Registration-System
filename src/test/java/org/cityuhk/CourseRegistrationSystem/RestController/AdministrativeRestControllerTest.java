@@ -41,7 +41,7 @@ class AdministrativeRestControllerTest {
     void setUp() {
         LocalDateTime start = LocalDateTime.of(2026, 9, 1, 0, 0);
         LocalDateTime end = LocalDateTime.of(2026, 11, 30, 23, 59);
-        period = new RegistrationPeriod(2024, start, end, "2026A");
+        period = new RegistrationPeriod(2024, start, end);
         period.setPeriodId(1);
     }
 
@@ -70,7 +70,6 @@ class AdministrativeRestControllerTest {
     void createPeriod_success_returnsUpdatedList() {
         AdminPeriodRequest req = new AdminPeriodRequest();
         req.setCohort(2024);
-        req.setTerm("2026A");
         req.setStartDate(LocalDateTime.of(2026, 9, 1, 0, 0));
         req.setEndDate(LocalDateTime.of(2026, 11, 30, 23, 59));
 

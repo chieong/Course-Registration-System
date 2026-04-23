@@ -36,7 +36,7 @@ class CsvRegistrationPlanRepositoryTest {
     }
 
     private RegistrationPlan buildPlan(int priority) {
-        return new RegistrationPlan(student, "2026A", priority);
+        return new RegistrationPlan(student, priority);
     }
 
     @Test

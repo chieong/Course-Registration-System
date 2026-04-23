@@ -31,7 +31,7 @@ class CsvSectionRepositoryTest {
         courseRepo = new CsvCourseRepository(store, idGen);
         repo = new CsvSectionRepository(store, idGen, courseRepo);
 
-        Course c = new Course("CS101", "Intro CS", 3, "desc", "2026A",
+        Course c = new Course("CS101", "Intro CS", 3, "desc",
                 new java.util.HashSet<>(), new java.util.HashSet<>(), null);
         savedCourse = courseRepo.save(c);
     }

@@ -67,8 +67,8 @@ class AdministrativeServiceTest {
         courseReq.setCredits(3);
 
         admin = new Admin.AdminBuilder().withStaffId(1).withUserEID("EID123").withName("Test").withPassword("enc").build();
-        course = new Course("CS101", "Intro CS", 3, null, null, Set.of(), Set.of(), null);
-        prereqCourse = new Course("CS102", "Prereq CS", 3, null, null, Set.of(), Set.of(), null);
+        course = new Course("CS101", "Intro CS", 3, null, Set.of(), Set.of(), null);
+        prereqCourse = new Course("CS102", "Prereq CS", 3, null, Set.of(), Set.of(), null);
     }
 
     @Test
@@ -232,7 +232,7 @@ class AdministrativeServiceTest {
     @Test
     void modifyCourse_duplicateNewCode_throws() {
         courseReq.setCourseCode("CS999");
-        Course cs101 = new Course("CS101", "Old Title", 3, null, null, Set.of(), Set.of(), null);
+        Course cs101 = new Course("CS101", "Old Title", 3, null, Set.of(), Set.of(), null);
         when(courseRepository.findByCourseCode("CS999")).thenReturn(Optional.of(cs101));
         when(courseRepository.existsByCourseCode("CS999")).thenReturn(true);
         assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
@@ -243,7 +243,7 @@ class AdministrativeServiceTest {
         // newCourseCode differs from existingCourse.getCourseCode() and does NOT already exist
         courseReq.setCourseCode("CS999");
         courseReq.setTitle(null);   // also covers title==null branch
-        Course cs101 = new Course("CS101", "Old Title", 3, null, null, Set.of(), Set.of(), null);
+        Course cs101 = new Course("CS101", "Old Title", 3, null, Set.of(), Set.of(), null);
         when(courseRepository.findByCourseCode("CS999")).thenReturn(Optional.of(cs101));
         when(courseRepository.existsByCourseCode("CS999")).thenReturn(false);
         when(courseRepository.save(any())).thenReturn(cs101);
@@ -289,14 +289,6 @@ class AdministrativeServiceTest {
     void modifyCourse_descriptionUpdated_success() {
         when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
         courseReq.setDescription("New desc");
-        when(courseRepository.save(any())).thenReturn(course);
-        assertNotNull(service.modifyCourse(courseReq));
-    }
-
-    @Test
-    void modifyCourse_termUpdated_success() {
-        when(courseRepository.findByCourseCode(anyString())).thenReturn(Optional.of(course));
-        courseReq.setTerm("2026A");
         when(courseRepository.save(any())).thenReturn(course);
         assertNotNull(service.modifyCourse(courseReq));
     }
@@ -615,7 +607,7 @@ class AdministrativeServiceTest {
         LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
         Section existing = new Section(course, 50, 10, start, end, "Y101");
         existing.setSectionId(10);
-        Course newCourse = new Course("CS200", "Algorithms", 3, null, "2026A", Set.of(), Set.of(), Set.of());
+        Course newCourse = new Course("CS200", "Algorithms", 3, null, Set.of(), Set.of(), Set.of());
 
         AdminSectionService req = new AdminSectionService();
         req.setSectionId(10);
@@ -746,12 +738,11 @@ class AdministrativeServiceTest {
     void createRegistrationPeriod_success() {
         AdminPeriodRequest req = new AdminPeriodRequest();
         req.setCohort(2024);
-        req.setTerm("2026A");
         LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
         LocalDateTime end   = LocalDateTime.of(2026, 11, 30, 23, 59);
         req.setStartDate(start);
         req.setEndDate(end);
-        RegistrationPeriod saved = new RegistrationPeriod(2024, start, end, "2026A");
+        RegistrationPeriod saved = new RegistrationPeriod(2024, start, end);
         when(registrationPeriodRepository.save(any(RegistrationPeriod.class))).thenReturn(saved);
 
         service.createRegistrationPeriod(req);
@@ -763,7 +754,6 @@ class AdministrativeServiceTest {
     void createRegistrationPeriod_endBeforeStart_throws() {
         AdminPeriodRequest req = new AdminPeriodRequest();
         req.setCohort(2024);
-        req.setTerm("2026A");
         req.setStartDate(LocalDateTime.of(2026, 12, 1, 0, 0));
         req.setEndDate(LocalDateTime.of(2026, 9, 1, 0, 0));
         doThrow(new RegistrationPeriodValidationException("Start date must be before end date"))
@@ -772,20 +762,9 @@ class AdministrativeServiceTest {
     }
 
     @Test
-    void createRegistrationPeriod_blankTerm_throws() {
-        AdminPeriodRequest req = new AdminPeriodRequest();
-        req.setCohort(2024);
-        req.setTerm("");
-        doThrow(new RegistrationPeriodValidationException("Term is required"))
-                .when(periodValidator).validate(req);
-        assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
-    }
-
-    @Test
     void createRegistrationPeriod_overlap_throws() {
         AdminPeriodRequest req = new AdminPeriodRequest();
         req.setCohort(2024);
-        req.setTerm("2026A");
         req.setStartDate(LocalDateTime.of(2026, 9, 1, 0, 0));
         req.setEndDate(LocalDateTime.of(2026, 11, 30, 23, 59));
         doThrow(new RegistrationPeriodOverlapException("Period overlaps with an existing period for cohort 2024"))
@@ -819,8 +798,8 @@ class AdministrativeServiceTest {
     void listRegistrationPeriods_allCohorts_returnsSortedList() {
         LocalDateTime s1 = LocalDateTime.of(2026, 9, 1, 0, 0);
         LocalDateTime e1 = LocalDateTime.of(2026, 11, 30, 23, 59);
-        RegistrationPeriod p1 = new RegistrationPeriod(2024, s1, e1, "2026A");
-        RegistrationPeriod p2 = new RegistrationPeriod(2023, s1, e1, "2026A");
+        RegistrationPeriod p1 = new RegistrationPeriod(2024, s1, e1);
+        RegistrationPeriod p2 = new RegistrationPeriod(2023, s1, e1);
         when(registrationPeriodRepository.findAllOrderByCohortAndStartDateTime())
                 .thenReturn(List.of(p2, p1));
 
@@ -834,7 +813,7 @@ class AdministrativeServiceTest {
     void listRegistrationPeriods_byCohort_returnsCohortPeriods() {
         LocalDateTime s1 = LocalDateTime.of(2026, 9, 1, 0, 0);
         LocalDateTime e1 = LocalDateTime.of(2026, 11, 30, 23, 59);
-        RegistrationPeriod p = new RegistrationPeriod(2024, s1, e1, "2026A");
+        RegistrationPeriod p = new RegistrationPeriod(2024, s1, e1);
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024))
                 .thenReturn(List.of(p));
 

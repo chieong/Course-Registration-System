@@ -84,23 +84,22 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.save(any(RegistrationPlan.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        RegistrationPlan created = registrationPlanService.createPlan(1, "2026A", null);
+        RegistrationPlan created = registrationPlanService.createPlan(1, null);
 
         assertEquals(3, created.getPriority());
         assertEquals(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED, created.getApplyStatus());
         assertEquals("Awaiting period start", created.getApplySummary());
         assertSame(student, created.getStudent());
-        assertEquals("2026A", created.getTerm());
     }
 
     @Test
     void getPlanSet_ReturnsPlansFromRepository() {
-        RegistrationPlan p1 = new RegistrationPlan(student, "2026A", 1);
-        RegistrationPlan p2 = new RegistrationPlan(student, "2026A", 2);
-        when(registrationPlanRepository.findByStudentIdAndTermOrderByPriority(1, "2026A"))
+        RegistrationPlan p1 = new RegistrationPlan(student, 1);
+        RegistrationPlan p2 = new RegistrationPlan(student, 2);
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
                 .thenReturn(List.of(p1, p2));
 
-        List<RegistrationPlan> found = registrationPlanService.getPlanSet(1, "2026A");
+        List<RegistrationPlan> found = registrationPlanService.getPlanSet(1);
 
         assertEquals(2, found.size());
         assertSame(p1, found.get(0));
@@ -112,7 +111,7 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(999)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(999, "2026A", 1));
+                () -> registrationPlanService.createPlan(999, 1));
 
         assertEquals("Student not found", ex.getMessage());
     }
@@ -125,7 +124,7 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(10L);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, "2026A", null));
+                () -> registrationPlanService.createPlan(1, null));
 
         assertEquals("Maximum 10 plans allowed per term", ex.getMessage());
     }
@@ -138,7 +137,7 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(0L);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, "2026A", 0));
+                () -> registrationPlanService.createPlan(1, 0));
 
         assertEquals("Priority must be between 1 and 10", ex.getMessage());
     }
@@ -151,7 +150,7 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(0L);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, "2026A", 11));
+                () -> registrationPlanService.createPlan(1, 11));
 
         assertEquals("Priority must be between 1 and 10", ex.getMessage());
     }
@@ -165,7 +164,7 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.existsByStudentIdAndTermAndPriority(1, 2)).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, "2026A", 2));
+                () -> registrationPlanService.createPlan(1, 2));
 
         assertEquals("Priority slot already in use", ex.getMessage());
     }
@@ -180,7 +179,7 @@ class RegistrationPlanServiceTest {
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of(configured));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, "2026A", 1));
+                () -> registrationPlanService.createPlan(1, 1));
 
         assertEquals("Plans cannot be edited after period start", ex.getMessage());
     }
@@ -197,10 +196,9 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.existsByStudentIdAndTermAndPriority(1, 1)).thenReturn(false);
         when(registrationPlanRepository.save(any(RegistrationPlan.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RegistrationPlan created = registrationPlanService.createPlan(1, "2026A", 1);
+        RegistrationPlan created = registrationPlanService.createPlan(1, 1);
 
         assertEquals(1, created.getPriority());
-        assertEquals("2026A", created.getTerm());
     }
 
     @Test
@@ -210,71 +208,9 @@ class RegistrationPlanServiceTest {
                 .thenReturn(Optional.of(new org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod()));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, "2026A", 1));
+                () -> registrationPlanService.createPlan(1, 1));
 
         assertEquals("Plans are read-only during active registration period", ex.getMessage());
-    }
-
-    @Test
-    void addEntry_WhenSectionTermDiffersFromPlan_ThrowsBusinessError() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
-        plan.setPlanId(10);
-
-        Course course = new Course("CS201", "Algo", 3, "", "2026B", Set.of(), Set.of(), Set.of());
-        Section section = new Section();
-        section.setSectionId(20);
-        section.setCourse(course);
-
-        when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(plan));
-        when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
-        when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(sectionRepository.findById(20)).thenReturn(Optional.of(section));
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.addEntry(10, 20, PlanEntry.EntryType.SELECTED, true));
-
-        assertEquals("Section term does not match plan term", ex.getMessage());
-    }
-
-    @Test
-    void addEntry_WhenSectionHasNoCourse_ThrowsBusinessError() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
-        plan.setPlanId(10);
-
-        Section section = new Section();
-        section.setSectionId(20);
-        section.setCourse(null);
-
-        when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(plan));
-        when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
-        when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(sectionRepository.findById(20)).thenReturn(Optional.of(section));
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.addEntry(10, 20, PlanEntry.EntryType.SELECTED, false));
-
-        assertEquals("Section term does not match plan term", ex.getMessage());
-    }
-
-    @Test
-    void addEntry_WhenCourseTermIsNull_ThrowsBusinessError() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
-        plan.setPlanId(10);
-
-        Course course = new Course("CS201", "Algo", 3, "", null, Set.of(), Set.of(), Set.of());
-        Section section = new Section();
-        section.setSectionId(20);
-        section.setCourse(course);
-
-        when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(plan));
-        when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
-        when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(sectionRepository.findById(20)).thenReturn(Optional.of(section));
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.addEntry(10, 20, PlanEntry.EntryType.SELECTED, false));
-
-        assertEquals("Section term does not match plan term", ex.getMessage());
     }
 
     @Test
@@ -289,7 +225,7 @@ class RegistrationPlanServiceTest {
 
     @Test
     void addEntry_WhenSectionNotFound_ThrowsError() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(10);
 
         when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(plan));
@@ -305,10 +241,10 @@ class RegistrationPlanServiceTest {
 
     @Test
     void addEntry_WhenDuplicateSectionExists_RejectsEntryByValueEquality() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(10);
 
-        Course course = new Course("CS200", "Course", 3, "", "2026A", Set.of(), Set.of(), Set.of());
+        Course course = new Course("CS200", "Course", 3, "", Set.of(), Set.of(), Set.of());
         Section existingSection = new Section();
         existingSection.setSectionId(200);
         existingSection.setCourse(course);
@@ -335,7 +271,7 @@ class RegistrationPlanServiceTest {
 
     @Test
     void addEntry_WhenExistingEntryHasNullSection_AllowsNonDuplicateInsert() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(10);
 
         PlanEntry existingEntry = new PlanEntry();
@@ -343,7 +279,7 @@ class RegistrationPlanServiceTest {
         existingEntry.setEntryType(PlanEntry.EntryType.SELECTED);
         plan.addEntry(existingEntry);
 
-        Course course = new Course("CS220", "Course", 3, "", "2026A", Set.of(), Set.of(), Set.of());
+        Course course = new Course("CS220", "Course", 3, "", Set.of(), Set.of(), Set.of());
         Section incomingSection = new Section();
         incomingSection.setSectionId(220);
         incomingSection.setCourse(course);
@@ -362,10 +298,10 @@ class RegistrationPlanServiceTest {
 
     @Test
     void addEntry_WhenExistingEntryHasDifferentSection_AllowsInsert() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(10);
 
-        Course course = new Course("CS230", "Course", 3, "", "2026A", Set.of(), Set.of(), Set.of());
+        Course course = new Course("CS230", "Course", 3, "", Set.of(), Set.of(), Set.of());
         Section existingSection = new Section();
         existingSection.setSectionId(230);
         existingSection.setCourse(course);
@@ -392,10 +328,10 @@ class RegistrationPlanServiceTest {
 
     @Test
     void addEntry_WhenValid_AddsPendingEntryAndPersistsPlan() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(10);
 
-        Course course = new Course("CS201", "Algo", 3, "", "2026A", Set.of(), Set.of(), Set.of());
+        Course course = new Course("CS201", "Algo", 3, "", Set.of(), Set.of(), Set.of());
         Section section = new Section();
         section.setSectionId(20);
         section.setCourse(course);
@@ -426,7 +362,7 @@ class RegistrationPlanServiceTest {
 
     @Test
     void removePlan_WhenPlanExistsAndEditable_DeletesPlan() {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(10);
 
         when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(plan));
@@ -440,9 +376,9 @@ class RegistrationPlanServiceTest {
 
     @Test
     void reorderPlans_UsesProvidedOrderAndCompactsPriorities() {
-        RegistrationPlan first = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan first = new RegistrationPlan(student, 1);
         first.setPlanId(11);
-        RegistrationPlan second = new RegistrationPlan(student, "2026A", 2);
+        RegistrationPlan second = new RegistrationPlan(student, 2);
         second.setPlanId(22);
 
         List<RegistrationPlan> existing = new ArrayList<>(List.of(first, second));
@@ -450,10 +386,10 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.findByStudentIdAndTermOrderByPriority(1, "2026A")).thenReturn(existing);
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1)).thenReturn(existing);
         when(registrationPlanRepository.saveAll(any(List.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<RegistrationPlan> reordered = registrationPlanService.reorderPlans(1, "2026A", List.of(22, 11));
+        List<RegistrationPlan> reordered = registrationPlanService.reorderPlans(1, List.of(22, 11));
 
         assertEquals(2, reordered.size());
         assertEquals(2, first.getPriority());
@@ -466,45 +402,45 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> registrationPlanService.reorderPlans(1, "2026A", List.of(1, 2)));
+            () -> registrationPlanService.reorderPlans(1, List.of(1, 2)));
 
         assertEquals("Student not found", ex.getMessage());
         }
 
         @Test
         void reorderPlans_WhenListSizeMismatch_ThrowsError() {
-        RegistrationPlan first = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan first = new RegistrationPlan(student, 1);
         first.setPlanId(11);
-        RegistrationPlan second = new RegistrationPlan(student, "2026A", 2);
+        RegistrationPlan second = new RegistrationPlan(student, 2);
         second.setPlanId(22);
 
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.findByStudentIdAndTermOrderByPriority(1, "2026A"))
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
             .thenReturn(List.of(first, second));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> registrationPlanService.reorderPlans(1, "2026A", List.of(11)));
+            () -> registrationPlanService.reorderPlans(1, List.of(11)));
 
         assertEquals("Reorder list size mismatch", ex.getMessage());
         }
 
         @Test
         void reorderPlans_WhenListMissesPlans_ThrowsError() {
-        RegistrationPlan first = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan first = new RegistrationPlan(student, 1);
         first.setPlanId(11);
-        RegistrationPlan second = new RegistrationPlan(student, "2026A", 2);
+        RegistrationPlan second = new RegistrationPlan(student, 2);
         second.setPlanId(22);
 
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.findByStudentIdAndTermOrderByPriority(1, "2026A"))
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
             .thenReturn(List.of(first, second));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-            () -> registrationPlanService.reorderPlans(1, "2026A", List.of(11, 99)));
+            () -> registrationPlanService.reorderPlans(1, List.of(11, 99)));
 
         assertTrue(ex.getMessage().contains("Reorder list missing plans"));
         assertTrue(ex.getMessage().contains("22"));
@@ -512,28 +448,28 @@ class RegistrationPlanServiceTest {
 
     @Test
     void reorderPlans_WhenUnknownPlanIdBypassesMissingCheck_ThrowsInvalidIdInFirstPass() {
-        RegistrationPlan first = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan first = new RegistrationPlan(student, 1);
         first.setPlanId(11);
-        RegistrationPlan duplicate = new RegistrationPlan(student, "2026A", 2);
+        RegistrationPlan duplicate = new RegistrationPlan(student, 2);
         duplicate.setPlanId(11);
 
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.findByStudentIdAndTermOrderByPriority(1, "2026A"))
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
                 .thenReturn(new ArrayList<>(List.of(first, duplicate)));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.reorderPlans(1, "2026A", List.of(11, 99)));
+                () -> registrationPlanService.reorderPlans(1, List.of(11, 99)));
 
         assertTrue(ex.getMessage().contains("Invalid plan ID in reorder list: 99"));
     }
 
     @Test
     void reorderPlans_WhenSaveAllMutatesExisting_ThrowsInvalidIdInSecondPass() {
-        RegistrationPlan first = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan first = new RegistrationPlan(student, 1);
         first.setPlanId(11);
-        RegistrationPlan second = new RegistrationPlan(student, "2026A", 2);
+        RegistrationPlan second = new RegistrationPlan(student, 2);
         second.setPlanId(22);
 
         ArrayList<RegistrationPlan> existing = new ArrayList<>(List.of(first, second));
@@ -542,7 +478,7 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.findByStudentIdAndTermOrderByPriority(1, "2026A")).thenReturn(existing);
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1)).thenReturn(existing);
         when(registrationPlanRepository.saveAll(any(List.class))).thenAnswer(invocation -> {
             List<RegistrationPlan> saved = invocation.getArgument(0);
             if (saveAllCalls.getAndIncrement() == 0) {
@@ -552,17 +488,17 @@ class RegistrationPlanServiceTest {
         });
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.reorderPlans(1, "2026A", List.of(11, 22)));
+                () -> registrationPlanService.reorderPlans(1, List.of(11, 22)));
 
         assertTrue(ex.getMessage().contains("Invalid plan ID in reorder list: 22"));
     }
 
     @Test
     void removeEntry_WhenEntryBelongsToOtherPlan_ThrowsBusinessError() {
-        RegistrationPlan ownerPlan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan ownerPlan = new RegistrationPlan(student, 1);
         ownerPlan.setPlanId(10);
 
-        RegistrationPlan otherPlan = new RegistrationPlan(student, "2026A", 2);
+        RegistrationPlan otherPlan = new RegistrationPlan(student, 2);
         otherPlan.setPlanId(99);
 
         PlanEntry entry = new PlanEntry();
@@ -592,7 +528,7 @@ class RegistrationPlanServiceTest {
 
     @Test
     void removeEntry_WhenEntryNotFound_ThrowsError() {
-        RegistrationPlan ownerPlan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan ownerPlan = new RegistrationPlan(student, 1);
         ownerPlan.setPlanId(10);
 
         when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(ownerPlan));
@@ -608,7 +544,7 @@ class RegistrationPlanServiceTest {
 
     @Test
     void removeEntry_WhenValid_RemovesEntryAndSavesPlan() {
-        RegistrationPlan ownerPlan = new RegistrationPlan(student, "2026A", 1);
+        RegistrationPlan ownerPlan = new RegistrationPlan(student, 1);
         ownerPlan.setPlanId(10);
 
         PlanEntry entry = new PlanEntry();

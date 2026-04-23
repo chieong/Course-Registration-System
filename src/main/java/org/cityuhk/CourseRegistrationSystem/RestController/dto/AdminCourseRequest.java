@@ -9,7 +9,6 @@ public class AdminCourseRequest {
     private String title;
     private int credits;
     private String description;
-    private String term;
     private Set<String> prerequisiteCourseCodes;
     private Set<String> exclusiveCourseCodes;
 
@@ -43,14 +42,6 @@ public class AdminCourseRequest {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getTerm() {
-        return term;
-    }
-
-    public void setTerm(String term) {
-        this.term = term;
     }
 
     public Set<String> getPrerequisiteCourseCodes() {

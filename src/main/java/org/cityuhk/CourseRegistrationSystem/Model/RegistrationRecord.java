@@ -79,4 +79,8 @@ public class RegistrationRecord implements Comparable<RegistrationRecord> {
     public Course getCourse() {
         return section != null ? section.getCourse() : null;
     }
+    public boolean hasTimeConflictWith(Section section) {
+        return this.section.overlaps(section); 
+      
+    }
 }

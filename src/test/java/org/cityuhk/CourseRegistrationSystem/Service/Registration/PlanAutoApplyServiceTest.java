@@ -228,7 +228,7 @@ class PlanAutoApplyServiceTest {
     }
 
     private RegistrationPlan buildPlan(int planId, int priority, PlanEntry... entries) {
-        RegistrationPlan plan = new RegistrationPlan(student, "2026A", priority);
+        RegistrationPlan plan = new RegistrationPlan(student, priority);
         plan.setPlanId(planId);
         plan.setApplyStatus(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED);
 
@@ -240,7 +240,7 @@ class PlanAutoApplyServiceTest {
     }
 
     private PlanEntry buildSelectedEntry(int sectionId, boolean joinWaitlistOnFailure) {
-        Course course = new Course("CS" + sectionId, "Course " + sectionId, 3, "", "2026A", Set.of(), Set.of(), Set.of());
+        Course course = new Course("CS" + sectionId, "Course " + sectionId, 3, "", Set.of(), Set.of(), Set.of());
         Section section = new Section();
         section.setSectionId(sectionId);
         section.setCourse(course);
@@ -254,7 +254,7 @@ class PlanAutoApplyServiceTest {
     }
 
     private RegistrationRecord buildRecord(int sectionId) {
-        Course course = new Course("CS" + sectionId, "Course " + sectionId, 3, "", "2026A", Set.of(), Set.of(), Set.of());
+        Course course = new Course("CS" + sectionId, "Course " + sectionId, 3, "", Set.of(), Set.of(), Set.of());
         Section section = new Section();
         section.setSectionId(sectionId);
         section.setCourse(course);

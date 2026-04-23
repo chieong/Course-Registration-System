@@ -46,7 +46,7 @@ class CsvRegistrationRecordRepositoryTest {
                 .withMajor("CS").withCohort(2024).withDepartment("CS").withMaxDegreeCredit(120)
                 .build());
 
-        Course course = courseRepo.save(new Course("CS101", "Intro CS", 3, null, "2026A",
+        Course course = courseRepo.save(new Course("CS101", "Intro CS", 3, null,
                 new java.util.HashSet<>(), new java.util.HashSet<>(), null));
         section = new Section();
         section.setSectionId(0);

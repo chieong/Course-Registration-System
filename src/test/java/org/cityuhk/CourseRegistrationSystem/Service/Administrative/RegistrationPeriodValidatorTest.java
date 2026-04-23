@@ -35,7 +35,6 @@ class RegistrationPeriodValidatorTest {
     void setUp() {
         validRequest = new AdminPeriodRequest();
         validRequest.setCohort(2024);
-        validRequest.setTerm("2026A");
         validRequest.setStartDate(LocalDateTime.of(2026, 9, 1, 0, 0));
         validRequest.setEndDate(LocalDateTime.of(2026, 11, 30, 23, 59));
     }
@@ -43,18 +42,6 @@ class RegistrationPeriodValidatorTest {
     @Test
     void validate_nullCohort_throws() {
         validRequest.setCohort(null);
-        assertThrows(RegistrationPeriodValidationException.class, () -> validator.validate(validRequest));
-    }
-
-    @Test
-    void validate_nullTerm_throws() {
-        validRequest.setTerm(null);
-        assertThrows(RegistrationPeriodValidationException.class, () -> validator.validate(validRequest));
-    }
-
-    @Test
-    void validate_blankTerm_throws() {
-        validRequest.setTerm("   ");
         assertThrows(RegistrationPeriodValidationException.class, () -> validator.validate(validRequest));
     }
 
@@ -89,7 +76,7 @@ class RegistrationPeriodValidatorTest {
     void validate_overlap_throws() {
         LocalDateTime s = LocalDateTime.of(2026, 9, 1, 0, 0);
         LocalDateTime e = LocalDateTime.of(2026, 11, 30, 23, 59);
-        RegistrationPeriod existing = new RegistrationPeriod(2024, s, e, "2026A");
+        RegistrationPeriod existing = new RegistrationPeriod(2024, s, e);
         when(registrationPeriodRepository.findOverlappingPeriods(anyInt(), any(), any()))
                 .thenReturn(List.of(existing));
         assertThrows(RegistrationPeriodOverlapException.class, () -> validator.validate(validRequest));

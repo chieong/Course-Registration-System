@@ -31,7 +31,7 @@ public class RegistrationService {
     private final RegistrationRecordRepositoryPort registrationRecordRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
     private final WaitlistRecordRepository waitlistRecordRepository;
-    private final List<SectionVacancyObserver> observers = new ArrayList<>();
+    private List<SectionVacancyObserver> observers = new ArrayList<>();
 
     @Autowired
     public RegistrationService(
@@ -58,8 +58,7 @@ public class RegistrationService {
                         .findById(sectionId)
                         .orElseThrow(() -> new RuntimeException("Section not found"));
 
-        List<Integer> eligibleCohorts =
-                registrationPeriodRepository.getActiveCohortByTime(LocalDateTime.now());
+        List<Integer> eligibleCohorts = registrationPeriodRepository.getActiveCohortByTime(LocalDateTime.now());
         if (!eligibleCohorts.contains(student.getCohort())) {
             throw new RuntimeException("Student not eligible to register");
         }
@@ -68,8 +67,20 @@ public class RegistrationService {
             throw new RuntimeException("Already enrolled");
         }
 
+        for(RegistrationRecord record : registrationRecordRepository.findByStudentId(studentId)) {
+            if (record.hasTimeConflictWith(section)) {
+                throw new RuntimeException("Time conflict with existing section");
+            }
+        }
+
         int enrolled = registrationRecordRepository.countEnrolled(sectionId);
-        registrationRecordRepository.save(student.addSection(section, timestamp, enrolled));
+        if(section.isFull(enrolled)) {
+            throw new RuntimeException("Section is already full");
+        }
+
+        section.assertEnroll(student);
+        registrationRecordRepository.save(new RegistrationRecord(student,section,timestamp));
+
     }
 
     public void waitListSection(Integer studentId, Integer sectionId, LocalDateTime timestamp) {
@@ -83,12 +94,33 @@ public class RegistrationService {
             throw new RuntimeException("Student not eligible to register");
         }
 
+        if (registrationRecordRepository.exists(studentId, sectionId)) {
+            throw new RuntimeException("Already enrolled");
+        }
+
         if (waitlistRecordRepository.exists(studentId,sectionId)) {
             throw new RuntimeException("Already waitlisted");
         }
 
+        for(RegistrationRecord record : registrationRecordRepository.findByStudentId(studentId)) {
+            if (record.hasTimeConflictWith(section)) {
+                throw new RuntimeException("Time conflict with existing section");
+            }
+        }
+
+        for(WaitlistRecord record : waitlistRecordRepository.findByStudentId(studentId)) {
+            if (record.hasTimeConflictWith(section)) {
+                throw new RuntimeException("Time conflict with waitlisted section");
+            }
+        }
+
         int waitlisted = waitlistRecordRepository.countWaitlisted(sectionId);
-        waitlistRecordRepository.save(student.waitlistSection(section,timestamp, waitlisted));
+        if(section.isWaitlistFull(waitlisted)) {
+            throw new RuntimeException("Waitlist is already full");
+        }
+
+        section.assertEnroll(student);
+        waitlistRecordRepository.save(new WaitlistRecord(student, section, timestamp));
     }
 
     @Transactional
@@ -145,5 +177,9 @@ public class RegistrationService {
 
     public void addObserver(SectionVacancyObserver observer) {
         this.observers.add(observer);
+    }
+
+    public void setObservers(ArrayList<SectionVacancyObserver> observers) {
+        this.observers = observers;
     }
 }
