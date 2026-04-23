@@ -6,6 +6,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import org.cityuhk.CourseRegistrationSystem.Persistence.LocalDateTimeStringConverter;
 
 import java.time.LocalDateTime;
 
@@ -24,8 +27,13 @@ public class RegistrationPeriod {
 
      public RegistrationPeriod() {}
 
-     private LocalDateTime startDateTime;
-     private LocalDateTime endDateTime;
+    @Convert(converter = LocalDateTimeStringConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private LocalDateTime startDateTime;
+
+    @Convert(converter = LocalDateTimeStringConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private LocalDateTime endDateTime;
 
      public RegistrationPeriod(
              Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime) {
