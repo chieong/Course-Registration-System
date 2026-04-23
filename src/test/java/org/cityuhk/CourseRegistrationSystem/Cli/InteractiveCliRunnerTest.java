@@ -554,8 +554,8 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         when(administrativeService.createCourse(any(AdminCourseRequest.class))).thenReturn(created);
         when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
 
-        invokeHandleLine("admin-create-course --code CS211 --title \"Object Oriented Programming\" --credits 3 --description \"core subject\" --prereq \"CS101,CS102\" --exclusive \"CS999, CS998\"");
-        invokeHandleLine("admin-modify-course --code CS211 --title \"Advanced OOP\" --credits 4 --description \"updated\" --prereq \"CS101\" --exclusive \"CS998\"");
+        invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --description core subject --prereq CS101,CS102 --exclusive CS999, CS998");
+        invokeHandleLine("admin-modify-course --code CS211 --title Advanced OOP --credits 4 --description updated --prereq CS101 --exclusive CS998");
         invokeHandleLine("admin-remove-course CS211");
 
         String out = output();
@@ -608,6 +608,19 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
                 () -> invokeHandleLine("admin-remove-course"));
         assertTrue(ex5.getMessage().contains("Usage: admin-remove-course <courseCode>"));
     }
+
+        @Test
+        void adminCourseCommands_shouldRejectUnknownOptions() {
+        setAdminSession("admin1");
+
+        Exception ex1 = assertThrows(Exception.class,
+            () -> invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --term 2026A"));
+        assertTrue(ex1.getMessage().contains("Unknown option(s) for admin-create-course: --term"));
+
+        Exception ex2 = assertThrows(Exception.class,
+            () -> invokeHandleLine("admin-modify-course --code CS211 --wrongField abc"));
+        assertTrue(ex2.getMessage().contains("Unknown option(s) for admin-modify-course: --wrongfield"));
+        }
 
     // ---------------------------
     // admin period commands

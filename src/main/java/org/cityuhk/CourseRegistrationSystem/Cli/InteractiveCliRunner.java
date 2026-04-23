@@ -269,8 +269,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
         System.out.println("  admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
         System.out.println("  admin-remove-instructor <staffId>");
-        System.out.println("  admin-create-course --code <code> --title <title> --credits <credits> [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
-        System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--term <term>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
+        System.out.println("  admin-create-course --code <code> --title <title> --credits <credits> [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
+        System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]");
         System.out.println("  admin-remove-course <courseCode>");
         System.out.println("  admin-list-periods [--cohort <cohort>]");
         System.out.println("  admin-create-period --cohort <cohort> --term <term> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
@@ -859,6 +859,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private AdminCourseRequest parseCourseRequest(List<String> args, boolean isCreate) {
         Map<String, String> options = CliCommandParser.parseOptions(args);
+        validateCourseOptions(options, isCreate);
         String code = options.get("code");
 
         if (code == null || code.isBlank()) {
@@ -893,6 +894,22 @@ public class InteractiveCliRunner implements CommandLineRunner {
         request.setExclusiveCourseCodes(splitCsv(options.get("exclusive")));
 
         return request;
+    }
+
+    private void validateCourseOptions(Map<String, String> options, boolean isCreate) {
+        Set<String> allowed = Set.of("code", "title", "credits", "description", "prereq", "exclusive");
+        List<String> unknown = options.keySet().stream()
+                .filter(key -> !allowed.contains(key))
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (!unknown.isEmpty()) {
+            String command = isCreate ? "admin-create-course" : "admin-modify-course";
+            String unknownOptions = unknown.stream()
+                    .map(key -> "--" + key)
+                    .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Unknown option(s) for " + command + ": " + unknownOptions);
+        }
     }
 
     private Set<String> splitCsv(String csv) {

@@ -81,6 +81,14 @@ public class CliCommandParserTest {
     }
 
     @Test
+    void parseOptionsSupportsUnquotedValuesWithSpaces() {
+        Map<String, String> options = CliCommandParser.parseOptions(
+                List.of("--title", "Object", "Oriented", "Programming", "--credits", "3"));
+        assertEquals("Object Oriented Programming", options.get("title"));
+        assertEquals("3", options.get("credits"));
+    }
+
+    @Test
     void parseOptionsThrowsWhenTokenDoesNotStartWithDashDash() {
         assertThrows(IllegalArgumentException.class,
                 () -> CliCommandParser.parseOptions(List.of("code", "CS101")));
