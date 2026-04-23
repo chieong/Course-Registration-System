@@ -6,6 +6,7 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRe
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -38,6 +39,10 @@ public class StudentTimetableOwnerProvider implements TimetableOwnerProvider {
     @Override
     public Set<Section> loadSections(Integer ownerId) throws TimetableValidationException {
         Set<Section> sections = new HashSet<>();
+        List<RegistrationRecord> records = registrationRecordRepository.findByStudentId(ownerId);
+        if (records == null || records.isEmpty()) {
+            return sections;
+        }
         for (RegistrationRecord record : registrationRecordRepository.findByStudentId(ownerId)) {
             if (record != null && record.getSection() != null) {
                 sections.add(record.getSection());
