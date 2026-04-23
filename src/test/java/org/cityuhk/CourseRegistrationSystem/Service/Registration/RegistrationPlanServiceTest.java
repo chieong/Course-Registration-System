@@ -79,8 +79,8 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(2L);
-        when(registrationPlanRepository.existsByStudentIdAndTermAndPriority(1, 3)).thenReturn(false);
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(2L);
+        when(registrationPlanRepository.existsByStudentIdAndPriority(1, 3)).thenReturn(false);
         when(registrationPlanRepository.save(any(RegistrationPlan.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -121,12 +121,12 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(10L);
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(10L);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> registrationPlanService.createPlan(1, null));
 
-        assertEquals("Maximum 10 plans allowed per term", ex.getMessage());
+        assertEquals("Maximum 10 plans allowed", ex.getMessage());
     }
 
     @Test
@@ -134,7 +134,7 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(0L);
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(0L);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> registrationPlanService.createPlan(1, 0));
@@ -147,7 +147,7 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(0L);
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(0L);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> registrationPlanService.createPlan(1, 11));
@@ -160,8 +160,8 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of());
-        when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(1L);
-        when(registrationPlanRepository.existsByStudentIdAndTermAndPriority(1, 2)).thenReturn(true);
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(1L);
+        when(registrationPlanRepository.existsByStudentIdAndPriority(1, 2)).thenReturn(true);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> registrationPlanService.createPlan(1, 2));
@@ -192,8 +192,8 @@ class RegistrationPlanServiceTest {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
         when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
         when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of(configured));
-        when(registrationPlanRepository.countByStudentIdAndTerm(1)).thenReturn(0L);
-        when(registrationPlanRepository.existsByStudentIdAndTermAndPriority(1, 1)).thenReturn(false);
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(0L);
+        when(registrationPlanRepository.existsByStudentIdAndPriority(1, 1)).thenReturn(false);
         when(registrationPlanRepository.save(any(RegistrationPlan.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RegistrationPlan created = registrationPlanService.createPlan(1, 1);

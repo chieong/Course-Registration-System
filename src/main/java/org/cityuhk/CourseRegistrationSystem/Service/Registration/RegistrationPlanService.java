@@ -53,9 +53,9 @@ Student student = studentRepository.findById(studentId)
 
         ensurePlanEditable(student,LocalDateTime.now());
 
-        long currentCount = registrationPlanRepository.countByStudentIdAndTerm(studentId);
+        long currentCount = registrationPlanRepository.countByStudentIdForPlanLimit(studentId);
         if (currentCount >= MAX_PLAN_COUNT) {
-            throw new RuntimeException("Maximum 10 plans allowed per term");
+            throw new RuntimeException("Maximum 10 plans allowed");
         }
 
         int priority = requestedPriority != null ? requestedPriority : (int) currentCount + 1;
@@ -63,7 +63,7 @@ Student student = studentRepository.findById(studentId)
             throw new RuntimeException("Priority must be between 1 and 10");
         }
 
-        if (registrationPlanRepository.existsByStudentIdAndTermAndPriority(studentId, priority)) {
+        if (registrationPlanRepository.existsByStudentIdAndPriority(studentId, priority)) {
             throw new RuntimeException("Priority slot already in use");
         }
 

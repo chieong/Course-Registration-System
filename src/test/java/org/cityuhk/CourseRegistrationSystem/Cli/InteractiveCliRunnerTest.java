@@ -618,8 +618,8 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         setAdminSession("admin1");
 
         Exception ex1 = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --term 2026A"));
-        assertTrue(ex1.getMessage().contains("Unknown option(s) for admin-create-course: --term"));
+            () -> invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --semester 2026A"));
+        assertTrue(ex1.getMessage().contains("Unknown option(s) for admin-create-course: --semester"));
 
         Exception ex2 = assertThrows(Exception.class,
             () -> invokeHandleLine("admin-create-course --code CS211 --wrongField abc"));

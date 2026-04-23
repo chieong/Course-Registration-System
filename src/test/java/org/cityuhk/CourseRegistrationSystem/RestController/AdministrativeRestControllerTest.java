@@ -89,12 +89,12 @@ class AdministrativeRestControllerTest {
     void createPeriod_validationException_returnsBadRequest() {
         AdminPeriodRequest req = new AdminPeriodRequest();
         when(administrativeService.createRegistrationPeriod(any()))
-                .thenThrow(new RegistrationPeriodValidationException("Term is required"));
+                .thenThrow(new RegistrationPeriodValidationException("Cohort is required"));
 
         ResponseEntity<?> response = controller.createPeriod(req);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("Term is required", response.getBody());
+        assertEquals("Cohort is required", response.getBody());
     }
 
     @Test
