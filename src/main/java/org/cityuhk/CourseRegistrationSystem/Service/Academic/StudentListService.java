@@ -14,19 +14,13 @@ import java.util.Set;
 @Service
 public class StudentListService {
 
-    private final SectionRepositoryPort sectionRepository;
-    private final CourseRepositoryPort courseRepository;
     private final InstructorRepositoryPort instructorRepository;
-    private final StudentRepositoryPort studentRepository;
     private final RegistrationRecordRepositoryPort registrationRecordRepository;
 
 
     @Autowired
-    public StudentListService(SectionRepositoryPort sectionRepository, CourseRepositoryPort courseRepository, InstructorRepositoryPort instructorRepository, StudentRepositoryPort studentRepository, RegistrationRecordRepositoryPort registrationRecordRepository) {
-        this.sectionRepository = sectionRepository;
-        this.courseRepository = courseRepository;
+    public StudentListService(InstructorRepositoryPort instructorRepository, RegistrationRecordRepositoryPort registrationRecordRepository) {
         this.instructorRepository = instructorRepository;
-        this.studentRepository = studentRepository;
         this.registrationRecordRepository = registrationRecordRepository;
     }
 
