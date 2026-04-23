@@ -26,11 +26,6 @@ public interface TimetableFormatter {
      */
     String formatHeader();
     
-    /**
-     * Formats the timetable title section (student ID, generation time, etc.).
-     * 
-     * @param studentId the student ID
-     * @return formatted title section
-     */
-    String formatTitle(Integer studentId, TimetableData.UserType userType);
+
+    String formatTitle(Integer ownerId, TimetableData.UserType userType);
 }

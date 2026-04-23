@@ -25,11 +25,12 @@ public class TextTimetableFormatter implements TimetableFormatter {
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
     @Override
-    public String formatTitle(Integer studentId, TimetableData.UserType userType) {
+    public String formatTitle(Integer ownerId, TimetableData.UserType userType) {
         StringBuilder title = new StringBuilder();
-        title.append(userType.toString());
+        title.append(userType);
         title.append(" TIMETABLE\n");
-        title.append(String.format("Student ID: %d\n", studentId));
+        title.append(userType);
+        title.append(String.format(" ID: %d\n", ownerId));
         title.append(String.format("Generated At: %s\n", LocalDateTime.now().format(dateFormatter)));
         title.append("\n");
         return title.toString();

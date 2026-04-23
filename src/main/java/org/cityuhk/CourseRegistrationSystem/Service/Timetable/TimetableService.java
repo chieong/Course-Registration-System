@@ -1,6 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -41,26 +43,17 @@ public class TimetableService {
     
     /**
      * Exports a student's timetable to a file using the default (text) format.
-     * 
+     *
      * @param studentId the ID of the student
      * @return the path to the exported file
      * @throws TimetableExportException if export fails
      * @throws TimetableValidationException if validation fails
      */
-    public Path exportTimetable(Integer studentId) throws TimetableExportException, TimetableValidationException {
-        return exportTimetable(studentId, defaultExporter);
+    public Path exportStudentTimetable(Integer studentId) throws TimetableExportException, TimetableValidationException {
+        return exportStudentTimetable(studentId, defaultExporter);
     }
-    
-    /**
-     * Exports a student's timetable to a file using a specific exporter.
-     * 
-     * @param studentId the ID of the student
-     * @param exporter the TimetableExporter to use
-     * @return the path to the exported file
-     * @throws TimetableExportException if export fails
-     * @throws TimetableValidationException if validation fails
-     */
-    public Path exportTimetable(Integer studentId, TimetableExporter exporter) 
+
+    public Path exportStudentTimetable(Integer studentId, TimetableExporter exporter)
             throws TimetableExportException, TimetableValidationException {
         if (exporter == null) {
             throw new TimetableExportException("Exporter cannot be null");
@@ -78,18 +71,8 @@ public class TimetableService {
         // Step 4: Export using the provided exporter
         return exporter.export(timetableData);
     }
-    
-    /**
-     * Exports a student's timetable with custom formatters.
-     * 
-     * @param studentId the ID of the student
-     * @param dayFormatter the formatter for day names (e.g., "EEE")
-     * @param timeFormatter the formatter for times (e.g., "HH:mm")
-     * @return the path to the exported file
-     * @throws TimetableExportException if export fails
-     * @throws TimetableValidationException if validation fails
-     */
-    public Path exportTimetableWithFormatters(Integer studentId, 
+
+    public Path exportStudentTimetableWithFormatters(Integer studentId,
                                              DateTimeFormatter dayFormatter,
                                              DateTimeFormatter timeFormatter) 
             throws TimetableExportException, TimetableValidationException {
@@ -103,8 +86,7 @@ public class TimetableService {
             .dayFormatter(dayFormatter)
             .timeFormatter(timeFormatter)
             .build();
-        
-        // Validate and export
+
         validator.validateTimetableData(timetableData);
         return defaultExporter.export(timetableData);
     }
@@ -124,20 +106,25 @@ public class TimetableService {
     public TimetableData getInstructorTimetableData(Integer staffId) throws TimetableValidationException {
         return buildInstructorTimetableData(staffId);
     }
-    
+
     /**
      * Builds timetable data for a student.
      * Internal method that coordinates data fetching and structuring.
-     * 
+     *
      * @param studentId the ID of the student
      * @return the constructed TimetableData
      * @throws TimetableValidationException if build fails
      */
     private TimetableData buildStudentTimetableData(Integer studentId) throws TimetableValidationException {
         try {
+            Set<Section> sections = new HashSet<>();
+            for(RegistrationRecord record : registrationRecordRepository.findByStudentId(studentId)) {
+                sections.add(record.getSection());
+            }
             return new TimetableData.Builder()
                     .ownerId(studentId)
                     .userType(TimetableData.UserType.Student)
+                    .sections(sections)
                     .build();
         } catch (IllegalStateException ex) {
             throw new TimetableValidationException("Failed to build timetable data: " + ex.getMessage());

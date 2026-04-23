@@ -91,7 +91,7 @@ public class TimetableData {
 
         public TimetableData build() {
             if (ownerId == null) {
-                throw new IllegalStateException("Student ID is required");
+                throw new IllegalStateException("Owner ID is required");
             }
             if(userType == null) {
                 throw new IllegalStateException("UserType is required");
