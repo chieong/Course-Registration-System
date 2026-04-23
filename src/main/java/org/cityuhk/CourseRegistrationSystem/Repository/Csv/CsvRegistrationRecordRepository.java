@@ -139,4 +139,13 @@ public class CsvRegistrationRecordRepository implements RegistrationRecordReposi
         all.removeIf(r -> Objects.equals(r.getRecordId(), record.getRecordId()));
         saveAll(all);
     }
+
+    @Override
+    public List<RegistrationRecord> findBySectionId(Integer sectionId) {
+        return loadAll().stream()
+                .filter(r -> Objects.equals(r.getSection().getSectionId(), sectionId))
+                .sorted(Comparator.comparing(RegistrationRecord::getTimestamp,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .collect(Collectors.toList());
+    }
 }
