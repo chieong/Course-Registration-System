@@ -34,5 +34,8 @@ public interface RegistrationRecordRepository extends JpaRepository<Registration
 
     @Query("select e from RegistrationRecord e where e.student.studentId = :studentId order by e.timestamp asc")
     List<RegistrationRecord> findByStudentId(@Param("studentId") Integer studentId);
+
+    @Query("select e from RegistrationRecord e where e.section.sectionId = :sectionId order by e.timestamp asc")
+    List<RegistrationRecord> findBySectionId(@Param("sectionId") Integer sectionId);
 }
 

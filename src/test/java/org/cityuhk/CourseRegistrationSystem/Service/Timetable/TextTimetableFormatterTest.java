@@ -42,7 +42,7 @@ class TextTimetableFormatterTest {
         RegistrationRecord record = mock(RegistrationRecord.class, Answers.RETURNS_DEEP_STUBS);
 
         when(record.getSection().getCourse().getCourseCode()).thenReturn("CS3343");
-        when(record.getSection().getSectionID()).thenReturn(1);
+        when(record.getSection().getSectionId()).thenReturn(1);
         when(record.getSection().getType().name()).thenReturn("LECTURE");
         when(record.getSection().getVenue()).thenReturn("AC2-Canteen-Wing");
 

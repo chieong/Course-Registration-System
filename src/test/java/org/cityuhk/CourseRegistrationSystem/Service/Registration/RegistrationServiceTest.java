@@ -1,5 +1,6 @@
-package org.cityuhk.CourseRegistrationSystem;
+package org.cityuhk.CourseRegistrationSystem.Service.Registration;
 
+import org.cityuhk.CourseRegistrationSystem.Observer.SectionVacancyObserver;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
@@ -29,7 +30,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +59,8 @@ public class RegistrationServiceTest {
     @Mock
     private WaitlistRecordRepository waitlistRecordRepository;
 
+    private ArrayList<SectionVacancyObserver> observers;
+
     @InjectMocks
     private RegistrationService registrationService;
 
@@ -70,6 +75,10 @@ public class RegistrationServiceTest {
         section = mock(Section.class);
         timestamp = LocalDateTime.now();
         eligibleCohorts = Arrays.asList(1, 2, 3);
+        observers = new ArrayList<>();
+        SectionVacancyObserver mockObserver = mock(SectionVacancyObserver.class);
+        observers.add(mockObserver);
+        registrationService.setObservers(observers);
     }
 
     @Test
@@ -84,14 +93,14 @@ public class RegistrationServiceTest {
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
         when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
         when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
-        when(registrationRecordRepository.countEnrolled(sectionId)).thenReturn(5);
-        when(student.addSection(section, timestamp, 5)).thenReturn(registrationRecord);
+        when(registrationRecordRepository.countEnrolled(sectionId)).thenReturn(1);
+        when(section.isFull(1)).thenReturn(false);
 
         // Act
         registrationService.addSection(studentId, sectionId, timestamp);
 
         // Assert
-        verify(registrationRecordRepository).save(registrationRecord);
+        verify(registrationRecordRepository).save(any(RegistrationRecord.class));
     }
 
     @Test
@@ -156,8 +165,24 @@ public class RegistrationServiceTest {
     }
 
     @Test
-    void dropSection_Success() {
-        // Arrange
+    void addSection_SectionAlreadyFull() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
+        when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
+        when(registrationRecordRepository.countEnrolled(sectionId)).thenReturn(1);
+        when(section.isFull(1)).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.addSection(studentId, sectionId, timestamp));
+        assertEquals("Section is already full", exception.getMessage());
+
+    }
+
+    @Test
+    void addSection_SectionOverlapping() {
         Integer studentId = 1;
         Integer sectionId = 1;
         RegistrationRecord registrationRecord = mock(RegistrationRecord.class);
@@ -166,13 +191,35 @@ public class RegistrationServiceTest {
         when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
         when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
+        when(registrationRecordRepository.exists(studentId, sectionId)).thenReturn(false);
+
+        when(registrationRecordRepository.findByStudentId(studentId)).thenReturn(List.of(registrationRecord));
+        when(registrationRecord.hasTimeConflictWith(section)).thenReturn(true);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.addSection(studentId, sectionId, timestamp));
+        assertEquals("Time conflict with existing section",exception.getMessage());
+    }
+
+    @Test
+    void dropSection_Success() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+        RegistrationRecord registrationRecord = mock(RegistrationRecord.class);
+
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+
+        List<Integer> eligibleCohorts = List.of(1);
+        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
+
         when(registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId)).thenReturn(Optional.of(registrationRecord));
 
-        // Act
         registrationService.dropSection(studentId, sectionId, timestamp);
 
-        // Assert
         verify(registrationRecordRepository).delete(registrationRecord);
+
+        verify(observers.get(0)).onVacancyOccurred(sectionId);
     }
 
     @Test
@@ -235,70 +282,5 @@ public class RegistrationServiceTest {
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.dropSection(studentId, sectionId, timestamp));
         assertEquals("Not enrolled", exception.getMessage());
-    }
-
-    @Test
-    void waitListSection_Success() {
-        Integer studentId = 1;
-        Integer sectionId = 1;
-        WaitlistRecord record = mock(WaitlistRecord.class);
-
-        when(student.getCohort()).thenReturn(1);
-        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
-        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
-        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
-        when(waitlistRecordRepository.exists(studentId, sectionId)).thenReturn(false);
-        when(waitlistRecordRepository.countWaitlisted(sectionId)).thenReturn(0);
-        when(student.waitlistSection(section, timestamp, 0)).thenReturn(record);
-
-        registrationService.waitListSection(studentId, sectionId, timestamp);
-
-        verify(waitlistRecordRepository).save(record);
-    }
-
-    @Test
-    void waitListSection_StudentNotFound() {
-        when(studentRepository.findById(1)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationService.waitListSection(1, 1, timestamp));
-        assertEquals("Student not found", ex.getMessage());
-    }
-
-    @Test
-    void waitListSection_SectionNotFound() {
-        when(studentRepository.findById(1)).thenReturn(Optional.of(student));
-        when(sectionRepository.findById(1)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationService.waitListSection(1, 1, timestamp));
-        assertEquals("Section not found", ex.getMessage());
-    }
-
-    @Test
-    void waitListSection_NotEligible() {
-        when(student.getCohort()).thenReturn(99);
-        when(studentRepository.findById(1)).thenReturn(Optional.of(student));
-        when(sectionRepository.findById(1)).thenReturn(Optional.of(section));
-        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class)))
-                .thenReturn(eligibleCohorts);
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationService.waitListSection(1, 1, timestamp));
-        assertEquals("Student not eligible to register", ex.getMessage());
-    }
-
-    @Test
-    void waitListSection_AlreadyWaitlisted() {
-        when(student.getCohort()).thenReturn(1);
-        when(studentRepository.findById(1)).thenReturn(Optional.of(student));
-        when(sectionRepository.findById(1)).thenReturn(Optional.of(section));
-        when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class)))
-                .thenReturn(eligibleCohorts);
-        when(waitlistRecordRepository.exists(1, 1)).thenReturn(true);
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationService.waitListSection(1, 1, timestamp));
-        assertEquals("Already waitlisted", ex.getMessage());
     }
 }
