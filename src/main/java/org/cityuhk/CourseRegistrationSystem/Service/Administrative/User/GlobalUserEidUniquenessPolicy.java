@@ -5,6 +5,7 @@ import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +14,12 @@ public class GlobalUserEidUniquenessPolicy implements UserEidUniquenessPolicy {
 
     private final AdminRepositoryPort adminRepository;
     private final StudentRepositoryPort studentRepository;
-    private final InstructorRepository instructorRepository;
+    private final InstructorRepositoryPort instructorRepository;
 
     public GlobalUserEidUniquenessPolicy(
             AdminRepositoryPort adminRepository,
             StudentRepositoryPort studentRepository,
-            InstructorRepository instructorRepository) {
+            InstructorRepositoryPort instructorRepository) {
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.instructorRepository = instructorRepository;
