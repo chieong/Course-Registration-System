@@ -1,37 +1,46 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Timetable;
 
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-/**
- * Data Transfer Object for timetable information.
- * Immutable holder of timetable details with builder pattern support.
- * 
- * Applies: Builder Pattern for flexible construction, Immutability principle
- */
 public class TimetableData {
-    private final Integer studentId;
-    private final List<RegistrationRecord> registrationRecords;
+    private final Integer ownerId;
+    private final String ownerIdLabel;
+    private final UserType userType;
+    private final Set<Section> sections;
     private final DateTimeFormatter dayFormatter;
     private final DateTimeFormatter timeFormatter;
 
+    public enum UserType {
+        Student, Instructor
+    }
+
     private TimetableData(Builder builder) {
-        this.studentId = builder.studentId;
-        this.registrationRecords = Collections.unmodifiableList(builder.registrationRecords);
+        this.ownerId = builder.ownerId;
+        this.ownerIdLabel = builder.ownerIdLabel;
+        this.userType = builder.userType;
         this.dayFormatter = builder.dayFormatter;
         this.timeFormatter = builder.timeFormatter;
+        this.sections = builder.sections;
     }
 
-    public Integer getStudentId() {
-        return studentId;
+    public Integer getOwnerId() {
+        return ownerId;
     }
 
-    public List<RegistrationRecord> getRegistrationRecords() {
-        return registrationRecords;
+    public String getOwnerIdLabel() {
+        return ownerIdLabel;
+    }
+
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public Set<Section> getSections() {
+        return sections;
     }
 
     public DateTimeFormatter getDayFormatter() {
@@ -44,29 +53,39 @@ public class TimetableData {
 
     @Override
     public String toString() {
+        int count = (sections == null) ? 0 : sections.size();
         return "TimetableData{" +
-                "studentId=" + studentId +
-                ", recordCount=" + registrationRecords.size() +
+                "ownerId=" + ownerId +
+                ", userType=" + userType +
+                ", recordCount=" + count +
                 '}';
     }
 
-    /**
-     * Builder for flexible TimetableData construction.
-     * Follows the Builder pattern to handle multiple optional parameters.
-     */
     public static class Builder {
-        private Integer studentId;
-        private List<RegistrationRecord> registrationRecords = Collections.emptyList();
+        private Integer ownerId;
+        private String ownerIdLabel = "Owner ID";
+        private UserType userType;
+        private Set<Section> sections;
         private DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEE");
         private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        public Builder studentId(Integer studentId) {
-            this.studentId = Objects.requireNonNull(studentId, "Student ID cannot be null");
+        public Builder ownerId(Integer ownerId) {
+            this.ownerId = Objects.requireNonNull(ownerId, "owner ID cannot be null");
             return this;
         }
 
-        public Builder registrationRecords(List<RegistrationRecord> records) {
-            this.registrationRecords = Objects.requireNonNull(records, "Registration records cannot be null");
+        public Builder ownerIdLabel(String ownerIdLabel) {
+            this.ownerIdLabel = Objects.requireNonNull(ownerIdLabel, "owner ID label cannot be null");
+            return this;
+        }
+
+        public Builder userType(UserType userType) {
+            this.userType = userType;
+            return this;
+        }
+
+        public Builder sections(Set<Section> sections) {
+            this.sections = sections;
             return this;
         }
 
@@ -81,11 +100,11 @@ public class TimetableData {
         }
 
         public TimetableData build() {
-            if (studentId == null) {
-                throw new IllegalStateException("Student ID is required");
+            if (ownerId == null) {
+                throw new IllegalStateException("Owner ID is required");
             }
-            if (registrationRecords.isEmpty()) {
-                throw new IllegalStateException("Registration records cannot be empty");
+            if (userType == null) {
+                throw new IllegalStateException("UserType is required");
             }
             return new TimetableData(this);
         }

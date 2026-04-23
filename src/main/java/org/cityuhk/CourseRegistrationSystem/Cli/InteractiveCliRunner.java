@@ -16,11 +16,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
+import org.cityuhk.CourseRegistrationSystem.Model.*;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
@@ -46,6 +44,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
     private final CliSessionStore sessionStore;
+    private final InstructorRepository instructorRepository;
 
     private CliSession activeSession;
     private boolean running;
@@ -58,7 +57,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
             AdminRepository adminRepository,
             StudentRepository studentRepository,
             PasswordEncoder passwordEncoder,
-            CliSessionStore sessionStore) {
+            CliSessionStore sessionStore,
+            InstructorRepository instructorRepository) {
         this.courseService = courseService;
         this.registrationService = registrationService;
         this.timetableService = timetableService;
@@ -67,6 +67,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         this.studentRepository = studentRepository;
         this.passwordEncoder = passwordEncoder;
         this.sessionStore = sessionStore;
+        this.instructorRepository = instructorRepository;
     }
 
     @Override
@@ -338,17 +339,32 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
 
     private void handleExportTimetable(List<String> args) throws Exception {
-        Student student = requireStudent();
+
         if (args.size() > 1) {
             throw new IllegalArgumentException("Usage: export-timetable [outputPath]");
         }
+        Path generated = null;
+        Path outputPath = null;
+        if(activeSession.getRole() ==  CliRole.STUDENT) {
+            Student student = requireStudent();
+            generated = timetableService.exportStudentTimetable(student.getStudentId());
+            if (args.isEmpty()) {
+                outputPath = Paths.get("student-" + student.getStudentId() + "-timetable.txt").toAbsolutePath();
+            } else {
+                outputPath = Paths.get(args.get(0)).toAbsolutePath();
+            }
 
-        Path generated = timetableService.exportTimetable(student.getStudentId());
-        Path outputPath;
-        if (args.isEmpty()) {
-            outputPath = Paths.get("student-" + student.getStudentId() + "-timetable.txt").toAbsolutePath();
+
+        } else if (activeSession.getRole() == CliRole.INSTRUCTOR) {
+            Instructor instructor = requireInstructor();
+            generated = timetableService.exportInstructorTimetable(instructor.getStaffId());
+            if (args.isEmpty()) {
+                outputPath = Paths.get("instructor-" + instructor.getStaffId() + "-timetable.txt").toAbsolutePath();
+            } else {
+                outputPath = Paths.get(args.get(0)).toAbsolutePath();
+            }
         } else {
-            outputPath = Paths.get(args.get(0)).toAbsolutePath();
+            throw new IllegalArgumentException("Usage: Only Instrucotor and Student can export timetable.");
         }
 
         Files.copy(generated, outputPath, StandardCopyOption.REPLACE_EXISTING);
@@ -568,6 +584,15 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
         return studentRepository.findByUserEID(activeSession.getUserEid())
                 .orElseThrow(() -> new IllegalStateException("Student account not found"));
+    }
+
+    private Instructor requireInstructor() {
+        requireAuthenticated();
+        if (activeSession.getRole() != CliRole.INSTRUCTOR) {
+            throw new IllegalStateException("This command requires INSTRUCTOR role");
+        }
+
+        return instructorRepository.findByUserEID(activeSession.getUserEid()).orElseThrow(() -> new IllegalStateException("Instructor account not found"));
     }
 
     private void requireAdminSession() {
