@@ -8,6 +8,7 @@ import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,12 +16,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class InstructorUserManagementService implements InstructorUserManagementOperations {
 
-    private final InstructorRepository instructorRepository;
+    private final InstructorRepositoryPort instructorRepository;
     private final PasswordEncoder passwordEncoder;
     private final GlobalUserEidUniquenessPolicy eidPolicy;
 
     public InstructorUserManagementService(
-            InstructorRepository instructorRepository,
+            InstructorRepositoryPort instructorRepository,
             PasswordEncoder passwordEncoder,
             GlobalUserEidUniquenessPolicy eidPolicy) {
         this.instructorRepository = instructorRepository;

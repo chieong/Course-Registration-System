@@ -227,10 +227,11 @@ public class AdministrativeRestController {
 
     // ── Student user endpoints ─────────────────────────────────────────────────
 
-    @GetMapping("/students")
-    public ResponseEntity<List<Student>> listStudents() {
-        return ResponseEntity.ok(administrativeService.listStudents());
-    }
+    // TODO old version?
+    // @GetMapping("/students")
+    // public ResponseEntity<List<Student>> listStudents() {
+    //     return ResponseEntity.ok(administrativeService.listStudents());
+    // }
 
     @PostMapping("/students")
     public ResponseEntity<Student> createStudent(@RequestBody StudentUserRequest request) {
@@ -244,18 +245,20 @@ public class AdministrativeRestController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/students/{studentId}")
-    public ResponseEntity<Void> removeStudent(@PathVariable Integer studentId) {
-        administrativeService.removeStudent(studentId);
-        return ResponseEntity.noContent().build();
-    }
+    // TODO old version?
+    // @DeleteMapping("/students/{studentId}")
+    // public ResponseEntity<Void> removeStudent(@PathVariable Integer studentId) {
+    //     administrativeService.removeStudent(studentId);
+    //     return ResponseEntity.noContent().build();
+    // }
 
     // ── Instructor user endpoints ──────────────────────────────────────────────
 
-    @GetMapping("/instructors")
-    public ResponseEntity<List<Instructor>> listInstructors() {
-        return ResponseEntity.ok(administrativeService.listInstructors());
-    }
+    // TODO old version?
+    // @GetMapping("/instructors")
+    // public ResponseEntity<List<Instructor>> listInstructors() {
+    //     return ResponseEntity.ok(administrativeService.listInstructors());
+    // }
 
     @PostMapping("/instructors")
     public ResponseEntity<Instructor> createInstructor(@RequestBody InstructorUserRequest request) {
@@ -269,9 +272,11 @@ public class AdministrativeRestController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/instructors/{staffId}")
-    public ResponseEntity<Void> removeInstructor(@PathVariable Integer staffId) {
-        administrativeService.removeInstructor(staffId);
-        return ResponseEntity.noContent().build();
-    }
+    // TODO old version?
+    // @DeleteMapping("/instructors/{staffId}")
+    // public ResponseEntity<Void> removeInstructor(@PathVariable Integer staffId) {
+    //     administrativeService.removeInstructor(staffId);
+    //     return ResponseEntity.noContent().build();
+    // }
+
 }

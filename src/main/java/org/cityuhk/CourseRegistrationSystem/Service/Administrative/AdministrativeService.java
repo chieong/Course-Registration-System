@@ -241,10 +241,11 @@ public class AdministrativeService {
         instructorUserManagementService.removeInstructor(staffId);
     }
 
-    @Transactional(readOnly = true)
-    public List<Student> listStudents() {
-        return studentRepository.findAll();
-    }
+    // TODO old version? 
+    // @Transactional(readOnly = true)
+    // public List<Student> listStudents() {
+    //     return studentRepository.findAll();
+    // }
 
     @Transactional
     public Student createStudent(AdminStudentRequest request) {
@@ -308,18 +309,20 @@ public class AdministrativeService {
         return studentRepository.save(updated);
     }
 
-    @Transactional
-    public void removeStudent(Integer studentId) {
-        if (!studentRepository.existsById(studentId)) {
-            throw new RuntimeException("Student not found");
-        }
-        studentRepository.deleteById(studentId);
-    }
+    // TODO old version? 
+    // @Transactional
+    // public void removeStudent(Integer studentId) {
+    //     if (!studentRepository.existsById(studentId)) {
+    //         throw new RuntimeException("Student not found");
+    //     }
+    //     studentRepository.deleteById(studentId);
+    // }
 
-    @Transactional(readOnly = true)
-    public List<Instructor> listInstructors() {
-        return instructorRepository.findAll();
-    }
+    // TODO old version? 
+    // @Transactional(readOnly = true)
+    // public List<Instructor> listInstructors() {
+    //     return instructorRepository.findAll();
+    // }
 
     @Transactional
     public Instructor createInstructor(AdminInstructorRequest request) {
@@ -370,13 +373,14 @@ public class AdministrativeService {
         return instructorRepository.save(updated);
     }
 
-    @Transactional
-    public void removeInstructor(Integer staffId) {
-        if (!instructorRepository.existsById(staffId)) {
-            throw new RuntimeException("Instructor not found");
-        }
-        instructorRepository.deleteById(staffId);
-    }
+    // TODO old version?
+    // @Transactional
+    // public void removeInstructor(Integer staffId) {
+    //     if (!instructorRepository.existsById(staffId)) {
+    //         throw new RuntimeException("Instructor not found");
+    //     }
+    //     instructorRepository.deleteById(staffId);
+    // }
 
     private void validateRequiredUserFields(String userEID, String name, String password) {
         if (userEID == null || userEID.isBlank()) {
