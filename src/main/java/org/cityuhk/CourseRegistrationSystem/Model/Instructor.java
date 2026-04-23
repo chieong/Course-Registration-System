@@ -57,7 +57,7 @@ public class Instructor extends User
     }
 
     public Integer getStaffId() {
-        return this.staffId; // Removed UnsupportedOperationException
+        return this.staffId;
     }
 
     public String getDepartment() {
