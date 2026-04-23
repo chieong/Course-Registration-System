@@ -4,18 +4,20 @@ import org.cityuhk.CourseRegistrationSystem.Exception.UserEidAlreadyExistsExcept
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GlobalUserEidUniquenessPolicy implements UserEidUniquenessPolicy {
 
-    private final AdminRepository adminRepository;
-    private final StudentRepository studentRepository;
+    private final AdminRepositoryPort adminRepository;
+    private final StudentRepositoryPort studentRepository;
     private final InstructorRepository instructorRepository;
 
     public GlobalUserEidUniquenessPolicy(
-            AdminRepository adminRepository,
-            StudentRepository studentRepository,
+            AdminRepositoryPort adminRepository,
+            StudentRepositoryPort studentRepository,
             InstructorRepository instructorRepository) {
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
