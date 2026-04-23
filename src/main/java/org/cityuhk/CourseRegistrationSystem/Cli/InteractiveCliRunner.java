@@ -17,10 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.*;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.WaitlistRecordRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.*;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
@@ -53,7 +50,6 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private final WaitlistRecordRepository waitlistRecordRepository;
     private final PasswordEncoder passwordEncoder;
     private final CliSessionStore sessionStore;
-    private final InstructorRepository instructorRepository;
 
     private CliSession activeSession;
     private boolean running;
@@ -70,8 +66,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
             RegistrationRecordRepository registrationRecordRepository,
             WaitlistRecordRepository waitlistRecordRepository,
             PasswordEncoder passwordEncoder,
-            CliSessionStore sessionStore,
-            InstructorRepository instructorRepository) {
+            CliSessionStore sessionStore) {
         this.courseService = courseService;
         this.registrationService = registrationService;
         this.timetableService = timetableService;
@@ -84,7 +79,6 @@ public class InteractiveCliRunner implements CommandLineRunner {
         this.waitlistRecordRepository = waitlistRecordRepository;
         this.passwordEncoder = passwordEncoder;
         this.sessionStore = sessionStore;
-        this.instructorRepository = instructorRepository;
     }
 
     @Override
