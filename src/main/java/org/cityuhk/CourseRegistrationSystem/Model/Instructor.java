@@ -78,5 +78,12 @@ public class Instructor extends User
         return this.sections; // Removed UnsupportedOperationException
     }
 
+    public void addSection(Section section) {
+        this.sections.add(section);
+    }
+
+    public void removeSection(Section section) {
+        this.sections.remove(section);
+    }
 }
 

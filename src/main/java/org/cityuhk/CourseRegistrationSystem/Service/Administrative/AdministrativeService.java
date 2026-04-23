@@ -1,9 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Administrative;
 
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
-import org.cityuhk.CourseRegistrationSystem.Model.Section;
+import org.cityuhk.CourseRegistrationSystem.Model.*;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
@@ -28,6 +26,7 @@ public class AdministrativeService {
     private final CourseRepositoryPort courseRepository;
     private final SectionRepositoryPort sectionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
+    private final InstructorRepository instructorRepository;
     private final PasswordEncoder passwordEncoder;
     private final RegistrationPeriodValidator periodValidator;
 
@@ -37,13 +36,15 @@ public class AdministrativeService {
             PasswordEncoder passwordEncoder,
             SectionRepositoryPort sectionRepository,
             RegistrationPeriodRepository registrationPeriodRepository,
-            RegistrationPeriodValidator periodValidator) {
+            RegistrationPeriodValidator periodValidator,
+            InstructorRepository instructorRepository) {
         this.adminRepository = adminRepository;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
         this.sectionRepository = sectionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.periodValidator = periodValidator;
+        this.instructorRepository = instructorRepository;
     }
 
     @Transactional(readOnly = true)
@@ -284,6 +285,7 @@ public class AdministrativeService {
             throw new RuntimeException("Venue is required");
         }
 
+
         Section newSection =
                 new Section(
                         request.getCourse(),
@@ -367,6 +369,30 @@ public class AdministrativeService {
             throw new RegistrationPeriodValidationException("Registration period not found: " + periodId);
         }
         registrationPeriodRepository.deleteById(periodId);
+    }
+
+    @Transactional
+    public void assignInstructor(String userEID,Integer sectionId) {
+        Instructor instructor = instructorRepository.findByUserEID(userEID).orElseThrow(()-> new RuntimeException("Instructor not found"));
+        Section section = sectionRepository.findById(sectionId).orElseThrow(() -> new RuntimeException("Section not found"));
+
+        if(section.getInstructors().contains(instructor)) {
+            throw new RegistrationPeriodValidationException("Instructor already assigned to section");
+        }
+
+        section.addInstructor(instructor);
+    }
+
+    @Transactional
+    public void unassignInstructor(String userEID,Integer sectionId) {
+        Instructor instructor = instructorRepository.findByUserEID(userEID).orElseThrow(()-> new RuntimeException("Instructor not found"));
+        Section section = sectionRepository.findById(sectionId).orElseThrow(() -> new RuntimeException("Section not found"));
+
+        if(!section.getInstructors().contains(instructor)) {
+            throw new RegistrationPeriodValidationException("Instructor already unassigned to section");
+        }
+
+        section.removeInstructor(instructor);
     }
 }
 

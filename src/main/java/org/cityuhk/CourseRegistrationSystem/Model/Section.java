@@ -167,11 +167,11 @@ public class Section {
 
     public void addInstructor(Instructor instructor) {
         this.instructors.add(instructor);
-        instructor.getSections().add(this);
+        instructor.addSection(this);
     }
 
     public void removeInstructor(Instructor instructor) {
         this.instructors.remove(instructor);
-        instructor.getSections().remove(this);
+        instructor.removeSection(this);
     }
 }
