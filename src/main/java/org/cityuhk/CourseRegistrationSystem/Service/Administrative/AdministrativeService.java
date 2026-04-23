@@ -26,7 +26,6 @@ import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.*;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
@@ -70,7 +69,6 @@ public class AdministrativeService {
     private final CourseRepositoryPort courseRepository;
     private final SectionRepositoryPort sectionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
-    private final InstructorRepository instructorRepository;
     private final PasswordEncoder passwordEncoder;
     private final RegistrationPeriodValidator periodValidator;
     private final AdminUserManagementOperations adminUserManagementService;
@@ -100,7 +98,6 @@ public class AdministrativeService {
         this.sectionRepository = sectionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.periodValidator = periodValidator;
-        this.instructorRepository = instructorRepository;
     }
 
     // ── Admin user operations ──────────────────────────────────────────────────
