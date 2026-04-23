@@ -13,17 +13,6 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRe
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodOverlapException;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodValidationException;
@@ -224,59 +213,5 @@ public class AdministrativeRestController {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
-
-    // ── Student user endpoints ─────────────────────────────────────────────────
-
-    // TODO old version?
-    // @GetMapping("/students")
-    // public ResponseEntity<List<Student>> listStudents() {
-    //     return ResponseEntity.ok(administrativeService.listStudents());
-    // }
-
-    @PostMapping("/students")
-    public ResponseEntity<Student> createStudent(@RequestBody StudentUserRequest request) {
-        Student created = administrativeService.createStudent(request);
-        return ResponseEntity.ok(created);
-    }
-
-    @PutMapping("/students/{studentId}")
-    public ResponseEntity<Student> modifyStudent(@PathVariable Integer studentId, @RequestBody StudentUserRequest request) {
-        Student updated = administrativeService.modifyStudent(studentId, request);
-        return ResponseEntity.ok(updated);
-    }
-
-    // TODO old version?
-    // @DeleteMapping("/students/{studentId}")
-    // public ResponseEntity<Void> removeStudent(@PathVariable Integer studentId) {
-    //     administrativeService.removeStudent(studentId);
-    //     return ResponseEntity.noContent().build();
-    // }
-
-    // ── Instructor user endpoints ──────────────────────────────────────────────
-
-    // TODO old version?
-    // @GetMapping("/instructors")
-    // public ResponseEntity<List<Instructor>> listInstructors() {
-    //     return ResponseEntity.ok(administrativeService.listInstructors());
-    // }
-
-    @PostMapping("/instructors")
-    public ResponseEntity<Instructor> createInstructor(@RequestBody InstructorUserRequest request) {
-        Instructor created = administrativeService.createInstructor(request);
-        return ResponseEntity.ok(created);
-    }
-
-    @PutMapping("/instructors/{staffId}")
-    public ResponseEntity<Instructor> modifyInstructor(@PathVariable Integer staffId, @RequestBody InstructorUserRequest request) {
-        Instructor updated = administrativeService.modifyInstructor(staffId, request);
-        return ResponseEntity.ok(updated);
-    }
-
-    // TODO old version?
-    // @DeleteMapping("/instructors/{staffId}")
-    // public ResponseEntity<Void> removeInstructor(@PathVariable Integer staffId) {
-    //     administrativeService.removeInstructor(staffId);
-    //     return ResponseEntity.noContent().build();
-    // }
 
 }

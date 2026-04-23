@@ -27,6 +27,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
@@ -65,6 +66,8 @@ class InteractiveCliRunnerTest {
     private AdminRepository adminRepository;
     @Mock
     private StudentRepository studentRepository;
+    @Mock
+    private InstructorRepository instructorRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock

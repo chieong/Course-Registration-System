@@ -407,18 +407,21 @@ class AdministrativeServiceTest {
     @Test
     void createUser_nullEID_throws() {
         userReq.setUserEID(null);
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new InvalidUserEIDException());
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_nullName_throws() {
         userReq.setName(null);
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new InvalidNameException());
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
     @Test
     void createUser_nullPassword_throws() {
         userReq.setPassword(null);
+        when(adminUserManagementService.createUser(userReq)).thenThrow(new InvalidPasswordException());
         assertThrows(RuntimeException.class, () -> service.createUser(userReq));
     }
 
@@ -426,35 +429,29 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyUser_nullEID_throws() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
         userReq.setUserEID(null);
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidUserEIDException());
         assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_nullName_throws() {
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
         userReq.setName(null);
+        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidNameException());
         assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_newEIDNotTaken_success() {
-        // EID is changing to one that does not exist in the system yet
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(adminRepository.save(any())).thenReturn(admin);
+        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
         assertNotNull(service.modifyUser(1, userReq));
     }
 
     @Test
     void modifyUser_nullPassword_keepsExistingPassword() {
         // Null password must not re-encode; existing encoded password is preserved
-        when(adminRepository.findById(anyInt())).thenReturn(Optional.of(admin));
-        when(adminRepository.findByUserEID(anyString())).thenReturn(Optional.of(admin));
         userReq.setPassword(null);
-        when(adminRepository.save(any())).thenReturn(admin);
+        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
         Admin result = service.modifyUser(1, userReq);
         assertNotNull(result);
         // passwordEncoder.encode must NOT have been called

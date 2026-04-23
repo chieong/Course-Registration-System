@@ -73,9 +73,9 @@ public class AdministrativeService {
     private final InstructorRepository instructorRepository;
     private final PasswordEncoder passwordEncoder;
     private final RegistrationPeriodValidator periodValidator;
-    private final AdminUserManagementService adminUserManagementService;
-    private final StudentUserManagementService studentUserManagementService;
-    private final InstructorUserManagementService instructorUserManagementService;
+    private final AdminUserManagementOperations adminUserManagementService;
+    private final StudentUserManagementOperations studentUserManagementService;
+    private final InstructorUserManagementOperations instructorUserManagementService;
 
     public AdministrativeService(
             AdminRepositoryPort adminRepository,
@@ -86,27 +86,15 @@ public class AdministrativeService {
             SectionRepositoryPort sectionRepository,
             RegistrationPeriodRepository registrationPeriodRepository,
             RegistrationPeriodValidator periodValidator,
-            InstructorRepository instructorRepository) {
+            AdminUserManagementOperations adminUserManagementService,
+            StudentUserManagementOperations studentUserManagementService,
+            InstructorUserManagementOperations instructorUserManagementService) {
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
         this.instructorRepository = instructorRepository;
-        GlobalUserEidUniquenessPolicy eidPolicy = new GlobalUserEidUniquenessPolicy(
-                adminRepository,
-                studentRepository,
-                instructorRepository);
-
-        this.adminUserManagementService = new AdminUserManagementService(
-                adminRepository,
-                passwordEncoder,
-                eidPolicy);
-        this.studentUserManagementService = new StudentUserManagementService(
-                studentRepository,
-                passwordEncoder,
-                eidPolicy);
-        this.instructorUserManagementService = new InstructorUserManagementService(
-                instructorRepository,
-                passwordEncoder,
-                eidPolicy);
+        this.adminUserManagementService = adminUserManagementService;
+        this.studentUserManagementService = studentUserManagementService;
+        this.instructorUserManagementService = instructorUserManagementService;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
         this.sectionRepository = sectionRepository;
