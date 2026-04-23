@@ -6,11 +6,13 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionServi
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodOverlapException;
@@ -841,4 +843,149 @@ class AdministrativeServiceTest {
         assertEquals(1, result.size());
         verify(registrationPeriodRepository).findByCohortOrderByStartDateTime(2024);
     }
+
+    @Mock private InstructorRepository instructorRepository;
+
+    private Instructor buildInstructor(String eid, int staffId) {
+        return (Instructor) new Instructor.InstructorBuilder()
+                .withStaffId(staffId)
+                .withDepartment("COMP")
+                .withUserEID(eid)
+                .withName("Instructor " + staffId)
+                .withPassword("pw")
+                .build();
+    }
+
+    @Test
+    void assignInstructor_instructorNotFound_throws() {
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.assignInstructor("i001", 10)
+        );
+
+        assertEquals("Instructor not found", ex.getMessage());
+    }
+
+    @Test
+    void assignInstructor_sectionNotFound_throws() {
+        Instructor instructor = buildInstructor("i001", 8);
+
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.of(instructor));
+        when(sectionRepository.findById(10)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.assignInstructor("i001", 10)
+        );
+
+        assertEquals("Section not found", ex.getMessage());
+    }
+
+    @Test
+    void assignInstructor_alreadyAssigned_throws() {
+        Instructor instructor = buildInstructor("i001", 8);
+
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+
+        Section section = new Section(course, 50, 10, start, end, "Y101");
+        section.setSectionId(10);
+        section.addInstructor(instructor);
+
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.of(instructor));
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(section));
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.assignInstructor("i001", 10)
+        );
+
+        assertEquals("Instructor already assigned to section", ex.getMessage());
+    }
+
+    @Test
+    void assignInstructor_success() {
+        Instructor instructor = buildInstructor("i001", 8);
+
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+
+        Section section = new Section(course, 50, 10, start, end, "Y101");
+        section.setSectionId(10);
+
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.of(instructor));
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(section));
+
+        assertDoesNotThrow(() -> service.assignInstructor("i001", 10));
+        assertTrue(section.getInstructors().contains(instructor));
+    }
+
+    @Test
+    void unassignInstructor_instructorNotFound_throws() {
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.unassignInstructor("i001", 10)
+        );
+
+        assertEquals("Instructor not found", ex.getMessage());
+    }
+
+    @Test
+    void unassignInstructor_sectionNotFound_throws() {
+        Instructor instructor = buildInstructor("i001", 8);
+
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.of(instructor));
+        when(sectionRepository.findById(10)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.unassignInstructor("i001", 10)
+        );
+
+        assertEquals("Section not found", ex.getMessage());
+    }
+
+    @Test
+    void unassignInstructor_alreadyUnassigned_throws() {
+        Instructor instructor = buildInstructor("i001", 8);
+
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+
+        Section section = new Section(course, 50, 10, start, end, "Y101");
+        section.setSectionId(10);
+
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.of(instructor));
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(section));
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.unassignInstructor("i001", 10)
+        );
+
+        assertEquals("Instructor already unassigned to section", ex.getMessage());
+    }
+
+    @Test
+    void unassignInstructor_success() {
+        Instructor instructor = buildInstructor("i001", 8);
+
+        LocalDateTime start = LocalDateTime.of(2026, 9, 1, 9, 0);
+        LocalDateTime end   = LocalDateTime.of(2026, 9, 1, 10, 50);
+
+        Section section = new Section(course, 50, 10, start, end, "Y101");
+        section.setSectionId(10);
+        section.addInstructor(instructor);
+
+        when(instructorRepository.findByUserEID("i001")).thenReturn(Optional.of(instructor));
+        when(sectionRepository.findById(10)).thenReturn(Optional.of(section));
+
+        assertDoesNotThrow(() -> service.unassignInstructor("i001", 10));
+        assertFalse(section.getInstructors().contains(instructor));
+    }
+
 }
