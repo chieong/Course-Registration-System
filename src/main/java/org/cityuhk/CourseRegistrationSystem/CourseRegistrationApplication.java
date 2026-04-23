@@ -17,6 +17,10 @@ public class CourseRegistrationApplication {
 			Map<String, Object> cliDefaults = new HashMap<>();
 			cliDefaults.put("app.cli.enabled", true);
 			cliDefaults.put("server.port", 0);
+			cliDefaults.put("spring.jpa.show-sql", false);
+			cliDefaults.put("logging.level.org.hibernate", "warn");
+			cliDefaults.put("logging.level.org.hibernate.SQL", "off");
+			cliDefaults.put("logging.level.org.hibernate.orm.jdbc.bind", "off");
 			application.setDefaultProperties(cliDefaults);
 		}
 
