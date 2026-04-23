@@ -146,5 +146,4 @@ public class RegistrationService {
     public void addObserver(SectionVacancyObserver observer) {
         this.observers.add(observer);
     }
-
 }
