@@ -70,5 +70,6 @@ public class TimetableValidator {
         if (timetableData.getDayFormatter() == null || timetableData.getTimeFormatter() == null) {
             throw new TimetableValidationException("Timetable data formatters are not configured");
         }
+        //hi
     }
 }
