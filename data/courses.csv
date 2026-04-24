@@ -3,3 +3,4 @@ courseId,courseCode,title,credits,description,prerequisiteCourseIds,exclusiveCou
 3,CSV099,Base Course A,3,base a,,
 4,CSV098,Base Course B,3,base b,,
 2,CSV201,CSV Course Updated,4,csv test updated,3,4
+5,TT501,Timetable Test,3,for show-timetable test,,

@@ -102,8 +102,11 @@ class TextTimetableFormatterTest {
 
         String result = formatter.formatRow(mockSection, mockTimetableData);
 
-        assertTrue(result.contains("Tue"));
-        assertTrue(result.contains("09:00-10:30"));
+        String expectedDay = startTime.format(dayFormatter);
+        String expectedTimeRange = startTime.format(timeFormatter) + "-" + endTime.format(timeFormatter);
+
+        assertTrue(result.contains(expectedDay));
+        assertTrue(result.contains(expectedTimeRange));
         assertTrue(result.contains("CS101"));
         assertTrue(result.contains("1"));
         assertTrue(result.contains("Lecture"));
@@ -265,8 +268,13 @@ class TextTimetableFormatterTest {
         // 👇 timetableData = null
         String result = formatter.formatRow(mockSection, null);
 
-        assertTrue(result.contains("Tue"));          // default day formatter
-        assertTrue(result.contains("09:00-10:30"));  // default time formatter
+        DateTimeFormatter defaultDayFormatter = DateTimeFormatter.ofPattern("EEE");
+        DateTimeFormatter defaultTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        String expectedDay = startTime.format(defaultDayFormatter);
+        String expectedTimeRange = startTime.format(defaultTimeFormatter) + "-" + endTime.format(defaultTimeFormatter);
+
+        assertTrue(result.contains(expectedDay));
+        assertTrue(result.contains(expectedTimeRange));
     }
 
     @Test

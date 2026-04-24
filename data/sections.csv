@@ -1,2 +1,3 @@
 sectionId,courseId,enrollCapacity,waitlistCapacity,startTime,endTime,venue,type
 2,2,50,10,2026-05-10T09:00,2026-05-10T10:50,B5501,LECTURE
+3,5,50,10,2026-05-12T09:00,2026-05-12T10:50,B5501,LECTURE
