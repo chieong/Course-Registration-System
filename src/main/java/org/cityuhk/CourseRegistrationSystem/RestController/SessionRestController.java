@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,10 +21,14 @@ public class SessionRestController {
 
     private final AdminRepository adminRepository;
     private final StudentRepository studentRepository;
+    private final InstructorRepository instructorRepository;
 
-    public SessionRestController(AdminRepository adminRepository, StudentRepository studentRepository) {
+    public SessionRestController(AdminRepository adminRepository,
+                                 StudentRepository studentRepository,
+                                 InstructorRepository instructorRepository) {
         this.adminRepository = adminRepository;
         this.studentRepository = studentRepository;
+        this.instructorRepository = instructorRepository;
     }
 
     @GetMapping("/me")
@@ -48,6 +54,14 @@ public class SessionRestController {
             body.put("role", "STUDENT");
             body.put("studentId", student.getStudentId());
             body.put("displayName", student.getUserName());
+            return ResponseEntity.ok(body);
+        }
+
+        Instructor instructor = instructorRepository.findByUserEID(userEid).orElse(null);
+        if (instructor != null) {
+            body.put("role", "INSTRUCTOR");
+            body.put("staffId", instructor.getStaffId());
+            body.put("displayName", instructor.getUserName());
             return ResponseEntity.ok(body);
         }
 

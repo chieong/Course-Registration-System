@@ -1,23 +1,55 @@
 const START = 9;
 const END = 21;
 const SLOT_HEIGHT = 160;
-const classes = [
-  { code: "CSC204", title: "Database Systems", day: "M", start: "09:00", end: "12:00", venue: "Lab 2", lecturer: "Dr. Lim", type: "Lab" },
-  { code: "CSC220", title: "Web Development", day: "T", start: "10:00", end: "11:00", venue: "Lab 3", lecturer: "Mr. Jonathan Wong", type: "Lab" },
-  { code: "BUS150", title: "Entrepreneurship", day: "S", start: "10:00", end: "13:00", venue: "Room C2", lecturer: "Dr. Karen Ho", type: "Lecture" },
-  { code: "CSC230", title: "Operating Systems", day: "F", start: "11:00", end: "13:00", venue: "Auditorium 1", lecturer: "Dr. Lim", type: "Lecture" },
-  { code: "MAT210", title: "Discrete Mathematics", day: "M", start: "13:00", end: "15:00", venue: "Room A1", lecturer: "Prof. Sarah Lee", type: "Lecture" },
-  { code: "ENG205", title: "Technical Communication", day: "R", start: "14:00", end: "16:00", venue: "Online", lecturer: "Prof. Daniel Ng", type: "Tutorial" },
-  { code: "CSC201", title: "Data Structures", day: "W", start: "15:00", end: "16:00", venue: "Room B3", lecturer: "Dr. Aisha Rahman", type: "Lecture" }
-];
+const DAY_SEQUENCE = ["M", "T", "W", "R", "F", "S"];
+const DAY_NAME = {
+  M: "Monday",
+  T: "Tuesday",
+  W: "Wednesday",
+  R: "Thursday",
+  F: "Friday",
+  S: "Saturday"
+};
 
-const days = ["M", "T", "W", "R", "F", "S"];
+let classes = [];
+let currentUser = null;
+
 const ttBody = document.getElementById("tt-body");
+const detailsBody = document.getElementById("detailsBody");
+const statusLabel = document.getElementById("timetableStatus");
+const summaryName = document.getElementById("summaryName");
+const summaryProgramme = document.getElementById("summaryProgramme");
+const summaryTotalCourses = document.getElementById("summaryTotalCourses");
+const summaryTerm = document.getElementById("summaryTerm");
 
-const timeToHour = (time) => parseInt(time.split(":")[0], 10);
+function timeToHour(time) {
+  return Number.parseInt(String(time).slice(0, 2), 10);
+}
+
+function asText(value, fallback = "-") {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  const text = String(value).trim();
+  return text.length === 0 ? fallback : text;
+}
+
+function formatType(type) {
+  const cleaned = asText(type, "-").toLowerCase();
+  if (cleaned === "-") {
+    return "-";
+  }
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function formatDay(dayCode) {
+  return DAY_NAME[dayCode] || "-";
+}
 
 function renderGrid() {
   ttBody.innerHTML = "";
+
   for (let hour = START; hour <= END; hour++) {
     const row = document.createElement("tr");
     const timeCell = document.createElement("td");
@@ -25,7 +57,7 @@ function renderGrid() {
     timeCell.textContent = String(hour).padStart(2, "0") + ":00";
     row.appendChild(timeCell);
 
-    for (const day of days) {
+    for (const day of DAY_SEQUENCE) {
       const cell = document.createElement("td");
       cell.className = "empty-slot";
       cell.dataset.day = day;
@@ -65,17 +97,87 @@ function placeClass(course) {
   const block = document.createElement("div");
   block.className = "class-block";
   block.innerHTML = `
-    <a href="/course/${course.code}" class="course-code-link">${course.code}</a>
+    <span class="course-code-link">${course.code}</span>
     <div class="course-title">${course.title}</div>
     <div class="venue">${course.venue}</div>
-    <span class="section-tag">${course.type}</span>
+    <span class="section-tag">${formatType(course.type)}</span>
   `;
 
   startCell.appendChild(block);
 }
 
-renderGrid();
-classes.forEach(placeClass);
+function renderDetailsTable(items) {
+  detailsBody.innerHTML = "";
+
+  if (items.length === 0) {
+    const emptyRow = document.createElement("tr");
+    emptyRow.innerHTML = '<td colspan="7">No timetable records found.</td>';
+    detailsBody.appendChild(emptyRow);
+    return;
+  }
+
+  for (const item of items) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${asText(item.code)}</td>
+      <td>${asText(item.title)}</td>
+      <td>${formatDay(item.day)}</td>
+      <td>${asText(item.start)} - ${asText(item.end)}</td>
+      <td>${asText(item.venue)}</td>
+      <td>${asText(item.lecturer)}</td>
+      <td>${formatType(item.type)}</td>
+    `;
+    detailsBody.appendChild(row);
+  }
+}
+
+function renderAll() {
+  renderGrid();
+  classes.forEach(placeClass);
+  renderDetailsTable(classes);
+}
+
+function updateSummary(session, timetable) {
+  summaryTerm.textContent = "Current Term";
+  summaryName.textContent = asText(timetable.displayName || (session ? session.displayName : ""));
+  summaryProgramme.textContent = asText(timetable.programme || timetable.role);
+  summaryTotalCourses.textContent = `${timetable.totalCourses} Course${timetable.totalCourses === 1 ? "" : "s"}`;
+}
+
+async function loadSession() {
+  const response = await fetch("/api/session/me");
+  if (!response.ok) {
+    throw new Error("Unable to identify current user session.");
+  }
+  return response.json();
+}
+
+async function loadTimetable() {
+  const response = await fetch("/api/timetable/me");
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Unable to load timetable.");
+  }
+  return response.json();
+}
+
+async function bootstrap() {
+  statusLabel.textContent = "Loading timetable data...";
+
+  try {
+    const [session, timetable] = await Promise.all([loadSession(), loadTimetable()]);
+    currentUser = session;
+
+    classes = Array.isArray(timetable.entries) ? timetable.entries : [];
+    updateSummary(session, timetable);
+    renderAll();
+    statusLabel.textContent = `Loaded ${classes.length} timetable record(s) for ${asText(timetable.role)}.`;
+  } catch (error) {
+    classes = [];
+    renderAll();
+    statusLabel.textContent = error.message;
+  }
+}
 
 document.getElementById("exportBtn").addEventListener("click", function () {
   const weeklyTableClone = document.getElementById("weeklyTable").cloneNode(true);
@@ -88,6 +190,11 @@ document.getElementById("exportBtn").addEventListener("click", function () {
     alert("Unable to open export window. Please allow pop-ups and try again.");
     return;
   }
+
+  const name = summaryName.textContent;
+  const programme = summaryProgramme.textContent;
+  const totalCourses = summaryTotalCourses.textContent;
+  const roleLabel = currentUser && currentUser.role ? currentUser.role : "USER";
 
   exportWindow.document.open();
   exportWindow.document.write(`
@@ -110,10 +217,10 @@ document.getElementById("exportBtn").addEventListener("click", function () {
       <p>Generated from Check Timetable</p>
 
       <div class="meta">
-        <div><strong>Name:</strong> Isaac Tan</div>
-        <div><strong>Academic Term:</strong> Semester 2, 2026</div>
-        <div><strong>Programme:</strong> Bachelor of Computer Science</div>
-        <div><strong>Total Courses:</strong> ${classes.length} Courses</div>
+        <div><strong>Name:</strong> ${name}</div>
+        <div><strong>Role:</strong> ${roleLabel}</div>
+        <div><strong>Programme:</strong> ${programme}</div>
+        <div><strong>Total Courses:</strong> ${totalCourses}</div>
       </div>
 
       <h2>Weekly Timetable</h2>
@@ -129,3 +236,5 @@ document.getElementById("exportBtn").addEventListener("click", function () {
 
   exportWindow.document.close();
 });
+
+bootstrap();

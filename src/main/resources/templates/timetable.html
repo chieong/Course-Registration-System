@@ -19,28 +19,28 @@
     </div>
 
     <section class="info-banner" aria-label="Timetable status">
-      Timetable information is available. You may review the weekly timetable below and expand the detailed timetable if needed.
+      <span id="timetableStatus">Loading timetable data...</span>
     </section>
 
     <section class="summary-grid" aria-label="Timetable summary">
       <article class="summary-card">
         <h3>Academic Term</h3>
-        <p>Semester 2, 2026</p>
+        <p id="summaryTerm">Current Term</p>
       </article>
 
       <article class="summary-card">
         <h3>Name</h3>
-        <p>Isaac Tan</p>
+        <p id="summaryName">-</p>
       </article>
 
       <article class="summary-card">
         <h3>Programme</h3>
-        <p>Bachelor of Computer Science</p>
+        <p id="summaryProgramme">-</p>
       </article>
 
       <article class="summary-card">
         <h3>Total Courses</h3>
-        <p>6 Courses</p>
+        <p id="summaryTotalCourses">0 Courses</p>
       </article>
     </section>
 
@@ -79,70 +79,7 @@
                   <th>Type</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>CSC204</td>
-                  <td>Database Systems</td>
-                  <td>Monday</td>
-                  <td>09:00 - 11:00</td>
-                  <td>Lab 2</td>
-                  <td>Dr. Lim</td>
-                  <td>Lab</td>
-                </tr>
-                <tr>
-                  <td>MAT210</td>
-                  <td>Discrete Mathematics</td>
-                  <td>Monday</td>
-                  <td>13:00 - 15:00</td>
-                  <td>Room A1</td>
-                  <td>Prof. Sarah Lee</td>
-                  <td>Lecture</td>
-                </tr>
-                <tr>
-                  <td>CSC220</td>
-                  <td>Web Development</td>
-                  <td>Tuesday</td>
-                  <td>10:00 - 12:00</td>
-                  <td>Lab 3</td>
-                  <td>Mr. Jonathan Wong</td>
-                  <td>Lab</td>
-                </tr>
-                <tr>
-                  <td>ENG205</td>
-                  <td>Technical Communication</td>
-                  <td>Thursday</td>
-                  <td>14:00 - 16:00</td>
-                  <td>Online</td>
-                  <td>Prof. Daniel Ng</td>
-                  <td>Tutorial</td>
-                </tr>
-                <tr>
-                  <td>CSC230</td>
-                  <td>Operating Systems</td>
-                  <td>Friday</td>
-                  <td>11:00 - 13:00</td>
-                  <td>Auditorium 1</td>
-                  <td>Dr. Lim</td>
-                  <td>Lecture</td>
-                </tr>
-                <tr>
-                  <td>BUS150</td>
-                  <td>Entrepreneurship</td>
-                  <td>Saturday</td>
-                  <td>10:00 - 12:00</td>
-                  <td>Room C2</td>
-                  <td>Dr. Karen Ho</td>
-                  <td>Lecture</td>
-                </tr>
-                <tr>
-                  <td>CSC201</td>
-                  <td>Data Structures</td>
-                  <td>Wednesday</td>
-                  <td>15:00 - 17:00</td>
-                  <td>Room B3</td>
-                  <td>Dr. Aisha Rahman</td>
-                  <td>Lecture</td>
-                </tr>
+              <tbody id="detailsBody">
               </tbody>
             </table>
           </div>
