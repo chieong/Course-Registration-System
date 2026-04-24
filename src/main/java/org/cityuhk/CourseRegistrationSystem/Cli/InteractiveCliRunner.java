@@ -396,6 +396,16 @@ public class InteractiveCliRunner implements CommandLineRunner {
             return;
         }
         System.out.println(activeSession.getUserEid() + " (" + activeSession.getRole() + ")");
+        if (activeSession.getRole() == CliRole.INSTRUCTOR) {
+            Instructor instructor = instructorRepository.findByUserEID(activeSession.getUserEid()).get();
+            System.out.println(instructor);
+        } else if (activeSession.getRole() == CliRole.STUDENT) {
+            Student student = studentRepository.findByUserEID(activeSession.getUserEid()).get();
+            System.out.println(student);
+        } else if (activeSession.getRole() == CliRole.ADMIN) {
+            Admin admin = adminRepository.findByUserEID(activeSession.getUserEid()).get();
+            System.out.println(admin);
+        }
     }
 
     private void handleListCourses() {
@@ -546,7 +556,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
 
     private void handleShowTimeTable(List<String> args) throws Exception {
-        if (args.size() != 1) {
+        if (!args.isEmpty()) {
             throw new IllegalArgumentException("Usage: show-timetable");
         }
 

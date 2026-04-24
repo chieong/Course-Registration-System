@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface AdminRepository extends JpaRepository<Admin, Integer>, AdminRepositoryPort {
-	@Query("select a from Admin a where lower(a.UserEID) = lower(:userEID)")
+	@Query("select a from Admin a where lower(a.userEID) = lower(:userEID)")
 	Optional<Admin> findByUserEID(@Param("userEID") String userEID);
 }

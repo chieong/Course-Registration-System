@@ -193,4 +193,18 @@ public class Student extends User
     public Set<RegistrationPlan> getRegistrationPlans() {
         return registrationPlans;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+        result.append(super.toString());
+        result.append(String.format("Student Id: %d\n",studentId));
+        result.append(String.format("Min Semester Credit: %d\n",minSemesterCredit));
+        result.append(String.format("Max Semester Credit: %d\n",maxSemesterCredit));
+        result.append(String.format("Major: %s\n",major));
+        result.append(String.format("Cohort: %s\n",cohort));
+        result.append(String.format("Department: %s\n",department));
+        result.append(String.format("Max Degree Credit: %d\n",maxDegreeCredit));
+        return result.toString();
+    }
 }

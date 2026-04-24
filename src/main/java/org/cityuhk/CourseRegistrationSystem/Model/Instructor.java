@@ -90,5 +90,13 @@ public class Instructor extends User {
     public void removeSection(Section section) {
         this.sections.remove(section);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append("Staff ID: ").append(this.staffId).append("\n");
+        return sb.toString();
+    }
 }
 

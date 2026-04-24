@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface StudentRepository extends JpaRepository<Student, Integer>, StudentRepositoryPort {
-	@Query("select s from Student s where lower(s.UserEID) = lower(:userEID)")
+	@Query("select s from Student s where lower(s.userEID) = lower(:userEID)")
 	Optional<Student> findByUserEID(@Param("userEID") String userEID);
 }

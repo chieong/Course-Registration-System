@@ -45,5 +45,13 @@ public class Admin extends User
     public Integer getStaffId() {
         return this.staffId;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append("Staff ID: ").append(this.staffId).append("\n");
+        return sb.toString();
+    }
 }
 

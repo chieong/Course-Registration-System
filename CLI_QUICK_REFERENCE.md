@@ -26,6 +26,7 @@ A local session file is saved at:
 - `add-section <sectionId>`
 - `drop-section <sectionId>`
 - `join-waitlist <sectionId>`
+- `drop-waitlist <sectionId>`
 - `export-timetable [outputPath]`
 
 ### Plan Management
@@ -35,6 +36,10 @@ A local session file is saved at:
 - `add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure]`
 - `remove-plan-entry <planId> <entryId>`
 - `reorder-plans <planIdCsv>`
+
+### Timetable
+- `show-timetable`
+- `export-timetable <outputPath>`
 
 ## Admin Commands
 

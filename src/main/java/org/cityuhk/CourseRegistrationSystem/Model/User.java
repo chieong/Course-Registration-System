@@ -6,7 +6,7 @@ import jakarta.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class User {
 
-    private String UserEID;
+    private String userEID;
     private String name;
     private String password;
 
@@ -15,7 +15,7 @@ public abstract class User {
     }
 
     public User(Builder<?> builder) {
-        this.UserEID = builder.userEID;
+        this.userEID = builder.userEID;
         this.name = builder.name;
         this.password = builder.password;
     }
@@ -46,13 +46,18 @@ public abstract class User {
     }
 
     public String getUserEID() {
-        return UserEID;
+        return userEID;
     }
 
     public String getUserName() {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return String.format("UserEID: %s\n", userEID) +
+                String.format("Name: %s\n", name);
+    }
     @JsonIgnore
     public String getPassword() {
         return password;

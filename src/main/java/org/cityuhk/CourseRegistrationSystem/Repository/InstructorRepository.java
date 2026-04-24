@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface InstructorRepository extends JpaRepository<Instructor, Integer>, InstructorRepositoryPort {
-    @Query("select i from Instructor i where lower(i.UserEID) = lower(:userEID)")
+    @Query("select i from Instructor i where lower(i.userEID) = lower(:userEID)")
     Optional<Instructor> findByUserEID(@Param("userEID") String userEID);
 
     @Query("select i from Instructor i where i.staffId = :staffId")
