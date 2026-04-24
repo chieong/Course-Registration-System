@@ -1,15 +1,19 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Primary
@@ -118,19 +122,19 @@ public class CsvSectionRepository implements SectionRepositoryPort {
     @Override
     public Optional<Section> findById(Integer id) {
         return loadAll().stream()
-                .filter(s -> s.getSectionId() == id)
+                .filter(s -> Objects.equals(s.getSectionId(), id))
                 .findFirst();
     }
 
     @Override
     public synchronized Section save(Section section) {
         List<Section> all = loadAll();
-        if (section.getSectionId() == 0) {
+        Integer sectionId = section.getSectionId();
+        if (sectionId == null || sectionId == 0) {
             section.setSectionId(idGen.nextId("section"));
             all.add(section);
         } else {
-            int id = section.getSectionId();
-            all.removeIf(s -> s.getSectionId() == id);
+            all.removeIf(s -> Objects.equals(s.getSectionId(), sectionId));
             all.add(section);
         }
         saveAll(all);
@@ -140,7 +144,7 @@ public class CsvSectionRepository implements SectionRepositoryPort {
     @Override
     public synchronized void deleteById(Integer id) {
         List<Section> all = loadAll();
-        all.removeIf(s -> s.getSectionId() == id);
+        all.removeIf(s -> Objects.equals(s.getSectionId(), id));
         saveAll(all);
     }
 

@@ -75,7 +75,7 @@ public class CsvRegistrationRecordRepository implements RegistrationRecordReposi
     @Override
     public int countEnrolled(Integer sectionId) {
         return (int) loadAll().stream()
-                .filter(r -> r.getSection().getSectionId() == sectionId)
+                .filter(r -> Objects.equals(r.getSection().getSectionId(), sectionId))
                 .count();
     }
 
@@ -88,14 +88,14 @@ public class CsvRegistrationRecordRepository implements RegistrationRecordReposi
     public boolean exists(Integer studentId, Integer sectionId) {
         return loadAll().stream().anyMatch(r ->
                 Objects.equals(r.getStudent().getStudentId(), studentId)
-                        && r.getSection().getSectionId() == sectionId);
+                && Objects.equals(r.getSection().getSectionId(), sectionId));
     }
 
     @Override
     public Optional<RegistrationRecord> findByStudentIdAndSectionId(Integer studentId, Integer sectionId) {
         return loadAll().stream()
                 .filter(r -> Objects.equals(r.getStudent().getStudentId(), studentId)
-                        && r.getSection().getSectionId() == sectionId)
+                && Objects.equals(r.getSection().getSectionId(), sectionId))
                 .findFirst();
     }
 

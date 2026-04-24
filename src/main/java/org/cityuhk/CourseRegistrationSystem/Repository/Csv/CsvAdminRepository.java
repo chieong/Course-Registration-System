@@ -73,7 +73,7 @@ public class CsvAdminRepository implements AdminRepositoryPort {
     @Override
     public Optional<Admin> findById(Integer id) {
         return loadAll().stream()
-                .filter(a -> a.getStaffId() == id)
+                .filter(a -> Objects.equals(a.getStaffId(), id))
                 .findFirst();
     }
 
@@ -106,7 +106,7 @@ public class CsvAdminRepository implements AdminRepositoryPort {
     @Override
     public synchronized void deleteById(Integer id) {
         List<Admin> all = loadAll();
-        all.removeIf(a -> a.getStaffId() == id);
+        all.removeIf(a -> Objects.equals(a.getStaffId(), id));
         saveAll(all);
     }
 

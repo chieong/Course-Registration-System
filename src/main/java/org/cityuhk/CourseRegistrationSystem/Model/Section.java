@@ -75,7 +75,7 @@ public class Section implements Comparable<Section>{
         }
     }
 
-    public int getSectionId() {
+    public Integer getSectionId() {
         return sectionId;
     }
 
