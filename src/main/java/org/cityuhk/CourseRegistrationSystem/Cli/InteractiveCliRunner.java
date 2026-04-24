@@ -8,12 +8,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.*;
@@ -247,6 +250,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "admin-unassign-instructor":
                 handleUnassignInstruction(args);
                 return;
+            case "view-student-list":
+                handleViewStudentList(args);
+                return;
             default:
                 System.out.println("Unknown command. Type help to see available commands.");
         }
@@ -304,6 +310,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-delete-period <periodId>");
         System.out.println("  admin-assign-instructor <sectionId> <instructorEID>");
         System.out.println("  admin-unassign-instructor <sectionId> <instructorEID>");
+        System.out.println("  view-student-list                          (INSTRUCTOR: shows your enrolled students grouped by course)");
+        System.out.println("  view-student-list --instructor <userEID>   (ADMIN only: show student list for the specified instructor)");
         System.out.println("Use double quotes for values with spaces.");
     }
 
@@ -1428,7 +1436,100 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private String valueOrDash(String value) {
         return value == null || value.isBlank() ? "-" : value;
     }
-    
+
+    private void handleViewStudentList(List<String> args) {
+        requireAuthenticated();
+
+        CliRole role = activeSession.getRole();
+        if (role == CliRole.STUDENT) {
+            throw new IllegalStateException("This command requires INSTRUCTOR or ADMIN role");
+        }
+
+        String instructorEid;
+        if (role == CliRole.ADMIN) {
+            Map<String, String> options = CliCommandParser.parseOptions(args);
+            instructorEid = options.get("instructor");
+            if (instructorEid == null || instructorEid.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Usage: view-student-list --instructor <userEID>  (ADMIN must specify --instructor)");
+            }
+        } else {
+            // INSTRUCTOR: always uses own EID, extra args are ignored
+            instructorEid = activeSession.getUserEid();
+        }
+
+        Instructor instructor = instructorRepository.findByUserEIDWithSections(instructorEid)
+            .orElseThrow(() -> new IllegalStateException("Instructor not found: " + instructorEid));
+
+        Set<Section> sections = instructor.getSections();
+        if (sections == null || sections.isEmpty()) {
+            System.out.println("No sections assigned to instructor " + instructorEid + ".");
+            return;
+        }
+
+        // Group sections by course code (TreeMap keeps alphabetical order)
+        Map<String, List<Section>> sectionsByCourse = new TreeMap<>();
+        for (Section section : sections) {
+            String code = section.getCourse().getCourseCode();
+            sectionsByCourse.computeIfAbsent(code, k -> new ArrayList<>()).add(section);
+        }
+
+        boolean anyStudents = false;
+
+        for (Map.Entry<String, List<Section>> courseEntry : sectionsByCourse.entrySet()) {
+            String courseCode = courseEntry.getKey();
+            List<Section> courseSections = courseEntry.getValue();
+            courseSections.sort(Comparator.comparingInt(Section::getSectionId));
+
+            String courseTitle = courseSections.get(0).getCourse().getTitle();
+            System.out.println("--- Course: " + courseCode + " - " + valueOrDash(courseTitle) + " ---");
+
+            for (Section section : courseSections) {
+                System.out.println("  Section " + section.getSectionId()
+                        + " (" + (section.getType() != null ? section.getType() : "-") + ")"
+                        + " | " + sectionTimeLabel(section));
+
+                List<RegistrationRecord> records = new ArrayList<>(
+                        registrationRecordRepository.findBySectionId(section.getSectionId()));
+
+                if (records.isEmpty()) {
+                    System.out.println("    (No enrolled students)");
+                    continue;
+                }
+
+                records.sort(Comparator.comparingInt(r -> r.getStudent().getStudentId()));
+
+                System.out.printf("    %-12s %-22s %-26s %-8s %-32s %s%n",
+                        "Student ID", "Name", "Programme", "Year", "Email", "Status");
+                System.out.println("    " + "-".repeat(108));
+
+                for (RegistrationRecord record : records) {
+                    Student student = record.getStudent();
+                    String year = student.getCohort() > 0 ? "Year " + student.getCohort() : "-";
+                    System.out.printf("    %-12s %-22s %-26s %-8s %-32s %s%n",
+                            student.getStudentId(),
+                            valueOrDash(student.getUserName()),
+                            valueOrDash(student.getMajor()),
+                            year,
+                            student.getUserEID(),
+                            "ACTIVE");
+                    anyStudents = true;
+                }
+            }
+        }
+
+        if (!anyStudents) {
+            System.out.println("No enrolled students found for instructor " + instructorEid + ".");
+        }
+    }
+
+    private String sectionTimeLabel(Section section) {
+        if (section.getStartTime() != null && section.getEndTime() != null) {
+            return section.getStartTime() + " -> " + section.getEndTime();
+        }
+        return "-";
+    }
+
 }
 
 

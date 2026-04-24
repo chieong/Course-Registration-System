@@ -43,7 +43,31 @@ public class RegistrationPlanService {
 
     @Transactional(readOnly = true)
     public List<RegistrationPlan> getPlanSet(Integer studentId) {
-        return registrationPlanRepository.findByStudentIdOrderByPriorityAsc(studentId);
+        List<RegistrationPlan> plans = registrationPlanRepository.findByStudentIdOrderByPriorityAsc(studentId);
+
+        // The CLI prints plan entries after this service method returns, so initialize
+        // the required lazy associations within the active transaction.
+        for (RegistrationPlan plan : plans) {
+            if (plan.getEntries() == null) {
+                continue;
+            }
+            plan.getEntries().size();
+            for (PlanEntry entry : plan.getEntries()) {
+                Section section = entry.getSection();
+                if (section == null) {
+                    continue;
+                }
+                section.getSectionId();
+                if (section.getCourse() != null) {
+                    section.getCourse().getCourseCode();
+                    if (section.getCourse().getSections() != null) {
+                        section.getCourse().getSections().size();
+                    }
+                }
+            }
+        }
+
+        return plans;
     }
 
      @Transactional

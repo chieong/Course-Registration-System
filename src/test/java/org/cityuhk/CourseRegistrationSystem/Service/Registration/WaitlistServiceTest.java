@@ -279,6 +279,25 @@ public class WaitlistServiceTest {
     }
 
     @Test
+    void dropSection_StudentNotEligibleButAlreadyEnrolled_ShouldStillDrop() {
+        Integer studentId = 1;
+        Integer sectionId = 1;
+        RegistrationRecord record = mock(RegistrationRecord.class);
+        List<Integer> ineligibleCohorts = Arrays.asList(9, 10);
+
+        when(student.getCohort()).thenReturn(1);
+        when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
+        when(registrationPeriodRepository.getActiveCohortByTime(any())).thenReturn(ineligibleCohorts);
+        when(registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId))
+                .thenReturn(Optional.of(record));
+
+        registrationService.dropSection(studentId, sectionId, timestamp);
+
+        verify(registrationRecordRepository).delete(record);
+    }
+
+    @Test
     void dropSection_NotEnrolled() {
         Integer studentId = 1;
         Integer sectionId = 1;

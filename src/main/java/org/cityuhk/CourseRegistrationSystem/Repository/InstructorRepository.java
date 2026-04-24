@@ -12,6 +12,9 @@ public interface InstructorRepository extends JpaRepository<Instructor, Integer>
     @Query("select i from Instructor i where lower(i.userEID) = lower(:userEID)")
     Optional<Instructor> findByUserEID(@Param("userEID") String userEID);
 
+        @Query("select i from Instructor i left join fetch i.sections s left join fetch s.course where lower(i.userEID) = lower(:userEID)")
+        Optional<Instructor> findByUserEIDWithSections(@Param("userEID") String userEID);
+
     @Query("select i from Instructor i where i.staffId = :staffId")
     Optional<Instructor> findById(@Param("staffId") Integer staffId);
 }
