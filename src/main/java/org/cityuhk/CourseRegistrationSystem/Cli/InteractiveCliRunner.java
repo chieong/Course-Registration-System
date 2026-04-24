@@ -285,8 +285,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-modify-user <staffId> <userEID> <name> [password]");
         System.out.println("  admin-remove-user <staffId>");
         System.out.println("  admin-list-students");
-        System.out.println("  admin-create-student <userEID> <name> <password> [--major <major>] [--dept <dept>]");
-        System.out.println("  admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]");
+        System.out.println("  admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>");
+        System.out.println("  admin-modify-student <studentId> [--eid <userEID>] [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]");
         System.out.println("  admin-remove-student <studentId>");
         System.out.println("  admin-list-instructors");
         System.out.println("  admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
@@ -795,20 +795,23 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private void handleAdminCreateStudent(List<String> args) {
         requireAdminSession();
-        if (args.size() < 3) {
+        if (args.size() != 9) {
             throw new IllegalArgumentException(
-                    "Usage: admin-create-student <userEID> <name> <password> [--major <major>] [--dept <dept>]");
+                    "Usage: admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>");
         }
 
-        List<String> positional = args.subList(0, 3);
-        Map<String, String> options = CliCommandParser.parseOptions(args.subList(3, args.size()));
+        List<String> positional = args.subList(0, 9);
 
         StudentUserRequest request = new StudentUserRequest();
         request.setUserEID(positional.get(0));
         request.setName(positional.get(1));
         request.setPassword(positional.get(2));
-        request.setMajor(options.get("major"));
-        request.setDepartment(options.get("dept"));
+        request.setMinSemesterCredit(Integer.parseInt(positional.get(3)));
+        request.setMaxSemesterCredit(Integer.parseInt(positional.get(4)));
+        request.setMajor(positional.get(5));
+        request.setCohort(Integer.parseInt(positional.get(6)));
+        request.setDepartment(positional.get(7));
+        request.setMaxDegreeCredit(Integer.parseInt(positional.get(8)));
 
         Student created = administrativeService.createStudent(request);
         System.out.println("Created student with studentId=" + created.getStudentId());
@@ -816,34 +819,43 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private void handleAdminModifyStudent(List<String> args) {
         requireAdminSession();
-        if (args.size() < 3) {
+
+        // Ensure at least the studentId is present
+        if (args.isEmpty()) {
             throw new IllegalArgumentException(
-                    "Usage: admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]");
+                    "Usage: admin-modify-student <studentId> [--eid <eid>] [--name <name>] [--password <password>] " +
+                            "[--min-creds <min>] [--max-creds <max>] [--major <major>] [--cohort <cohort>] " +
+                            "[--dept <dept>] [--max-degree <max>]");
         }
 
         int studentId = parseInteger(args.get(0), "studentId");
 
-        // Separate positional from option args (options start with --)
-        int optionStart = 1;
-        while (optionStart < args.size() && !args.get(optionStart).startsWith("--")) {
-            optionStart++;
-        }
-        List<String> positional = args.subList(1, optionStart);
-        Map<String, String> options = CliCommandParser.parseOptions(args.subList(optionStart, args.size()));
-
-        if (positional.size() < 2) {
-            throw new IllegalArgumentException(
-                    "Usage: admin-modify-student <studentId> <userEID> <name> [password] [--major <major>] [--dept <dept>]");
-        }
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(1, args.size()));
 
         StudentUserRequest request = new StudentUserRequest();
-        request.setUserEID(positional.get(0));
-        request.setName(positional.get(1));
-        if (positional.size() >= 3) {
-            request.setPassword(positional.get(2));
+
+        if (options.containsKey("eid")) request.setUserEID(options.get("eid"));
+        if (options.containsKey("name")) request.setName(options.get("name"));
+        if (options.containsKey("password")) request.setPassword(options.get("password"));
+
+        if (options.containsKey("min-creds")) {
+            request.setMinSemesterCredit(Integer.parseInt(options.get("min-creds")));
         }
-        request.setMajor(options.get("major"));
-        request.setDepartment(options.get("dept"));
+        if (options.containsKey("max-creds")) {
+            request.setMaxSemesterCredit(Integer.parseInt(options.get("max-creds")));
+        }
+        if (options.containsKey("major")) {
+            request.setMajor(options.get("major"));
+        }
+        if (options.containsKey("cohort")) {
+            request.setCohort(Integer.parseInt(options.get("cohort")));
+        }
+        if (options.containsKey("dept")) {
+            request.setDepartment(options.get("dept"));
+        }
+        if (options.containsKey("max-degree")) {
+            request.setMaxDegreeCredit(Integer.parseInt(options.get("max-degree")));
+        }
 
         Student updated = administrativeService.modifyStudent(studentId, request);
         System.out.println("Updated student " + updated.getStudentId());

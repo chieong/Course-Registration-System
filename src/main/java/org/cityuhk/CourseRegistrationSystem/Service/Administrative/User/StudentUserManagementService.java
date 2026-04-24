@@ -43,6 +43,21 @@ public class StudentUserManagementService implements StudentUserManagementOperat
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             throw new InvalidPasswordException();
         }
+        if (request.getCohort() == null) {
+            throw new RuntimeException("No cohort provided");
+        }
+        if (request.getDepartment() == null || request.getDepartment().isBlank()) {
+            throw new RuntimeException("No department provided");
+        }
+        if (request.getMaxSemesterCredit() == null) {
+            throw new RuntimeException("No maximum semester credit provided");
+        }
+        if (request.getMinSemesterCredit() == null) {
+            throw new RuntimeException("No minimum semester credit provided");
+        }
+        if (request.getMaxDegreeCredit() == null) {
+            throw new RuntimeException("No maximum degree credit provided");
+        }
 
         String normalizedUserEID = request.getUserEID().trim();
         eidPolicy.assertUnique(normalizedUserEID, null, null, null);
@@ -53,6 +68,10 @@ public class StudentUserManagementService implements StudentUserManagementOperat
                 .withPassword(passwordEncoder.encode(request.getPassword()))
                 .withMajor(request.getMajor())
                 .withDepartment(request.getDepartment())
+                .withCohort(request.getCohort())
+                .withMaxSemesterCredit(request.getMaxSemesterCredit())
+                .withMinSemesterCredit(request.getMinSemesterCredit())
+                .withMaxDegreeCredit(request.getMaxDegreeCredit())
                 .build();
 
         return studentRepository.save(student);
