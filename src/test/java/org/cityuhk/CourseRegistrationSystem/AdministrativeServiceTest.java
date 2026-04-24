@@ -833,7 +833,7 @@ class AdministrativeServiceTest {
     }
 
     private Instructor buildInstructor(String eid, int staffId) {
-        return (Instructor) new Instructor.InstructorBuilder()
+        return new Instructor.InstructorBuilder()
                 .withStaffId(staffId)
                 .withDepartment("COMP")
                 .withUserEID(eid)
@@ -1000,7 +1000,6 @@ class AdministrativeServiceTest {
     void createStudent_duplicateEIDInInstructorRepo_throws() {
         // Arrange
         String userEID = studentReq.getUserEID();
-        Instructor mockInstructor = mock(Instructor.class);
 
         // First two checks pass (return empty)
         when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(userEID));
@@ -1011,8 +1010,6 @@ class AdministrativeServiceTest {
 
     @Test
     void createStudent_duplicateEIDInAdminRepo_throws() {
-        Admin mockAdmin = mock(Admin.class);
-
         when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
 
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
@@ -1023,12 +1020,9 @@ class AdministrativeServiceTest {
     void createStudent_duplicateEIDInStudentRepo_throws() {
         // Arrange
         String userEID = studentReq.getUserEID();
-        Student mockStudent = mock(Student.class);
 
-        // Mock the service to throw
         when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(userEID));
 
-        // Act & Assert
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
