@@ -1,0 +1,2 @@
+studentId,userEID,name,password,minSemesterCredit,maxSemesterCredit,major,cohort,department,maxDegreeCredit
+1,student1,studentcsv,$2a$10$NOji.q3YqXF9xRTagoB1jOSJx0enuOXq7SQfQPiHspxLZGkFzHD3W,9,18,GAE,2026,Computing,90

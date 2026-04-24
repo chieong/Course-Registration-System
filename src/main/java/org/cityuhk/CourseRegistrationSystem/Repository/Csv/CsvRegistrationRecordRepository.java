@@ -1,5 +1,14 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
@@ -7,10 +16,6 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRe
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Primary
@@ -75,7 +80,7 @@ public class CsvRegistrationRecordRepository implements RegistrationRecordReposi
     @Override
     public int countEnrolled(Integer sectionId) {
         return (int) loadAll().stream()
-                .filter(r -> r.getSection().getSectionId() == sectionId)
+                .filter(r -> Objects.equals(r.getSection().getSectionId(), sectionId))
                 .count();
     }
 
@@ -88,14 +93,14 @@ public class CsvRegistrationRecordRepository implements RegistrationRecordReposi
     public boolean exists(Integer studentId, Integer sectionId) {
         return loadAll().stream().anyMatch(r ->
                 Objects.equals(r.getStudent().getStudentId(), studentId)
-                        && r.getSection().getSectionId() == sectionId);
+                && Objects.equals(r.getSection().getSectionId(), sectionId));
     }
 
     @Override
     public Optional<RegistrationRecord> findByStudentIdAndSectionId(Integer studentId, Integer sectionId) {
         return loadAll().stream()
                 .filter(r -> Objects.equals(r.getStudent().getStudentId(), studentId)
-                        && r.getSection().getSectionId() == sectionId)
+                && Objects.equals(r.getSection().getSectionId(), sectionId))
                 .findFirst();
     }
 

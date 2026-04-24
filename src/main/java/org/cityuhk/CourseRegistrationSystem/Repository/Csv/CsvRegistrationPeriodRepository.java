@@ -1,14 +1,17 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationPeriodRepositoryPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Primary
@@ -58,7 +61,7 @@ public class CsvRegistrationPeriodRepository implements RegistrationPeriodReposi
     @Override
     public Optional<RegistrationPeriod> findById(Integer id) {
         return loadAll().stream()
-                .filter(p -> p.getPeriodId() == id)
+                .filter(p -> Objects.equals(p.getPeriodId(), id))
                 .findFirst();
     }
 
@@ -74,8 +77,8 @@ public class CsvRegistrationPeriodRepository implements RegistrationPeriodReposi
             period.setPeriodId(idGen.nextId("registration_period"));
             all.add(period);
         } else {
-            int id = period.getPeriodId();
-            all.removeIf(p -> p.getPeriodId() == id);
+            Integer id = period.getPeriodId();
+            all.removeIf(p -> Objects.equals(p.getPeriodId(), id));
             all.add(period);
         }
         saveAll(all);
