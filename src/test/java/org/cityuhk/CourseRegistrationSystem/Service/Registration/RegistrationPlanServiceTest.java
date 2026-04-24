@@ -8,6 +8,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPlanRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.PlanEntryRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class RegistrationPlanServiceTest {
 
     @Mock
@@ -52,6 +56,12 @@ class RegistrationPlanServiceTest {
 
     @Mock
     private RegistrationPeriodRepository registrationPeriodRepository;
+
+    @Mock
+    private RegistrationRecordRepository registrationRecordRepository;
+
+    @Mock
+    private RegistrationService registrationService;
 
     @InjectMocks
     private RegistrationPlanService registrationPlanService;
@@ -170,18 +180,18 @@ class RegistrationPlanServiceTest {
     }
 
     @Test
-    void createPlan_WhenFirstPeriodAlreadyStarted_RejectsEditing() {
+    void createPlan_WhenFirstPeriodAlreadyStarted_StillAllowsEditing() {
         RegistrationPeriod configured = new RegistrationPeriod();
         configured.setStartDateTime(LocalDateTime.now().minusMinutes(1));
 
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
-        when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class))).thenReturn(Optional.empty());
-        when(registrationPeriodRepository.findByCohortOrderByStartDateTime(2024)).thenReturn(List.of(configured));
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(0L);
+        when(registrationPlanRepository.existsByStudentIdAndPriority(1, 1)).thenReturn(false);
+        when(registrationPlanRepository.save(any(RegistrationPlan.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, 1));
+        RegistrationPlan created = registrationPlanService.createPlan(1, 1);
 
-        assertEquals("Plans cannot be edited after period start", ex.getMessage());
+        assertEquals(1, created.getPriority());
     }
 
     @Test
@@ -202,15 +212,15 @@ class RegistrationPlanServiceTest {
     }
 
     @Test
-    void createPlan_WhenActiveRegistrationPeriodExists_ThrowsReadOnlyError() {
+    void createPlan_WhenActiveRegistrationPeriodExists_StillAllowsEditing() {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
-        when(registrationPeriodRepository.findActivePeriod(eq(2024), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(new org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod()));
+        when(registrationPlanRepository.countByStudentIdForPlanLimit(1)).thenReturn(0L);
+        when(registrationPlanRepository.existsByStudentIdAndPriority(1, 1)).thenReturn(false);
+        when(registrationPlanRepository.save(any(RegistrationPlan.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> registrationPlanService.createPlan(1, 1));
+        RegistrationPlan created = registrationPlanService.createPlan(1, 1);
 
-        assertEquals("Plans are read-only during active registration period", ex.getMessage());
+        assertEquals(1, created.getPriority());
     }
 
     @Test

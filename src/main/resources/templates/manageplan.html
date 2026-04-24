@@ -12,7 +12,7 @@
 	<main class="container">
 		<header class="page-header">
 			<h1>Manage Study Plan</h1>
-			<p class="muted">Build and adjust your semester plan before final registration.</p>
+			<p class="muted">Build and adjust your study plan before final registration.</p>
 		</header>
 
 		<div id="mpNotification" class="mu-notification is-hidden" role="status" aria-live="polite" hidden>
@@ -21,25 +21,21 @@
 		</div>
 
 		<section class="info-banner" aria-label="Study plan message">
-			Plan for Semester 2, 2026. Recommended workload is 15 to 18 credits.
+			Recommended workload is 15 to 18 credits.
 		</section>
 
 		<section class="summary-grid" aria-label="Student plan summary">
 			<article class="summary-card">
 				<h3>Student</h3>
-				<p>Isaac Tan (S2301001)</p>
+				<p id="summaryStudent">-</p>
 			</article>
 			<article class="summary-card">
 				<h3>Programme</h3>
-				<p>BSc Computer Science</p>
+				<p id="summaryProgramme">-</p>
 			</article>
 			<article class="summary-card">
 				<h3>Study Year</h3>
-				<p>Year 2</p>
-			</article>
-			<article class="summary-card">
-				<h3>Academic Term</h3>
-				<p>Semester 2, 2026</p>
+				<p id="summaryStudyYear">-</p>
 			</article>
 		</section>
 
@@ -48,15 +44,6 @@
 			<form class="schedule-form" th:action="@{/manageplan}" method="get">
 				<div class="top-filter-area">
 					<div class="top-filter-row">
-						<div class="form-group term-field">
-							<label for="academicTerm">Academic Term</label>
-							<select id="academicTerm" name="academicTerm">
-								<option value="Semester 1, 2026">Semester 1, 2026</option>
-								<option value="Semester 2, 2026" selected>Semester 2, 2026</option>
-								<option value="Summer, 2026">Summer, 2026</option>
-							</select>
-						</div>
-
 						<div class="form-group course-field">
 							<label for="keyword">Search Course</label>
 							<input id="keyword" name="keyword" type="text" placeholder="Course code or title" />
@@ -114,7 +101,7 @@
 				<div>
 					<div class="split-title">
 						<h2>Available Courses</h2>
-						<p class="muted">Add courses into your semester plan.</p>
+							<p class="muted">Add courses into your study plan.</p>
 					</div>
 
 					<div class="available-search">
@@ -137,156 +124,15 @@
 								</tr>
 							</thead>
 							<tbody id="availableCoursesBody">
-								<tr data-day="Monday" data-time="09:00 - 11:00" data-location="Room A101" data-availability="open">
-									<td>CSC302</td>
-									<td>Data Structures and Algorithms II</td>
-									<td><span class="pill pill-core">Core</span></td>
-									<td data-credits="3">3</td>
-									<td>Monday</td>
-									<td>09:00 - 11:00</td>
-									<td>Room A101</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC302">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Tuesday" data-time="14:00 - 16:00" data-location="Room B204" data-availability="open">
-									<td>CSC318</td>
-									<td>Software Engineering Practices</td>
-									<td><span class="pill pill-core">Core</span></td>
-									<td data-credits="3">3</td>
-									<td>Tuesday</td>
-									<td>14:00 - 16:00</td>
-									<td>Room B204</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC318">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Wednesday" data-time="10:00 - 12:00" data-location="Room C310" data-availability="open">
-									<td>CSC352</td>
-									<td>Human Computer Interaction</td>
-									<td><span class="pill pill-elective">Elective</span></td>
-									<td data-credits="3">3</td>
-									<td>Wednesday</td>
-									<td>10:00 - 12:00</td>
-									<td>Room C310</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC352">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Thursday" data-time="09:00 - 11:00" data-location="Lab 2" data-availability="waitlist">
-									<td>CSC360</td>
-									<td>Cloud Application Development</td>
-									<td><span class="pill pill-elective">Elective</span></td>
-									<td data-credits="3">3</td>
-									<td>Thursday</td>
-									<td>09:00 - 11:00</td>
-									<td>Lab 2</td>
-									<td>
-										<button type="button" class="small-btn waitlist course-action-btn" data-code="CSC360">Add to Waitlist</button>
-									</td>
-								</tr>
-								<tr data-day="Friday" data-time="13:00 - 15:00" data-location="Networks Lab" data-availability="open">
-									<td>CSC384</td>
-									<td>Computer Networks Lab</td>
-									<td><span class="pill pill-lab">Lab</span></td>
-									<td data-credits="1">1</td>
-									<td>Friday</td>
-									<td>13:00 - 15:00</td>
-									<td>Networks Lab</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC384">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Tuesday" data-time="14:00 - 16:00" data-location="Room D108" data-availability="full">
-									<td>CSC325</td>
-									<td>Information Security</td>
-									<td><span class="pill pill-elective">Elective</span></td>
-									<td data-credits="3">3</td>
-									<td>Tuesday</td>
-									<td>14:00 - 16:00</td>
-									<td>Room D108</td>
-									<td>
-										<button type="button" class="small-btn full course-action-btn" data-code="CSC325" disabled>Full</button>
-									</td>
-								</tr>
-								<tr data-day="Saturday" data-time="10:00 - 12:00" data-location="Innovation Studio" data-availability="waitlist">
-									<td>CSC390</td>
-									<td>AI Applications Workshop</td>
-									<td><span class="pill pill-elective">Elective</span></td>
-									<td data-credits="2">2</td>
-									<td>Saturday</td>
-									<td>10:00 - 12:00</td>
-									<td>Innovation Studio</td>
-									<td>
-										<button type="button" class="small-btn waitlist course-action-btn" data-code="CSC390">Add to Waitlist</button>
-									</td>
-								</tr>
-								<tr data-day="Monday" data-time="10:00 - 12:00" data-location="Room G102" data-availability="open">
-									<td>CSC311</td>
-									<td>Operating Systems</td>
-									<td><span class="pill pill-core">Core</span></td>
-									<td data-credits="3">3</td>
-									<td>Monday</td>
-									<td>10:00 - 12:00</td>
-									<td>Room G102</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC311">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Tuesday" data-time="10:00 - 12:00" data-location="Room H205" data-availability="open">
-									<td>CSC331</td>
-									<td>Database Systems</td>
-									<td><span class="pill pill-core">Core</span></td>
-									<td data-credits="3">3</td>
-									<td>Tuesday</td>
-									<td>10:00 - 12:00</td>
-									<td>Room H205</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC331">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Wednesday" data-time="11:00 - 13:00" data-location="Room B110" data-availability="open">
-									<td>CSC344</td>
-									<td>Computer Graphics</td>
-									<td><span class="pill pill-elective">Elective</span></td>
-									<td data-credits="3">3</td>
-									<td>Wednesday</td>
-									<td>11:00 - 13:00</td>
-									<td>Room B110</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC344">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Thursday" data-time="14:00 - 16:00" data-location="Room C220" data-availability="open">
-									<td>CSC422</td>
-									<td>Machine Learning</td>
-									<td><span class="pill pill-elective">Elective</span></td>
-									<td data-credits="3">3</td>
-									<td>Thursday</td>
-									<td>14:00 - 16:00</td>
-									<td>Room C220</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC422">Add</button>
-									</td>
-								</tr>
-								<tr data-day="Friday" data-time="13:00 - 14:00" data-location="Server Room 1" data-availability="open">
-									<td>CSC401</td>
-									<td>System Administration</td>
-									<td><span class="pill pill-lab">Lab</span></td>
-									<td data-credits="1">1</td>
-									<td>Friday</td>
-									<td>13:00 - 14:00</td>
-									<td>Server Room 1</td>
-									<td>
-										<button type="button" class="small-btn add-course-btn" data-code="CSC401">Add</button>
-									</td>
+								<tr class="empty-row">
+									<td colspan="8">Loading available courses...</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
 
-				<aside class="right-card" aria-label="Current semester plan">
+				<aside class="right-card" aria-label="Current study plan">
 					<h2>Current Plan</h2>
 					<div class="plan-carousel">
 						<button type="button" class="carousel-nav" id="prevPlanBtn" aria-label="Previous plan">&#x2039; Prev</button>
@@ -294,7 +140,7 @@
 						<button type="button" class="carousel-nav" id="nextPlanBtn" aria-label="Next plan">Next &#x203A;</button>
 						<button type="button" class="carousel-add-btn" id="addPlanBtn">+ New Plan</button>
 					</div>
-					<p class="muted">Courses selected for this term.</p>
+					<p class="muted">Courses selected in this plan.</p>
 
 					<div class="table-wrapper">
 						<table aria-label="Selected courses table">
@@ -308,61 +154,6 @@
 								</tr>
 							</thead>
 							<tbody id="selectedPlanBody">
-								<tr data-code="CSC201" data-credits="1" data-day="Tuesday" data-time="11:00 - 12:00" data-category="Core" data-location="Room E205">
-									<td>CSC201</td>
-									<td>1</td>
-									<td>Tuesday</td>
-									<td>11:00 - 12:00</td>
-									<td>
-										<div class="inline-actions">
-											<button type="button" class="small-danger remove-course-btn" data-code="CSC201">Remove</button>
-										</div>
-									</td>
-								</tr>
-								<tr data-code="CSC302" data-credits="3" data-day="Monday" data-time="09:00 - 11:00" data-category="Core" data-location="Room A101">
-									<td>CSC302</td>
-									<td>3</td>
-									<td>Monday</td>
-									<td>09:00 - 11:00</td>
-									<td>
-										<div class="inline-actions">
-											<button type="button" class="small-danger remove-course-btn" data-code="CSC302">Remove</button>
-										</div>
-									</td>
-								</tr>
-								<tr data-code="CSC352" data-credits="3" data-day="Wednesday" data-time="10:00 - 12:00" data-category="Elective" data-location="Room C310">
-									<td>CSC352</td>
-									<td>3</td>
-									<td>Wednesday</td>
-									<td>10:00 - 12:00</td>
-									<td>
-										<div class="inline-actions">
-											<button type="button" class="small-danger remove-course-btn" data-code="CSC352">Remove</button>
-										</div>
-									</td>
-								</tr>
-								<tr data-code="CSC384" data-credits="1" data-day="Friday" data-time="13:00 - 15:00" data-category="Lab" data-location="Networks Lab">
-									<td>CSC384</td>
-									<td>1</td>
-									<td>Friday</td>
-									<td>13:00 - 15:00</td>
-									<td>
-										<div class="inline-actions">
-											<button type="button" class="small-danger remove-course-btn" data-code="CSC384">Remove</button>
-										</div>
-									</td>
-								</tr>
-								<tr data-code="CSC415" data-credits="3" data-day="Thursday" data-time="13:00 - 16:00" data-category="Elective" data-location="Room F301">
-									<td>CSC415</td>
-									<td>3</td>
-									<td>Thursday</td>
-									<td>13:00 - 16:00</td>
-									<td>
-										<div class="inline-actions">
-											<button type="button" class="small-danger remove-course-btn" data-code="CSC415">Remove</button>
-										</div>
-									</td>
-								</tr>
 								<tr class="empty-row" id="emptyPlanRow">
 									<td colspan="5">No courses selected yet.</td>
 								</tr>
@@ -416,7 +207,7 @@
 
 			<div class="preview-layout">
 				<div class="preview-card">
-					<p class="preview-note">Preview window: 09:00 to 18:00 (Monday to Friday)</p>
+					<p class="preview-note">Preview window: 09:00 to 22:00 (Monday to Saturday)</p>
 					<div class="table-wrapper">
 						<table class="preview-timetable" aria-label="Planned timetable preview grid">
 							<thead>

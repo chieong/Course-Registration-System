@@ -388,7 +388,7 @@ li {
   width: 100%;
 }
 
-/* Top row: Academic Term, Course Code, Add More Filters */
+/* Top row: primary filters and Add More Filters */
 .top-filter-row {
   display: flex;
   align-items: flex-end;
@@ -397,7 +397,7 @@ li {
   margin-bottom: 20px;
 }
 
-.term-field {
+.filter-field {
   flex: 0 0 35%;
 }
 
@@ -1508,7 +1508,7 @@ table.master-table th {
     align-items: stretch;
   }
 
-  .term-field,
+  .filter-field,
   .course-field,
   .more-filters-inline {
     flex: 1 1 100%;
@@ -1772,7 +1772,7 @@ table.master-table th {
 }
 
 .mc-filter-section .mc-filter-row .course-field,
-.mc-filter-section .mc-filter-row .term-field {
+.mc-filter-section .mc-filter-row .filter-field {
   flex: initial;
   margin-bottom: 0;
 }

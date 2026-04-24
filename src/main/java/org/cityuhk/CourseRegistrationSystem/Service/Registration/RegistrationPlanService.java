@@ -3,10 +3,12 @@ package org.cityuhk.CourseRegistrationSystem.Service.Registration;
 import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPlanRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.SectionRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.PlanEntryRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
@@ -16,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class RegistrationPlanService {
@@ -28,17 +33,23 @@ public class RegistrationPlanService {
     private final StudentRepositoryPort studentRepository;
     private final SectionRepositoryPort sectionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
+    private final RegistrationRecordRepository registrationRecordRepository;
+    private final RegistrationService registrationService;
 
     public RegistrationPlanService(RegistrationPlanRepository registrationPlanRepository,
                                    PlanEntryRepositoryPort planEntryRepository,
                                    StudentRepositoryPort studentRepository,
                                    SectionRepositoryPort sectionRepository,
-                                   RegistrationPeriodRepository registrationPeriodRepository) {
+                                   RegistrationPeriodRepository registrationPeriodRepository,
+                                   RegistrationRecordRepository registrationRecordRepository,
+                                   RegistrationService registrationService) {
         this.registrationPlanRepository = registrationPlanRepository;
         this.planEntryRepository = planEntryRepository;
         this.studentRepository = studentRepository;
         this.sectionRepository = sectionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
+        this.registrationRecordRepository = registrationRecordRepository;
+        this.registrationService = registrationService;
     }
 
     @Transactional(readOnly = true)
@@ -75,8 +86,6 @@ public class RegistrationPlanService {
 Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        ensurePlanEditable(student,LocalDateTime.now());
-
         long currentCount = registrationPlanRepository.countByStudentIdForPlanLimit(studentId);
         if (currentCount >= MAX_PLAN_COUNT) {
             throw new RuntimeException("Maximum 10 plans allowed");
@@ -105,7 +114,6 @@ Student student = studentRepository.findById(studentId)
         RegistrationPlan plan = registrationPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        ensurePlanEditable(plan.getStudent(), LocalDateTime.now());
         registrationPlanRepository.delete(plan);
     }
 
@@ -113,8 +121,6 @@ Student student = studentRepository.findById(studentId)
     public PlanEntry addEntry(Integer planId, Integer sectionId, PlanEntry.EntryType entryType, boolean joinWaitlistOnAddFailure) {
         RegistrationPlan plan = registrationPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
-
-        ensurePlanEditable(plan.getStudent(), LocalDateTime.now());
 
         Section section = sectionRepository.findById(sectionId)
                 .orElseThrow(() -> new RuntimeException("Section not found"));
@@ -143,8 +149,6 @@ Student student = studentRepository.findById(studentId)
         RegistrationPlan plan = registrationPlanRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        ensurePlanEditable(plan.getStudent(), LocalDateTime.now());
-
         PlanEntry entry = planEntryRepository.findById(entryId)
                 .orElseThrow(() -> new RuntimeException("Plan entry not found"));
 
@@ -158,10 +162,8 @@ Student student = studentRepository.findById(studentId)
 
     @Transactional
     public List<RegistrationPlan> reorderPlans(Integer studentId, List<Integer> orderedPlanIds) {
-        Student student = studentRepository.findById(studentId)
+        studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        ensurePlanEditable(student,LocalDateTime.now());
 
         List<RegistrationPlan> existing = registrationPlanRepository.findByStudentIdOrderByPriorityAsc(studentId);
         if (existing.size() != orderedPlanIds.size()) {
@@ -201,15 +203,94 @@ Student student = studentRepository.findById(studentId)
         return registrationPlanRepository.saveAll(existing);
     }
 
-    private void ensurePlanEditable(Student student, LocalDateTime now) {
-        RegistrationPeriod active = registrationPeriodRepository.findActivePeriod(student.getCohort(), now).orElse(null);
-        if (active != null) {
-            throw new RuntimeException("Plans are read-only during active registration period");
+    @Transactional
+    public PlanSubmitResult saveOrSubmitPlan(Integer planId, LocalDateTime now) {
+        RegistrationPlan plan = registrationPlanRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+
+        Student student = plan.getStudent();
+        if (student == null) {
+            throw new RuntimeException("Student not found for plan");
         }
 
-        List<RegistrationPeriod> configuredPeriods = registrationPeriodRepository.findByCohortOrderByStartDateTime(student.getCohort());
-        if (!configuredPeriods.isEmpty() && !now.isBefore(configuredPeriods.get(0).getStartDateTime())) {
-            throw new RuntimeException("Plans cannot be edited after period start");
+        RegistrationPeriod active = registrationPeriodRepository.findActivePeriod(student.getCohort(), now).orElse(null);
+        if (active == null) {
+            plan.setApplyStatus(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED);
+            plan.setApplySummary("Saved as draft (registration period inactive)");
+            registrationPlanRepository.save(plan);
+            return new PlanSubmitResult(false, "Draft saved. Registration period is not active.", plan);
         }
+
+        try {
+            applyPlanToRegistration(plan, now);
+            plan.setApplyStatus(RegistrationPlan.ApplyStatus.APPLIED);
+            plan.setApplyAttemptedAt(now);
+            plan.setApplySummary("Submitted and applied successfully");
+            registrationPlanRepository.save(plan);
+            return new PlanSubmitResult(true, "Plan submitted and registration updated.", plan);
+        } catch (RuntimeException ex) {
+            plan.setApplyStatus(RegistrationPlan.ApplyStatus.FAILED);
+            plan.setApplyAttemptedAt(now);
+            plan.setApplySummary(ex.getMessage());
+            registrationPlanRepository.save(plan);
+            return new PlanSubmitResult(true, "Plan submission failed: " + ex.getMessage(), plan);
+        }
+    }
+
+    private void applyPlanToRegistration(RegistrationPlan plan, LocalDateTime now) {
+        Integer studentId = plan.getStudent().getStudentId();
+        List<RegistrationRecord> currentRecords = registrationRecordRepository.findByStudentId(studentId);
+
+        Set<Integer> desiredSectionIds = plan.getEntries().stream()
+                .filter(entry -> entry.getEntryType() == PlanEntry.EntryType.SELECTED)
+                .map(entry -> entry.getSection() == null ? null : entry.getSection().getSectionId())
+                .filter(sectionId -> sectionId != null)
+                .collect(Collectors.toSet());
+
+        Set<Integer> currentSectionIds = currentRecords.stream()
+                .map(record -> record.getSection().getSectionId())
+                .collect(Collectors.toSet());
+
+        Set<Integer> toDrop = new HashSet<>(currentSectionIds);
+        toDrop.removeAll(desiredSectionIds);
+
+        Set<Integer> toAdd = new HashSet<>(desiredSectionIds);
+        toAdd.removeAll(currentSectionIds);
+
+        for (Integer sectionId : toDrop) {
+            registrationService.dropSection(studentId, sectionId, now);
+        }
+
+        for (PlanEntry entry : plan.getEntries()) {
+            if (entry.getEntryType() != PlanEntry.EntryType.SELECTED) {
+                continue;
+            }
+
+            if (entry.getSection() == null || entry.getSection().getSectionId() == null) {
+                entry.setStatus(PlanEntry.EntryStatus.FAILED);
+                entry.setFailureReason("Section not found");
+                throw new RuntimeException("Plan contains invalid section");
+            }
+
+            Integer sectionId = entry.getSection().getSectionId();
+            if (!toAdd.contains(sectionId)) {
+                entry.setStatus(PlanEntry.EntryStatus.APPLIED);
+                entry.setFailureReason(null);
+                continue;
+            }
+
+            try {
+                registrationService.addSection(studentId, sectionId, now);
+                entry.setStatus(PlanEntry.EntryStatus.APPLIED);
+                entry.setFailureReason(null);
+            } catch (RuntimeException ex) {
+                entry.setStatus(PlanEntry.EntryStatus.FAILED);
+                entry.setFailureReason(ex.getMessage());
+                throw new RuntimeException("Failed on section " + sectionId + ": " + ex.getMessage());
+            }
+        }
+    }
+
+    public record PlanSubmitResult(boolean submitted, String message, RegistrationPlan plan) {
     }
 }

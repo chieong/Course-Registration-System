@@ -142,19 +142,19 @@ function renderTable() {
 
 function mapCourseFromApi(course) {
   return {
-    code: course.courseCode || "",
+    code: course.courseCode || course.code || "",
     title: course.title || "",
-    category: "Core",
+    category: course.category || "Core",
     credits: Number(course.credits || 0),
-    dept: "Computer Science",
-    day: "TBA",
-    startTime: "00:00",
-    endTime: "00:00",
-    location: "TBA",
-    enrolled: 0,
-    maxEnroll: 0,
-    waitlistSize: 0,
-    waitlistCurrent: 0,
+    dept: course.dept || "Computer Science",
+    day: course.day || "TBA",
+    startTime: course.startTime || "00:00",
+    endTime: course.endTime || "00:00",
+    location: course.location || "TBA",
+    enrolled: Number(course.enrolled || 0),
+    maxEnroll: Number(course.maxEnroll || 0),
+    waitlistSize: Number(course.waitlistSize || 0),
+    waitlistCurrent: Number(course.waitlistCurrent || 0),
     description: course.description || ""
   };
 }
