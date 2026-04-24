@@ -7,8 +7,8 @@ public class AdminStudentRequest {
     private String major;
     private String department;
     private Integer cohort;
-    private Integer minSemesterCredit;
     private Integer maxSemesterCredit;
+    private Integer minSemesterCredit;
     private Integer maxDegreeCredit;
 
     public String getUserEID() {
@@ -59,20 +59,20 @@ public class AdminStudentRequest {
         this.cohort = cohort;
     }
 
-    public Integer getMinSemesterCredit() {
-        return minSemesterCredit;
-    }
-
-    public void setMinSemesterCredit(Integer minSemesterCredit) {
-        this.minSemesterCredit = minSemesterCredit;
-    }
-
     public Integer getMaxSemesterCredit() {
         return maxSemesterCredit;
     }
 
     public void setMaxSemesterCredit(Integer maxSemesterCredit) {
         this.maxSemesterCredit = maxSemesterCredit;
+    }
+
+    public Integer getMinSemesterCredit() {
+        return minSemesterCredit;
+    }
+
+    public void setMinSemesterCredit(Integer minSemesterCredit) {
+        this.minSemesterCredit = minSemesterCredit;
     }
 
     public Integer getMaxDegreeCredit() {

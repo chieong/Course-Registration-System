@@ -503,7 +503,7 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
 
         when(administrativeService.listUsers()).thenReturn(Collections.emptyList(), List.of(a1));
         when(administrativeService.createUser(any(AdminUserRequest.class))).thenReturn(created);
-        when(administrativeService.modifyUser(eq(3), any(AdminUserRequest.class))).thenReturn(updated);
+        when(administrativeService.modifyUser(any(AdminUserRequest.class))).thenReturn(updated);
 
         invokeHandleLine("admin-list-users");
         assertTrue(output().contains("No admin users found."));
@@ -511,14 +511,14 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         outContent.reset();
         invokeHandleLine("admin-list-users");
         invokeHandleLine("admin-create-user adminB \"Bob\" secret");
-        invokeHandleLine("admin-modify-user 3 adminC \"Charlie\" newpass");
-        invokeHandleLine("admin-remove-user 4");
+        invokeHandleLine("admin-modify-user adminC \"Charlie\" newpass");
+        invokeHandleLine("admin-remove-user adminD");
 
         String out = output();
         assertTrue(out.contains("1 | adminA | Alice"));
         assertTrue(out.contains("Created admin user with staffId=2"));
         assertTrue(out.contains("Updated admin user 3"));
-        assertTrue(out.contains("Removed admin user 4"));
+        assertTrue(out.contains("Removed admin user adminD"));
 
         ArgumentCaptor<AdminUserRequest> createCaptor = ArgumentCaptor.forClass(AdminUserRequest.class);
         verify(administrativeService).createUser(createCaptor.capture());
@@ -527,7 +527,7 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         assertEquals("secret", createCaptor.getValue().getPassword());
 
         ArgumentCaptor<AdminUserRequest> modifyCaptor = ArgumentCaptor.forClass(AdminUserRequest.class);
-        verify(administrativeService).modifyUser(eq(3), modifyCaptor.capture());
+        verify(administrativeService).modifyUser(modifyCaptor.capture());
         assertEquals("adminC", modifyCaptor.getValue().getUserEID());
         assertEquals("Charlie", modifyCaptor.getValue().getName());
         assertEquals("newpass", modifyCaptor.getValue().getPassword());
@@ -537,12 +537,12 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
     void adminModifyUser_shouldAlsoWorkWithoutPassword() {
         setAdminSession("admin1");
         Admin updated = mockAdmin("adminNoPwd", "p", 5, "NoPwd");
-        when(administrativeService.modifyUser(eq(5), any(AdminUserRequest.class))).thenReturn(updated);
+        when(administrativeService.modifyUser(any(AdminUserRequest.class))).thenReturn(updated);
 
-        invokeHandleLine("admin-modify-user 5 adminNoPwd \"NoPwd\"");
+        invokeHandleLine("admin-modify-user adminNoPwd \"NoPwd\"");
 
         ArgumentCaptor<AdminUserRequest> captor = ArgumentCaptor.forClass(AdminUserRequest.class);
-        verify(administrativeService).modifyUser(eq(5), captor.capture());
+        verify(administrativeService).modifyUser(captor.capture());
         assertNull(captor.getValue().getPassword());
         assertTrue(output().contains("Updated admin user 5"));
     }
@@ -560,8 +560,8 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
         Exception ex3 = assertThrows(Exception.class, () -> invokeHandleLine("admin-create-user a b"));
         assertTrue(ex3.getMessage().contains("Usage: admin-create-user <userEID> <name> <password>"));
 
-        Exception ex4 = assertThrows(Exception.class, () -> invokeHandleLine("admin-remove-user abc"));
-        assertTrue(ex4.getMessage().contains("Invalid integer for staffId"));
+        Exception ex4 = assertThrows(Exception.class, () -> invokeHandleLine("admin-remove-user"));
+        assertTrue(ex4.getMessage().contains("Usage: admin-remove-user <userEID>"));
     }
 
     // ---------------------------
@@ -911,22 +911,12 @@ void adminModifyUser_shouldThrowWhenArgumentCountIsInvalid() {
     setAdminSession("admin1");
 
     Exception ex = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-modify-user 1 onlyTwoArgs"));
-    assertTrue(ex.getMessage().contains(
-            "Usage: admin-modify-user <staffId> <userEID> <name> [password]"));
-}
+                () -> invokeHandleLine("admin-modify-user tooManyArgs arg1 arg2 arg3 arg4"));
+        assertTrue(ex.getMessage().contains(
+                "Usage: admin-modify-user <userEID> [name] [password]"));
 
-@Test
-void adminRemoveUser_shouldThrowWhenArgumentCountIsWrong() {
-    setAdminSession("admin1");
-
-    Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("admin-remove-user"));
-    assertTrue(ex.getMessage().contains("Usage: admin-remove-user <staffId>"));
-}
-
-@Test
-void adminUpsertCourse_shouldCoverSplitCsvNullBranch() {
-    setAdminSession("admin1");
+    ex = assertThrows(Exception.class, () -> invokeHandleLine("admin-remove-user"));
+        assertTrue(ex.getMessage().contains("Usage: admin-remove-user <userEID>"));
 
     Course updated = mockCourse("CS100", "Title", 3, 0);
     when(courseService.getCourse("CS100")).thenReturn(updated);

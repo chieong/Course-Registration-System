@@ -96,6 +96,7 @@ public class Instructor extends User {
         StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append("Staff ID: ").append(this.staffId).append("\n");
+        sb.append("Department: ").append(this.department).append("\n");
         return sb.toString();
     }
 }
