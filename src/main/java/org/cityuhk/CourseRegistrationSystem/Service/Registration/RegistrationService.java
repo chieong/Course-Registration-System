@@ -83,6 +83,7 @@ public class RegistrationService {
 
     }
 
+    @Transactional
     public void waitListSection(Integer studentId, Integer sectionId, LocalDateTime timestamp) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -151,6 +152,7 @@ public class RegistrationService {
         }
     }
 
+    @Transactional
     public void dropWaitlist(Integer studentId, Integer sectionId) {
         Student student =
                 studentRepository
