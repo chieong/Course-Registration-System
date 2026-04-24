@@ -15,6 +15,11 @@ const nextPlanBtn = document.getElementById("nextPlanBtn");
 const addPlanBtn = document.getElementById("addPlanBtn");
 const removePlanBtn = document.getElementById("removePlanBtn");
 const planPager = document.getElementById("planPager");
+const summaryStudent = document.getElementById("summaryStudent");
+const summaryProgramme = document.getElementById("summaryProgramme");
+const summaryStudyYear = document.getElementById("summaryStudyYear");
+const summaryAcademicTerm = document.getElementById("summaryAcademicTerm");
+const academicTermSelect = document.getElementById("academicTerm");
 
 const previewDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const previewStartHour = 9;
@@ -24,6 +29,29 @@ let currentStudentId = null;
 let availableSections = [];
 let plans = [];
 let currentPlanIndex = 0;
+
+function renderStudentSummary(session) {
+  if (summaryStudent) {
+    const displayName = asText(session && session.displayName, "Student");
+    const studentIdText = session && session.studentId ? ` (${session.studentId})` : "";
+    summaryStudent.textContent = `${displayName}${studentIdText}`;
+  }
+
+  if (summaryProgramme) {
+    summaryProgramme.textContent = "Computer Science";
+  }
+
+  if (summaryStudyYear) {
+    summaryStudyYear.textContent = asText(session && session.role, "STUDENT");
+  }
+
+  if (summaryAcademicTerm) {
+    const selectedTerm = academicTermSelect && academicTermSelect.selectedOptions.length
+      ? academicTermSelect.selectedOptions[0].textContent
+      : "Current Term";
+    summaryAcademicTerm.textContent = asText(selectedTerm, "Current Term");
+  }
+}
 
 function asText(value, fallback = "-") {
   if (value === null || value === undefined) {
@@ -430,6 +458,8 @@ async function loadCurrentStudent() {
     throw new Error("Manage Plan requires a STUDENT login.");
   }
   currentStudentId = me.studentId;
+  renderStudentSummary(me);
+  return me;
 }
 
 async function loadAvailableSections() {
@@ -510,6 +540,7 @@ async function removeEntryById(entryId) {
 
   await apiRequest(`/api/plans/${currentPlan.planId}/entries/${entryId}`, { method: "DELETE" });
   currentPlan.entries = (currentPlan.entries || []).filter((entry) => Number(entry.entryId) !== Number(entryId));
+  await loadAvailableSections();
 }
 
 async function removeOverlaps(day, timeRange) {
@@ -590,6 +621,7 @@ async function addSectionToCurrentPlan(sectionId) {
 
   currentPlan.entries = currentPlan.entries || [];
   currentPlan.entries.push(mapped);
+  await loadAvailableSections();
 }
 
 async function removeCurrentPlan() {
@@ -611,6 +643,7 @@ async function removeCurrentPlan() {
   await apiRequest(`/api/plans/${currentPlan.planId}`, { method: "DELETE" });
   plans.splice(currentPlanIndex, 1);
   currentPlanIndex = Math.max(0, Math.min(currentPlanIndex, plans.length - 1));
+  await loadAvailableSections();
   renderCurrentPlan();
 }
 
@@ -628,6 +661,7 @@ async function addNewPlan() {
   });
 
   currentPlanIndex = plans.length - 1;
+  await loadAvailableSections();
   renderCurrentPlan();
 }
 
@@ -751,6 +785,17 @@ planPager.addEventListener("click", (event) => {
 if (availableCourseSearch) {
   availableCourseSearch.addEventListener("input", () => {
     renderAvailableCourses();
+  });
+}
+
+if (academicTermSelect) {
+  academicTermSelect.addEventListener("change", () => {
+    if (summaryAcademicTerm) {
+      const selectedTerm = academicTermSelect.selectedOptions.length
+        ? academicTermSelect.selectedOptions[0].textContent
+        : "Current Term";
+      summaryAcademicTerm.textContent = asText(selectedTerm, "Current Term");
+    }
   });
 }
 
