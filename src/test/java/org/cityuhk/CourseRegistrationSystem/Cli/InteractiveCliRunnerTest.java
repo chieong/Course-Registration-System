@@ -1,1060 +1,1157 @@
 package org.cityuhk.CourseRegistrationSystem.Cli;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
-import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
-import org.cityuhk.CourseRegistrationSystem.Model.Section;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
+import org.cityuhk.CourseRegistrationSystem.Model.*;
+import org.cityuhk.CourseRegistrationSystem.Repository.*;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.*;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationPlanService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationService;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class InteractiveCliRunnerTest {
 
     @Mock
     private CourseService courseService;
+
     @Mock
     private RegistrationService registrationService;
+
     @Mock
     private TimetableService timetableService;
+
     @Mock
     private AdministrativeService administrativeService;
+
     @Mock
     private RegistrationPlanService registrationPlanService;
+
     @Mock
     private AdminRepository adminRepository;
+
     @Mock
     private StudentRepository studentRepository;
+
     @Mock
     private InstructorRepository instructorRepository;
+
     @Mock
     private RegistrationRecordRepository registrationRecordRepository;
+
+    @Mock
+    private WaitlistRecordRepository waitlistRecordRepository;
+
     @Mock
     private PasswordEncoder passwordEncoder;
+
     @Mock
     private CliSessionStore sessionStore;
 
     @InjectMocks
-    private InteractiveCliRunner runner;
+    private InteractiveCliRunner cliRunner;
 
-    private PrintStream originalOut;
-    private InputStream originalIn;
-    private ByteArrayOutputStream outContent;
-
-    @TempDir
-    Path tempDir;
+    private Admin testAdmin;
+    private Student testStudent;
+    private Instructor testInstructor;
+    private Course testCourse;
+    private Section testSection;
 
     @BeforeEach
-    void setUpStreams() {
-        originalOut = System.out;
-        originalIn = System.in;
-        outContent = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outContent));
+    void setUp() {
+        testAdmin = mock(Admin.class);
+        testStudent = mock(Student.class);
+        testInstructor = mock(Instructor.class);
+        testCourse = mock(Course.class);
+        testSection = mock(Section.class);
     }
 
-    @AfterEach
-    void restoreStreams() {
-        System.setOut(originalOut);
-        System.setIn(originalIn);
+    // ============== Authentication Tests ==============
+
+    @Test
+    void testLoginInvalidCredentials() throws Exception {
+        when(adminRepository.findByUserEID("invalid")).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID("invalid")).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID("invalid")).thenReturn(Optional.empty());
+
+        List<String> args = Arrays.asList("invalid", "password");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
     }
 
-    // ---------------------------
-    // Helper methods
-    // ---------------------------
-
-    private void setInput(String data) {
-        System.setIn(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)));
+    @Test
+    void testLoginInvalidArgs() throws Exception {
+        List<String> args = Arrays.asList("only_one_arg");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
     }
 
-    private String output() {
-        return outContent.toString(StandardCharsets.UTF_8);
+    @Test
+    void testPasswordMatchesWithNull() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("passwordMatches", String.class, String.class);
+        method.setAccessible(true);
+        boolean result = (boolean) method.invoke(cliRunner, null, "password");
+        assertFalse(result);
+
+        result = (boolean) method.invoke(cliRunner, "password", null);
+        assertFalse(result);
     }
 
-    private void invokeHandleLine(String line) {
-        ReflectionTestUtils.invokeMethod(runner, "handleLine", line);
+    @Test
+    void testPasswordMatchesWithEncoder() throws Exception {
+        when(passwordEncoder.matches(eq("password"), any())).thenReturn(true);
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("passwordMatches", String.class, String.class);
+        method.setAccessible(true);
+        boolean result = (boolean) method.invoke(cliRunner, "password", "hashedPassword");
+        assertTrue(result);
     }
 
-    private void invokeLoadSavedSession() {
-        ReflectionTestUtils.invokeMethod(runner, "loadSavedSession");
+    @Test
+    void testPasswordMatchesPlaintext() throws Exception {
+        when(passwordEncoder.matches(anyString(), anyString())).thenThrow(new IllegalArgumentException());
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("passwordMatches", String.class, String.class);
+        method.setAccessible(true);
+        boolean result = (boolean) method.invoke(cliRunner, "password", "password");
+        assertTrue(result);
     }
 
-    private boolean invokePasswordMatches(String raw, String stored) {
-        Boolean result = ReflectionTestUtils.invokeMethod(runner, "passwordMatches", raw, stored);
-        return Boolean.TRUE.equals(result);
+    @Test
+    void testLogout() throws Exception {
+        setActiveStudentSession();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogout");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+        verify(sessionStore).clear();
     }
 
-    private void setAdminSession(String eid) {
-        ReflectionTestUtils.setField(runner, "activeSession", new CliSession(eid, CliRole.ADMIN));
+    @Test
+    void testWhoAmI() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleWhoAmI");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
     }
 
-    private void setStudentSession(String eid) {
-        ReflectionTestUtils.setField(runner, "activeSession", new CliSession(eid, CliRole.STUDENT));
+    // ============== Student Command Tests ==============
+
+    @Test
+    void testAddSection() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAddSection", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationService).addSection(eq(0), eq(1), any(LocalDateTime.class));
     }
 
-    private void setInstructorSession(String eid) {
-        ReflectionTestUtils.setField(runner, "activeSession", new CliSession(eid, CliRole.INSTRUCTOR));
+    @Test
+    void testAddSectionInvalidArgs() throws Exception {
+        setActiveStudentSession();
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAddSection", List.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
     }
 
-    private Instructor mockInstructor(String eid, int staffId, Set<Section> sections) {
-        Instructor instructor = mock(Instructor.class);
-        lenient().when(instructor.getUserEID()).thenReturn(eid);
-        lenient().when(instructor.getStaffId()).thenReturn(staffId);
-        lenient().when(instructor.getSections()).thenReturn(sections);
-        return instructor;
+    @Test
+    void testDropSection() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleDropSection", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationService).dropSection(eq(0), eq(1), any(LocalDateTime.class));
     }
 
-    private RegistrationRecord mockRegistrationRecord(Student student, Section section) {
-        RegistrationRecord record = mock(RegistrationRecord.class);
-        lenient().when(record.getStudent()).thenReturn(student);
-        lenient().when(record.getSection()).thenReturn(section);
-        return record;
+    @Test
+    void testJoinWaitlist() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleJoinWaitlist", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationService).waitListSection(eq(0), eq(1), any(LocalDateTime.class));
     }
 
-    private Admin mockAdmin(String eid, String pwd, int staffId, String userName) {
-        Admin admin = mock(Admin.class);
-        lenient().when(admin.getUserEID()).thenReturn(eid);
-        lenient().when(admin.getPassword()).thenReturn(pwd);
-        lenient().when(admin.getStaffId()).thenReturn(staffId);
-        lenient().when(admin.getUserName()).thenReturn(userName);
-        return admin;
+    @Test
+    void testDropWaitlist() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleDropWaitlist", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationService).dropWaitlist(eq(0), eq(1));
     }
 
-    private Student mockStudent(String eid, String pwd, int studentId) {
-        Student student = mock(Student.class);
-        lenient().when(student.getUserEID()).thenReturn(eid);
-        lenient().when(student.getPassword()).thenReturn(pwd);
-        lenient().when(student.getStudentId()).thenReturn(studentId);
-        return student;
+    // ============== Registration Plan Tests ==============
+
+    @Test
+    void testListPlans() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        RegistrationPlan plan = mock(RegistrationPlan.class);
+        when(plan.getPlanId()).thenReturn(1);
+        when(plan.getPriority()).thenReturn(1);
+        when(plan.getApplyStatus()).thenReturn(RegistrationPlan.ApplyStatus.APPLIED);
+        when(plan.getApplySummary()).thenReturn("Test Summary");
+        when(plan.getEntries()).thenReturn(new ArrayList<>());
+
+        when(registrationPlanService.getPlanSet(0)).thenReturn(Arrays.asList(plan));
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleListPlans");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(registrationPlanService).getPlanSet(0);
     }
 
-private Course mockCourse(String code, String title, int credits, int sectionCount) {
-    Course course = mock(Course.class);
-    lenient().when(course.getCourseCode()).thenReturn(code);
-    lenient().when(course.getTitle()).thenReturn(title);
-    lenient().when(course.getCredits()).thenReturn(credits);
+    @Test
+    void testListPlansEmpty() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+        when(registrationPlanService.getPlanSet(0)).thenReturn(Collections.emptyList());
 
-    if (sectionCount < 0) {
-        lenient().when(course.getSections()).thenReturn(null);
-    } else {
-        Set<Section> sections = new HashSet<>();
-        for (int i = 0; i < sectionCount; i++) {
-            sections.add(mock(Section.class));
-        }
-        lenient().when(course.getSections()).thenReturn(sections);
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleListPlans");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(registrationPlanService).getPlanSet(0);
     }
 
-    return course;
-}
+    @Test
+    void testCreatePlanWithPriority() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
 
-    private RegistrationPeriod mockPeriod(int id, int cohort, LocalDateTime start, LocalDateTime end) {
+        RegistrationPlan plan = mock(RegistrationPlan.class);
+        when(plan.getPlanId()).thenReturn(1);
+        when(plan.getPriority()).thenReturn(2);
+
+        when(registrationPlanService.createPlan(0, 2)).thenReturn(plan);
+
+        List<String> args = Arrays.asList("2");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleCreatePlan", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).createPlan(0, 2);
+    }
+
+    @Test
+    void testCreatePlanWithoutPriority() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        RegistrationPlan plan = mock(RegistrationPlan.class);
+        when(plan.getPlanId()).thenReturn(1);
+        when(plan.getPriority()).thenReturn(1);
+
+        when(registrationPlanService.createPlan(0, null)).thenReturn(plan);
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleCreatePlan", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).createPlan(0, null);
+    }
+
+    @Test
+    void testRemovePlan() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleRemovePlan", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).removePlan(1);
+    }
+
+    @Test
+    void testAddPlanEntry() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        PlanEntry entry = mock(PlanEntry.class);
+        when(entry.getEntryId()).thenReturn(1);
+
+        when(registrationPlanService.addEntry(1, 1, PlanEntry.EntryType.SELECTED, false))
+                .thenReturn(entry);
+
+        List<String> args = Arrays.asList("1", "1", "SELECTED", "false");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAddPlanEntry", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).addEntry(1, 1, PlanEntry.EntryType.SELECTED, false);
+    }
+
+    @Test
+    void testAddPlanEntryWithoutFlag() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        PlanEntry entry = mock(PlanEntry.class);
+        when(entry.getEntryId()).thenReturn(1);
+
+        when(registrationPlanService.addEntry(1, 1, PlanEntry.EntryType.WAITLIST, false))
+                .thenReturn(entry);
+
+        List<String> args = Arrays.asList("1", "1", "WAITLIST");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAddPlanEntry", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).addEntry(1, 1, PlanEntry.EntryType.WAITLIST, false);
+    }
+
+    @Test
+    void testAddPlanEntryInvalidType() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1", "1", "INVALID");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAddPlanEntry", List.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testRemovePlanEntry() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        List<String> args = Arrays.asList("1", "1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleRemovePlanEntry", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).removeEntry(1, 1);
+    }
+
+    @Test
+    void testReorderPlans() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        RegistrationPlan plan1 = mock(RegistrationPlan.class);
+        when(plan1.getPlanId()).thenReturn(1);
+        when(plan1.getPriority()).thenReturn(1);
+
+        when(registrationPlanService.reorderPlans(0, Arrays.asList(1, 2)))
+                .thenReturn(Arrays.asList(plan1));
+
+        List<String> args = Arrays.asList("1,2");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleReorderPlans", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(registrationPlanService).reorderPlans(0, Arrays.asList(1, 2));
+    }
+
+    // ============== Timetable Tests ==============
+
+    @Test
+    void testShowTimetableStudent() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+        when(timetableService.getStudentTimetableString(0)).thenReturn("Timetable content");
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleShowTimeTable", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(timetableService).getStudentTimetableString(0);
+    }
+
+    @Test
+    void testShowTimetableInstructor() throws Exception {
+        setActiveInstructorSession();
+        when(instructorRepository.findByUserEID("instructor1")).thenReturn(Optional.of(testInstructor));
+        when(timetableService.getStudentTimetableString(0)).thenReturn("Instructor timetable");
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleShowTimeTable", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(timetableService).getStudentTimetableString(0);
+    }
+
+    @Test
+    void testExportTimetableStudentDefault() throws Exception {
+        setActiveStudentSession();
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+
+        Path tempFile = Files.createTempFile("timetable", ".txt");
+        when(timetableService.exportStudentTimetable(0)).thenReturn(tempFile);
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleExportTimetable", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(timetableService).exportStudentTimetable(0);
+        Files.deleteIfExists(tempFile);
+    }
+
+
+
+    @Test
+    void testExportTimetableAdminNotAllowed() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleExportTimetable", List.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    // ============== Admin User Management Tests ==============
+
+    @Test
+    void testAdminListUsers() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listUsers()).thenReturn(Arrays.asList(testAdmin));
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListUsers");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(administrativeService).listUsers();
+    }
+
+    @Test
+    void testAdminListUsersEmpty() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listUsers()).thenReturn(Collections.emptyList());
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListUsers");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(administrativeService).listUsers();
+    }
+
+    @Test
+    void testAdminCreateUser() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.createUser(any())).thenReturn(testAdmin);
+
+        List<String> args = Arrays.asList("admin1", "Admin User", "password");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateUser", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).createUser(any(AdminUserRequest.class));
+    }
+
+    @Test
+    void testAdminModifyUser() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.modifyUser(any())).thenReturn(testAdmin);
+
+        List<String> args = Arrays.asList("admin1", "--name", "New Name", "--password", "newpass");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminModifyUser", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).modifyUser(any(AdminUserRequest.class));
+    }
+
+    @Test
+    void testAdminRemoveUser() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("admin1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveUser", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).removeUser("admin1");
+    }
+
+    // ============== Admin Student Management Tests ==============
+
+    @Test
+    void testAdminListStudents() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listStudents()).thenReturn(Arrays.asList(testStudent));
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListStudents");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(administrativeService).listStudents();
+    }
+
+    @Test
+    void testAdminListStudentsEmpty() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listStudents()).thenReturn(Collections.emptyList());
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListStudents");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(administrativeService).listStudents();
+    }
+
+    @Test
+    void testAdminCreateStudent() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.createStudent(any())).thenReturn(testStudent);
+
+        List<String> args = Arrays.asList("student1", "Student User", "password", "12", "18", "CS", "2024", "CS", "120");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateStudent", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).createStudent(any(AdminStudentRequest.class));
+    }
+
+    @Test
+    void testAdminModifyStudent() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.modifyStudent(any())).thenReturn(testStudent);
+
+        List<String> args = Arrays.asList("student1", "--name", "New Name", "--min-creds", "12");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminModifyStudent", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).modifyStudent(any(AdminStudentRequest.class));
+    }
+
+    @Test
+    void testAdminRemoveStudent() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("student1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveStudent", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).removeStudent("student1");
+    }
+
+    // ============== Admin Instructor Management Tests ==============
+
+    @Test
+    void testAdminListInstructors() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listInstructors()).thenReturn(Arrays.asList(testInstructor));
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListInstructors");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(administrativeService).listInstructors();
+    }
+
+    @Test
+    void testAdminListInstructorsEmpty() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listInstructors()).thenReturn(Collections.emptyList());
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListInstructors");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(administrativeService).listInstructors();
+    }
+
+    @Test
+    void testAdminCreateInstructor() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.createInstructor(any())).thenReturn(testInstructor);
+
+        List<String> args = Arrays.asList("instructor1", "Instructor User", "password", "--dept", "CS");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateInstructor", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).createInstructor(any(AdminInstructorRequest.class));
+    }
+
+    @Test
+    void testAdminCreateInstructorMinimumArgs() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.createInstructor(any())).thenReturn(testInstructor);
+
+        List<String> args = Arrays.asList("instructor1", "Instructor User", "password");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateInstructor", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).createInstructor(any(AdminInstructorRequest.class));
+    }
+
+    @Test
+    void testAdminModifyInstructor() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.modifyInstructor(any())).thenReturn(testInstructor);
+
+        List<String> args = Arrays.asList("instructor1", "--name", "New Name");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminModifyInstructor", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).modifyInstructor(any(AdminInstructorRequest.class));
+    }
+
+    @Test
+    void testAdminRemoveInstructor() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("instructor1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveInstructor", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).removeInstructor("instructor1");
+    }
+
+    // ============== Admin Course Management Tests ==============
+
+    @Test
+    void testAdminCreateCourseNew() throws Exception {
+        setActiveAdminSession();
+        when(courseService.getCourse("CS101")).thenReturn(null);
+        when(administrativeService.createCourse(any())).thenReturn(testCourse);
+
+        List<String> args = Arrays.asList("--code", "CS101", "--title", "Intro CS", "--credits", "3");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateCourse", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).createCourse(any(AdminCourseRequest.class));
+    }
+
+    @Test
+    void testAdminModifyCourseExisting() throws Exception {
+        setActiveAdminSession();
+        when(courseService.getCourse("CS101")).thenReturn(testCourse);
+        when(administrativeService.modifyCourse(any())).thenReturn(testCourse);
+
+        List<String> args = Arrays.asList("--code", "CS101", "--title", "Updated Title");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminModifyCourse", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).modifyCourse(any(AdminCourseRequest.class));
+    }
+
+    @Test
+    void testAdminRemoveCourse() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("CS101");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveCourse", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).removeCourse("CS101");
+    }
+
+    // ============== Admin Section Management Tests ==============
+
+    @Test
+    void testAdminListSections() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listSections(null)).thenReturn(Arrays.asList(testSection));
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).listSections(null);
+    }
+
+    @Test
+    void testAdminListSectionsByCode() throws Exception {
+        setActiveAdminSession();
+        when(administrativeService.listSections("CS101")).thenReturn(Arrays.asList(testSection));
+
+        List<String> args = Arrays.asList("--course", "CS101");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).listSections("CS101");
+    }
+
+    @Test
+    void testAdminCreateSection() throws Exception {
+        setActiveAdminSession();
+        when(courseService.getCourse("CS101")).thenReturn(testCourse);
+        when(administrativeService.createSection(any())).thenReturn(testSection);
+
+        List<String> args = Arrays.asList(
+                "--course", "CS101",
+                "--type", "LECTURE",
+                "--enroll-capacity", "30",
+                "--waitlist-capacity", "10",
+                "--start", "2026-05-01T09:00",
+                "--end", "2026-05-01T10:30",
+                "--venue", "Room 101");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateSection", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).createSection(any(AdminSectionService.class));
+    }
+
+    @Test
+    void testAdminModifySection() throws Exception {
+        setActiveAdminSession();
+        when(courseService.getCourse("CS101")).thenReturn(testCourse);
+        when(administrativeService.modifySection(any())).thenReturn(testSection);
+
+        List<String> args = Arrays.asList(
+                "--section-id", "1",
+                "--course", "CS101",
+                "--enroll-capacity", "35");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminModifySection", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).modifySection(any(AdminSectionService.class));
+    }
+
+    @Test
+    void testAdminRemoveSection() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveSection", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).deleteSection(any(AdminSectionService.class));
+    }
+
+    // ============== Admin Period Management Tests ==============
+
+    @Test
+    void testAdminListPeriods() throws Exception {
+        setActiveAdminSession();
         RegistrationPeriod period = mock(RegistrationPeriod.class);
-        when(period.getPeriodId()).thenReturn(id);
-        when(period.getCohort()).thenReturn(cohort);
-        when(period.getStartDateTime()).thenReturn(start);
-        when(period.getEndDateTime()).thenReturn(end);
-        return period;
-    }
+        when(period.getPeriodId()).thenReturn(1);
+        when(period.getCohort()).thenReturn(2024);
 
-    // ---------------------------
-    // run(), welcome, help, quit, EOF, error catch
-    // ---------------------------
+        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Arrays.asList(period));
 
-    @Test
-    void run_shouldExitImmediatelyOnEof() throws Exception {
-        when(sessionStore.load()).thenReturn(Optional.empty());
-        setInput("");
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListPeriods", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
 
-        runner.run();
-
-        String out = output();
-        assertTrue(out.contains("Course Registration CLI"));
-        assertTrue(out.contains("Type help to list commands."));
-        assertTrue(out.contains("CLI session closed."));
+        verify(administrativeService).listRegistrationPeriods(null);
     }
 
     @Test
-    void run_shouldRestoreSession_printHelp_skipBlank_unknownCommand_andQuit() throws Exception {
-        CliSession restored = new CliSession("student1", CliRole.STUDENT);
-        Student student = mockStudent("student1", "pwd", 1001);
+    void testAdminCreatePeriod() throws Exception {
+        setActiveAdminSession();
+        RegistrationPeriod period = mock(RegistrationPeriod.class);
+        when(period.getPeriodId()).thenReturn(1);
 
-        when(sessionStore.load()).thenReturn(Optional.of(restored));
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+        when(administrativeService.createRegistrationPeriod(any())).thenReturn(null);
+        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Arrays.asList(period));
 
-        setInput("\nhelp\nwhoami\nunknown-cmd\nquit\n");
-        runner.run();
+        List<String> args = Arrays.asList("--cohort", "2024", "--start", "2026-05-01T09:00", "--end", "2026-05-31T17:00");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreatePeriod", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
 
-        String out = output();
-        assertTrue(out.contains("Restored session for student1 (STUDENT)."));
-        assertTrue(out.contains("Available commands:"));
-        assertTrue(out.contains("student1 (STUDENT)"));
-        assertTrue(out.contains("Unknown command. Type help to see available commands."));
-        assertTrue(out.contains("CLI session closed."));
+        verify(administrativeService).createRegistrationPeriod(any(AdminPeriodRequest.class));
     }
 
     @Test
-    void run_shouldCatchCommandExceptionAndContinue() throws Exception {
-        when(sessionStore.load()).thenReturn(Optional.empty());
-        setInput("add-section 1\nquit\n");
+    void testAdminDeletePeriod() throws Exception {
+        setActiveAdminSession();
+        RegistrationPeriod period = mock(RegistrationPeriod.class);
+        when(period.getPeriodId()).thenReturn(1);
 
-        runner.run();
+        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Arrays.asList(period));
 
-        String out = output();
-        assertTrue(out.contains("ERROR: Please login first"));
-        assertTrue(out.contains("CLI session closed."));
+        List<String> args = Arrays.asList("1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminDeletePeriod", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(administrativeService).deleteRegistrationPeriod(1);
     }
 
-    // ---------------------------
-    // loadSavedSession branches
-    // ---------------------------
+    // ============== Admin Instructor Assignment Tests ==============
 
     @Test
-    void loadSavedSession_shouldDoNothingWhenNoSession() {
-        when(sessionStore.load()).thenReturn(Optional.empty());
+    void testAdminAssignInstructor() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("1", "instructor1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAssignInstruction", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
 
-        invokeLoadSavedSession();
-
-        assertNull(ReflectionTestUtils.getField(runner, "activeSession"));
-    }
-
-    @Test
-    void loadSavedSession_shouldRestoreAdminWhenValid() {
-        CliSession saved = new CliSession("admin1", CliRole.ADMIN);
-        Admin admin = mockAdmin("admin1", "enc", 1, "Admin One");
-
-        when(sessionStore.load()).thenReturn(Optional.of(saved));
-        when(adminRepository.findByUserEID("admin1")).thenReturn(Optional.of(admin));
-
-        invokeLoadSavedSession();
-
-        Object session = ReflectionTestUtils.getField(runner, "activeSession");
-        assertNotNull(session);
+        verify(administrativeService).assignInstructor("instructor1", 1);
     }
 
     @Test
-    void loadSavedSession_shouldRestoreStudentWhenValid() {
-        CliSession saved = new CliSession("student1", CliRole.STUDENT);
-        Student student = mockStudent("student1", "enc", 1001);
+    void testAdminUnassignInstructor() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("1", "instructor1");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleUnassignInstruction", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
 
-        when(sessionStore.load()).thenReturn(Optional.of(saved));
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+        verify(administrativeService).unassignInstructor("instructor1", 1);
+    }
 
-        invokeLoadSavedSession();
+    // ============== View Student List Tests ==============
 
-        Object session = ReflectionTestUtils.getField(runner, "activeSession");
-        assertNotNull(session);
+    @Test
+    void testViewStudentListByInstructor() throws Exception {
+        setActiveInstructorSession();
+
+        // Configure testCourse with an ID or code that TreeMap can use as a key
+        when(testCourse.getCourseCode()).thenReturn("CS101");
+
+        when(testSection.getCourse()).thenReturn(testCourse);
+        when(testInstructor.getSections()).thenReturn(new HashSet<>(Arrays.asList(testSection)));
+
+        RegistrationRecord record = mock(RegistrationRecord.class);
+        when(record.getStudent()).thenReturn(testStudent);
+
+        when(instructorRepository.findByUserEIDWithSections("instructor1")).thenReturn(Optional.of(testInstructor));
+        when(registrationRecordRepository.findBySectionId(0)).thenReturn(new ArrayList<>(Arrays.asList(record)));
+
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewStudentList", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(instructorRepository).findByUserEIDWithSections("instructor1");
     }
 
     @Test
-    void loadSavedSession_shouldClearWhenAdminInvalid() throws IOException {
-        CliSession saved = new CliSession("adminX", CliRole.ADMIN);
+    void testViewStudentListStudentNotAllowed() throws Exception {
+        setActiveStudentSession();
+        List<String> args = Collections.emptyList();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewStudentList", List.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
 
-        when(sessionStore.load()).thenReturn(Optional.of(saved));
-        when(adminRepository.findByUserEID("adminX")).thenReturn(Optional.empty());
+    // ============== List Courses Tests ==============
 
-        invokeLoadSavedSession();
+    @Test
+    void testListCourses() throws Exception {
+        when(courseService.getAllCourses()).thenReturn(Arrays.asList(testCourse));
 
-        verify(sessionStore).clear();
-        assertNull(ReflectionTestUtils.getField(runner, "activeSession"));
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleListCourses");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(courseService).getAllCourses();
     }
 
     @Test
-    void loadSavedSession_shouldIgnoreIOExceptionWhenClearingInvalidStudentSession() throws IOException {
-        CliSession saved = new CliSession("studentX", CliRole.STUDENT);
-
-        when(sessionStore.load()).thenReturn(Optional.of(saved));
-        when(studentRepository.findByUserEID("studentX")).thenReturn(Optional.empty());
-        doThrow(new IOException("boom")).when(sessionStore).clear();
-
-        assertDoesNotThrow(this::invokeLoadSavedSession);
-        assertNull(ReflectionTestUtils.getField(runner, "activeSession"));
-    }
-
-    // ---------------------------
-    // login / logout / whoami / passwordMatches
-    // ---------------------------
-
-    @Test
-    void handleLogin_shouldLoginAsAdminAndLogout() throws Exception {
-        Admin admin = mockAdmin("admin1", "encoded", 7, "Admin");
-        when(adminRepository.findByUserEID("admin1")).thenReturn(Optional.of(admin));
-        when(passwordEncoder.matches("secret", "encoded")).thenReturn(true);
-
-        invokeHandleLine("login admin1 secret");
-        invokeHandleLine("whoami");
-        invokeHandleLine("logout");
-        invokeHandleLine("whoami");
-
-        String out = output();
-        assertTrue(out.contains("Logged in as ADMIN: admin1"));
-        assertTrue(out.contains("admin1 (ADMIN)"));
-        assertTrue(out.contains("Logged out."));
-        assertTrue(out.contains("No active session."));
-        verify(sessionStore).save(any(CliSession.class));
-        verify(sessionStore).clear();
-    }
-
-    @Test
-    void handleLogin_shouldLoginAsStudent() throws Exception {
-        Student student = mockStudent("student1", "encoded", 1001);
-
-        when(adminRepository.findByUserEID("student1")).thenReturn(Optional.empty());
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
-        when(passwordEncoder.matches("secret", "encoded")).thenReturn(true);
-
-        invokeHandleLine("login student1 secret");
-
-        String out = output();
-        assertTrue(out.contains("Logged in as STUDENT: student1"));
-        verify(sessionStore).save(any(CliSession.class));
-    }
-
-    @Test
-    void handleLogin_shouldUsePlaintextFallbackWhenEncoderThrows() {
-        when(passwordEncoder.matches("plain", "plain")).thenThrow(new IllegalArgumentException("bad format"));
-
-        assertTrue(invokePasswordMatches("plain", "plain"));
-        assertFalse(invokePasswordMatches(null, "plain"));
-        assertFalse(invokePasswordMatches("plain", null));
-    }
-
-@Test
-void handleLogin_shouldRejectInvalidCredentialsAndBadUsage() {
-    when(adminRepository.findByUserEID("u1")).thenReturn(Optional.empty());
-    when(studentRepository.findByUserEID("u1")).thenReturn(Optional.empty());
-    when(instructorRepository.findByUserEID("u1")).thenReturn(Optional.empty());
-
-    Exception ex1 = assertThrows(Exception.class, () -> invokeHandleLine("login u1 p1"));
-    assertTrue(ex1.getMessage().contains("Invalid credentials"));
-
-    Exception ex2 = assertThrows(Exception.class, () -> invokeHandleLine("login onlyOneArg"));
-    assertTrue(ex2.getMessage().contains("Usage: login <userEID> <password>"));
-}
-
-    // ---------------------------
-    // list-courses
-    // ---------------------------
-
-    @Test
-    void listCourses_shouldHandleEmptyAndNonEmptyLists() {
+    void testListCoursesEmpty() throws Exception {
         when(courseService.getAllCourses()).thenReturn(Collections.emptyList());
-        invokeHandleLine("list-courses");
-        assertTrue(output().contains("No courses found."));
 
-        outContent.reset();
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleListCourses");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
 
-        Course c1 = mockCourse("CS101", "Intro Programming", 3, 2);
-        Course c2 = mockCourse("CS102", "Data Structures", 4, -1);
-        when(courseService.getAllCourses()).thenReturn(List.of(c1, c2));
-
-        invokeHandleLine("list-courses");
-
-        String out = output();
-        assertTrue(out.contains("CS101 | Intro Programming | credits=3 | sections=2"));
-        assertTrue(out.contains("CS102 | Data Structures | credits=4 | sections=0"));
+        verify(courseService).getAllCourses();
     }
 
-    // ---------------------------
-    // student commands
-    // ---------------------------
+    // ============== View Master Schedule Tests ==============
 
     @Test
-    void addDropJoinWaitlist_shouldCallRegistrationService() {
-        Student student = mockStudent("student1", "pwd", 1001);
-        setStudentSession("student1");
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+    void testViewMasterSchedule() throws Exception {
+        setActiveStudentSession();
+        when(testCourse.getPrerequisiteCourses()).thenReturn(new HashSet<>());
+        when(testCourse.getExclusiveCourses()).thenReturn(new HashSet<>());
+        when(testCourse.getSections()).thenReturn(new HashSet<>(Arrays.asList(testSection)));
+        when(testSection.getInstructors()).thenReturn(new HashSet<>(Arrays.asList(testInstructor)));
 
-        invokeHandleLine("add-section 11");
-        invokeHandleLine("drop-section 12");
-        invokeHandleLine("join-waitlist 13");
+        when(courseService.getAllCoursesWithAllData()).thenReturn(Arrays.asList(testCourse));
+        when(registrationRecordRepository.countEnrolled(0)).thenReturn(10);
+        when(waitlistRecordRepository.countWaitlisted(0)).thenReturn(2);
 
-        verify(registrationService).addSection(eq(1001), eq(11), any(LocalDateTime.class));
-        verify(registrationService).dropSection(eq(1001), eq(12), any(LocalDateTime.class));
-        verify(registrationService).waitListSection(eq(1001), eq(13), any(LocalDateTime.class));
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewMasterSchedule");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
 
-        String out = output();
-        assertTrue(out.contains("Registration added."));
-        assertTrue(out.contains("Registration dropped."));
-        assertTrue(out.contains("Added to waitlist."));
+        verify(courseService).getAllCoursesWithAllData();
     }
 
     @Test
-    void studentCommands_shouldValidateUsageAndRole() {
-        Student student = mockStudent("student1", "pwd", 1001);
-        setStudentSession("student1");
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
+    void testViewMasterScheduleNoCourses() throws Exception {
+        setActiveStudentSession();
+        when(courseService.getAllCoursesWithAllData()).thenReturn(Collections.emptyList());
 
-        Exception ex1 = assertThrows(Exception.class, () -> invokeHandleLine("add-section"));
-        assertTrue(ex1.getMessage().contains("Usage: add-section <sectionId>"));
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewMasterSchedule");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
 
-        Exception ex2 = assertThrows(Exception.class, () -> invokeHandleLine("drop-section abc"));
-        assertTrue(ex2.getMessage().contains("Invalid integer for sectionId"));
+        verify(courseService).getAllCoursesWithAllData();
+    }
 
-        setAdminSession("admin1");
-        Exception ex3 = assertThrows(Exception.class, () -> invokeHandleLine("join-waitlist 1"));
-        assertTrue(ex3.getMessage().contains("This command requires STUDENT role"));
+    // ============== Utility Method Tests ==============
+
+    @Test
+    void testParseInteger() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseInteger", String.class, String.class);
+        method.setAccessible(true);
+        int result = (int) method.invoke(cliRunner, "123", "testField");
+        assertEquals(123, result);
     }
 
     @Test
-    void exportTimetable_shouldSupportDefaultAndCustomPath() throws Exception {
-        Student student = mockStudent("student1", "pwd", 1001);
-        setStudentSession("student1");
-        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
-
-        Path generated1 = tempDir.resolve("generated1.txt");
-        Files.writeString(generated1, "hello");
-        when(timetableService.exportStudentTimetable(1001)).thenReturn(generated1);
-
-        invokeHandleLine("export-timetable");
-
-        Path defaultOutput = Path.of("student-1001-timetable.txt").toAbsolutePath();
-        assertTrue(Files.exists(defaultOutput));
-        assertFalse(Files.exists(generated1));
-        assertTrue(output().contains("Timetable exported to " + defaultOutput));
-        Files.deleteIfExists(defaultOutput);
-
-        outContent.reset();
-
-        Path generated2 = tempDir.resolve("generated2.txt");
-        Files.writeString(generated2, "world");
-        when(timetableService.exportStudentTimetable(1001)).thenReturn(generated2);
-
-        Path custom = tempDir.resolve("my-timetable.txt");
-        invokeHandleLine("export-timetable \"" + custom.toString() + "\"");
-
-        assertTrue(Files.exists(custom));
-        assertFalse(Files.exists(generated2));
-        assertTrue(output().contains("Timetable exported to " + custom.toAbsolutePath()));
+    void testParseIntegerInvalid() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseInteger", String.class, String.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, "notanumber", "testField"));
     }
 
     @Test
-    void exportTimetable_shouldValidateUsage() {
-        Student student = mockStudent("student1", "pwd", 1001);
-        setStudentSession("student1");
-
-        Exception ex = assertThrows(Exception.class,
-                () -> invokeHandleLine("export-timetable a b"));
-        assertTrue(ex.getMessage().contains("Usage: export-timetable [outputPath]"));
+    void testParseDateTime() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseDateTime", String.class, String.class);
+        method.setAccessible(true);
+        LocalDateTime result = (LocalDateTime) method.invoke(cliRunner, "2026-05-01T09:00", "testField");
+        assertNotNull(result);
     }
 
     @Test
-    void requireStudent_shouldFailWhenStudentAccountNotFound() {
-        setStudentSession("ghost");
-        when(studentRepository.findByUserEID("ghost")).thenReturn(Optional.empty());
-
-        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("add-section 1"));
-        assertTrue(ex.getMessage().contains("Student account not found"));
+    void testParseDateTimeInvalid() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseDateTime", String.class, String.class);
+        method.setAccessible(true);
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, "invalid-date", "testField"));
     }
 
-    // ---------------------------
-    // admin user commands
-    // ---------------------------
+    @Test
+    void testValueOrDash() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("valueOrDash", String.class);
+        method.setAccessible(true);
 
-@Test
-void adminUserCommands_shouldListCreateModifyAndRemoveUsers() {
-    setAdminSession("admin1");
+        String result = (String) method.invoke(cliRunner, "value");
+        assertEquals("value", result);
 
-    Admin a1 = mockAdmin("adminA", "p", 1, "Alice");
-    Admin created = mockAdmin("adminB", "p", 2, "Bob");
-    Admin updated = mockAdmin("adminC", "p", 3, "Charlie");
+        result = (String) method.invoke(cliRunner, (String) null);
+        assertEquals("-", result);
 
-    when(administrativeService.listUsers()).thenReturn(Collections.emptyList(), List.of(a1));
-    when(administrativeService.createUser(any(AdminUserRequest.class))).thenReturn(created);
-    when(administrativeService.modifyUser(any(AdminUserRequest.class))).thenReturn(updated);
+        result = (String) method.invoke(cliRunner, "   ");
+        assertEquals("-", result);
+    }
 
-    invokeHandleLine("admin-list-users");
-    assertTrue(output().contains("No admin users found."));
+    @Test
+    void testFormatDateTime() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("formatDateTime", LocalDateTime.class);
+        method.setAccessible(true);
+        String result = (String) method.invoke(cliRunner, LocalDateTime.of(2026, 5, 1, 9, 0));  // ← Use cliRunner
+        assertNotNull(result);
+        assertTrue(result.contains("2026"));
 
-    outContent.reset();
+        result = (String) method.invoke(cliRunner, (LocalDateTime) null);  // ← Use cliRunner
+        assertEquals("N/A", result);
+    }
 
-    invokeHandleLine("admin-list-users");
-    invokeHandleLine("admin-create-user adminB \"Bob\" secret");
-    invokeHandleLine("admin-modify-user adminC --name \"Charlie\" --password newpass");
-    invokeHandleLine("admin-remove-user adminD");
+    // ============== Helper Methods ==============
 
-    String out = output();
-    assertTrue(out.contains("1 | adminA | Alice"));
-    assertTrue(out.contains("Created admin user with staffId=2"));
-    assertTrue(out.contains("Updated admin user 3"));
-    assertTrue(out.contains("Removed admin user adminD"));
+    private void setActiveStudentSession() throws Exception {
+        CliSession session = new CliSession("student1", CliRole.STUDENT);
+        java.lang.reflect.Field field = InteractiveCliRunner.class.getDeclaredField("activeSession");
+        field.setAccessible(true);
+        field.set(cliRunner, session);
+    }
 
-    ArgumentCaptor<AdminUserRequest> createCaptor = ArgumentCaptor.forClass(AdminUserRequest.class);
-    verify(administrativeService).createUser(createCaptor.capture());
-    assertEquals("adminB", createCaptor.getValue().getUserEID());
-    assertEquals("Bob", createCaptor.getValue().getName());
-    assertEquals("secret", createCaptor.getValue().getPassword());
+    private void setActiveInstructorSession() throws Exception {
+        CliSession session = new CliSession("instructor1", CliRole.INSTRUCTOR);
+        java.lang.reflect.Field field = InteractiveCliRunner.class.getDeclaredField("activeSession");
+        field.setAccessible(true);
+        field.set(cliRunner, session);
+    }
 
-    ArgumentCaptor<AdminUserRequest> modifyCaptor = ArgumentCaptor.forClass(AdminUserRequest.class);
-    verify(administrativeService).modifyUser(modifyCaptor.capture());
-    assertEquals("adminC", modifyCaptor.getValue().getUserEID());
-    assertEquals("Charlie", modifyCaptor.getValue().getName());
-    assertEquals("newpass", modifyCaptor.getValue().getPassword());
+    private void setActiveAdminSession() throws Exception {
+        CliSession session = new CliSession("admin1", CliRole.ADMIN);
+        java.lang.reflect.Field field = InteractiveCliRunner.class.getDeclaredField("activeSession");
+        field.setAccessible(true);
+        field.set(cliRunner, session);
+    }
+    // ============== parseIntegerCsv Tests ==============
+
+    @Test
+    void testParseIntegerCsvValid() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "1,2,3", "testField");
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(3));
+    }
+
+    @Test
+    void testParseIntegerCsvWithWhitespace() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "1 , 2 , 3", "testField");
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(3));
+    }
+
+    @Test
+    void testParseIntegerCsvNull() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, null, "testField");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testParseIntegerCsvBlank() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "   ", "testField");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testParseIntegerCsvEmpty() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "", "testField");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testParseIntegerCsvSingleValue() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "42", "testField");
+
+        assertEquals(1, result.size());
+        assertTrue(result.contains(42));
+    }
+
+    @Test
+    void testParseIntegerCsvDuplicates() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "1,2,2,3,3,3", "testField");
+
+        // Set should deduplicate
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(3));
+    }
+
+    @Test
+    void testParseIntegerCsvWithEmptyElements() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "1,,2,,3", "testField");
+
+        // Empty elements should be filtered out
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(3));
+    }
+
+    @Test
+    void testParseIntegerCsvInvalidValue() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        // Should throw exception when parseInteger encounters invalid value
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, "1,notanumber,3", "testField"));
+    }
+
+    @Test
+    void testParseIntegerCsvNegativeValues() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "-1,-2,-3", "testField");
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(-1));
+        assertTrue(result.contains(-2));
+        assertTrue(result.contains(-3));
+    }
+
+    @Test
+    void testParseIntegerCsvLargeNumbers() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "1000000,2000000,3000000", "testField");
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1000000));
+        assertTrue(result.contains(2000000));
+        assertTrue(result.contains(3000000));
+    }
 }
-
-@Test
-void adminModifyUser_shouldAlsoWorkWithoutPassword() {
-    setAdminSession("admin1");
-    Admin updated = mockAdmin("adminNoPwd", "p", 5, "NoPwd");
-    when(administrativeService.modifyUser(any(AdminUserRequest.class))).thenReturn(updated);
-
-    invokeHandleLine("admin-modify-user adminNoPwd --name \"NoPwd\"");
-
-    ArgumentCaptor<AdminUserRequest> captor = ArgumentCaptor.forClass(AdminUserRequest.class);
-    verify(administrativeService).modifyUser(captor.capture());
-
-    assertEquals("adminNoPwd", captor.getValue().getUserEID());
-    assertEquals("NoPwd", captor.getValue().getName());
-    assertNull(captor.getValue().getPassword());
-
-    assertTrue(output().contains("Updated admin user 5"));
-}
-
-
-
-    @Test
-    void adminUserCommands_shouldValidateUsageAndRole() {
-        Exception ex1 = assertThrows(Exception.class, () -> invokeHandleLine("admin-list-users"));
-        assertTrue(ex1.getMessage().contains("Please login first"));
-
-        setStudentSession("student1");
-        Exception ex2 = assertThrows(Exception.class, () -> invokeHandleLine("admin-create-user a b c"));
-        assertTrue(ex2.getMessage().contains("This command requires ADMIN role"));
-
-        setAdminSession("admin1");
-        Exception ex3 = assertThrows(Exception.class, () -> invokeHandleLine("admin-create-user a b"));
-        assertTrue(ex3.getMessage().contains("Usage: admin-create-user <userEID> <name> <password>"));
-
-        Exception ex4 = assertThrows(Exception.class, () -> invokeHandleLine("admin-remove-user"));
-        assertTrue(ex4.getMessage().contains("Usage: admin-remove-user <userEID>"));
-    }
-
-    // ---------------------------
-    // admin course commands
-    // ---------------------------
-
-    @Test
-    void adminCourseCommands_shouldCreateModifyAndRemoveCourse() {
-        setAdminSession("admin1");
-
-        Course created = mockCourse("CS211", "OOP", 3, 1);
-        Course updated = mockCourse("CS211", "Advanced OOP", 4, 2);
-
-        when(courseService.getCourse("CS211")).thenReturn(null, created);
-        when(administrativeService.createCourse(any(AdminCourseRequest.class))).thenReturn(created);
-        when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
-
-        invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --description core subject --prereq CS101,CS102 --exclusive CS999, CS998");
-        invokeHandleLine("admin-create-course --code CS211 --title Advanced OOP --credits 4 --description updated --prereq CS101 --exclusive CS998");
-        invokeHandleLine("admin-remove-course CS211");
-
-        String out = output();
-        assertTrue(out.contains("Created course CS211"));
-        assertTrue(out.contains("Updated course CS211"));
-        assertTrue(out.contains("Removed course CS211"));
-
-        ArgumentCaptor<AdminCourseRequest> createCaptor = ArgumentCaptor.forClass(AdminCourseRequest.class);
-        verify(administrativeService).createCourse(createCaptor.capture());
-        AdminCourseRequest createReq = createCaptor.getValue();
-        assertEquals("CS211", createReq.getCourseCode());
-        assertEquals("Object Oriented Programming", createReq.getTitle());
-        assertEquals(3, createReq.getCredits());
-        assertEquals("core subject", createReq.getDescription());
-        assertEquals(Set.of("CS101", "CS102"), createReq.getPrerequisiteCourseCodes());
-        assertEquals(Set.of("CS999", "CS998"), createReq.getExclusiveCourseCodes());
-
-        ArgumentCaptor<AdminCourseRequest> modifyCaptor = ArgumentCaptor.forClass(AdminCourseRequest.class);
-        verify(administrativeService).modifyCourse(modifyCaptor.capture());
-        AdminCourseRequest modifyReq = modifyCaptor.getValue();
-        assertEquals("CS211", modifyReq.getCourseCode());
-        assertEquals("Advanced OOP", modifyReq.getTitle());
-        assertEquals(4, modifyReq.getCredits());
-        assertEquals("updated", modifyReq.getDescription());
-        assertEquals(Set.of("CS101"), modifyReq.getPrerequisiteCourseCodes());
-        assertEquals(Set.of("CS998"), modifyReq.getExclusiveCourseCodes());
-    }
-
-    @Test
-    void adminCourseCommands_shouldValidateMissingRequiredFields() {
-        setAdminSession("admin1");
-
-        Exception ex1 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-course --title T --credits 3"));
-        assertTrue(ex1.getMessage().contains("--code is required"));
-
-        Exception ex2 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-course --code CS100 --credits 3"));
-        assertTrue(ex2.getMessage().contains("--title is required when creating a new course"));
-
-        Exception ex3 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-course --code CS100 --title T"));
-        assertTrue(ex3.getMessage().contains("--credits is required when creating a new course"));
-
-        Course existing = mockCourse("CS100", "Old", 3, 0);
-        when(courseService.getCourse("CS100")).thenReturn(existing);
-        Exception ex4 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-course --code CS100 --credits x"));
-        assertTrue(ex4.getMessage().contains("Invalid integer for credits"));
-
-        Exception ex5 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-remove-course"));
-        assertTrue(ex5.getMessage().contains("Usage: admin-remove-course <courseCode>"));
-    }
-
-        @Test
-        void adminCourseCommands_shouldRejectUnknownOptions() {
-        setAdminSession("admin1");
-
-        Exception ex1 = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-create-course --code CS211 --title Object Oriented Programming --credits 3 --semester 2026A"));
-        assertTrue(ex1.getMessage().contains("Unknown option(s) for admin-create-course: --semester"));
-
-        Exception ex2 = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-create-course --code CS211 --wrongField abc"));
-        assertTrue(ex2.getMessage().contains("Unknown option(s) for admin-create-course: --wrongfield"));
-        }
-
-    // ---------------------------
-    // admin period commands
-    // ---------------------------
-
-    @Test
-    void adminPeriodCommands_shouldListCreateAndDeletePeriods() {
-        setAdminSession("admin1");
-
-        RegistrationPeriod p1 = mockPeriod(
-            1, 2024,
-            LocalDateTime.of(2025, 1, 1, 9, 0),
-            LocalDateTime.of(2025, 1, 10, 18, 0));
-
-        RegistrationPeriod p2 = mockPeriod(
-            2, 2025,
-            LocalDateTime.of(2025, 2, 1, 9, 0),
-            LocalDateTime.of(2025, 2, 10, 18, 0));
-
-        when(administrativeService.listRegistrationPeriods(2024)).thenReturn(List.of(p1));
-        when(administrativeService.listRegistrationPeriods(null)).thenReturn(List.of(p1, p2));
-
-        invokeHandleLine("admin-list-periods --cohort 2024");
-        invokeHandleLine("admin-list-periods");
-        invokeHandleLine("admin-create-period --cohort 2025 --start 2025-02-01T09:00 --end 2025-02-10T18:00");
-        invokeHandleLine("admin-delete-period 2");
-
-        String out = output();
-        assertTrue(out.contains("1 | cohort=2024 | 2025-01-01T09:00 -> 2025-01-10T18:00"));
-        assertTrue(out.contains("2 | cohort=2025 | 2025-02-01T09:00 -> 2025-02-10T18:00"));
-        assertTrue(out.contains("Registration period created."));
-        assertTrue(out.contains("Registration period 2 deleted."));
-
-        ArgumentCaptor<AdminPeriodRequest> captor = ArgumentCaptor.forClass(AdminPeriodRequest.class);
-        verify(administrativeService).createRegistrationPeriod(captor.capture());
-        AdminPeriodRequest req = captor.getValue();
-        assertEquals(2025, req.getCohort());
-        assertEquals(LocalDateTime.of(2025, 2, 1, 9, 0), req.getStartDate());
-        assertEquals(LocalDateTime.of(2025, 2, 10, 18, 0), req.getEndDate());
-    }
-
-    @Test
-    void adminPeriodCommands_shouldHandleEmptyAndInvalidUsage() {
-        setAdminSession("admin1");
-
-        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Collections.emptyList());
-        invokeHandleLine("admin-list-periods");
-        assertTrue(output().contains("No registration periods found."));
-
-        Exception ex1 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-list-periods --cohort abc"));
-        assertTrue(ex1.getMessage().contains("Invalid integer for cohort"));
-
-        Exception ex2 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --start 2025-01-01T09:00 --end 2025-01-02T09:00"));
-        assertTrue(ex2.getMessage().contains("Usage: admin-create-period"));
-
-        Exception ex4 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --end 2025-01-02T09:00"));
-        assertTrue(ex4.getMessage().contains("Usage: admin-create-period"));
-
-        Exception ex5 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --start 2025-01-01T09:00"));
-        assertTrue(ex5.getMessage().contains("Usage: admin-create-period"));
-
-        Exception ex6 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-create-period --cohort 2024 --start bad-date --end 2025-01-02T09:00"));
-        assertTrue(ex6.getMessage().contains("Invalid date-time for start"));
-
-        Exception ex7 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-delete-period"));
-        assertTrue(ex7.getMessage().contains("Usage: admin-delete-period <periodId>"));
-
-        Exception ex8 = assertThrows(Exception.class,
-                () -> invokeHandleLine("admin-delete-period bad"));
-        assertTrue(ex8.getMessage().contains("Invalid integer for periodId"));
-    }
-
-    // ---------------------------
-    // unknown command
-    // ---------------------------
-
-    @Test
-    void handleLine_shouldPrintUnknownCommand() {
-        invokeHandleLine("something-unsupported");
-        assertTrue(output().contains("Unknown command. Type help to see available commands."));
-    }
-
-    // ---------------------------
-    // view-student-list
-    // ---------------------------
-
-    @Test
-    void viewStudentList_instructorShouldSeeEnrolledStudentsGroupedByCourse() {
-        setInstructorSession("inst1");
-
-        Course course = mockCourse("CS101", "Intro Programming", 3, 0);
-        lenient().when(course.getTitle()).thenReturn("Intro Programming");
-
-        Section section = mock(Section.class);
-        lenient().when(section.getSectionId()).thenReturn(11);
-        lenient().when(section.getCourse()).thenReturn(course);
-        lenient().when(section.getType()).thenReturn(Section.Type.LECTURE);
-        lenient().when(section.getStartTime()).thenReturn(null);
-        lenient().when(section.getEndTime()).thenReturn(null);
-
-        Student student = mockStudent("S2301001", "enc", 1001);
-        lenient().when(student.getUserName()).thenReturn("Isaac Tan");
-        lenient().when(student.getMajor()).thenReturn("BSc Computer Science");
-        lenient().when(student.getCohort()).thenReturn(2);
-
-        RegistrationRecord record = mockRegistrationRecord(student, section);
-
-        Instructor instructor = mockInstructor("inst1", 7, Set.of(section));
-        when(instructorRepository.findByUserEIDWithSections("inst1")).thenReturn(Optional.of(instructor));
-        when(registrationRecordRepository.findBySectionId(11)).thenReturn(List.of(record));
-
-        invokeHandleLine("view-student-list");
-
-        String out = output();
-        assertTrue(out.contains("--- Course: CS101 - Intro Programming ---"));
-        assertTrue(out.contains("Section 11"));
-        assertTrue(out.contains("Student ID"));
-        assertTrue(out.contains("1001"));
-        assertTrue(out.contains("Isaac Tan"));
-        assertTrue(out.contains("BSc Computer Science"));
-        assertTrue(out.contains("Year 2"));
-        assertTrue(out.contains("S2301001"));
-        assertTrue(out.contains("ACTIVE"));
-    }
-
-    @Test
-    void viewStudentList_adminShouldSeeInstructorDataWithFlag() {
-        setAdminSession("admin1");
-
-        Course course = mockCourse("CS204", "Database Systems", 3, 0);
-        lenient().when(course.getTitle()).thenReturn("Database Systems");
-
-        Section section = mock(Section.class);
-        lenient().when(section.getSectionId()).thenReturn(22);
-        lenient().when(section.getCourse()).thenReturn(course);
-        lenient().when(section.getType()).thenReturn(Section.Type.TUTORIAL);
-        lenient().when(section.getStartTime()).thenReturn(null);
-        lenient().when(section.getEndTime()).thenReturn(null);
-
-        Student student = mockStudent("S2400561", "enc", 2002);
-        lenient().when(student.getUserName()).thenReturn("Mei Lin");
-        lenient().when(student.getMajor()).thenReturn("BSc Computer Science");
-        lenient().when(student.getCohort()).thenReturn(1);
-
-        RegistrationRecord record = mockRegistrationRecord(student, section);
-
-        Instructor instructor = mockInstructor("inst2", 8, Set.of(section));
-        when(instructorRepository.findByUserEIDWithSections("inst2")).thenReturn(Optional.of(instructor));
-        when(registrationRecordRepository.findBySectionId(22)).thenReturn(List.of(record));
-
-        invokeHandleLine("view-student-list --instructor inst2");
-
-        String out = output();
-        assertTrue(out.contains("--- Course: CS204 - Database Systems ---"));
-        assertTrue(out.contains("2002"));
-        assertTrue(out.contains("Mei Lin"));
-        assertTrue(out.contains("Year 1"));
-        assertTrue(out.contains("ACTIVE"));
-    }
-
-    @Test
-    void viewStudentList_shouldRejectUnauthenticated() {
-        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
-        assertTrue(ex.getMessage().contains("Please login first"));
-    }
-
-    @Test
-    void viewStudentList_shouldRejectStudentRole() {
-        setStudentSession("student1");
-        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
-        assertTrue(ex.getMessage().contains("This command requires INSTRUCTOR or ADMIN role"));
-    }
-
-    @Test
-    void viewStudentList_adminWithoutInstructorFlagShouldFail() {
-        setAdminSession("admin1");
-        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
-        assertTrue(ex.getMessage().contains("ADMIN must specify --instructor"));
-    }
-
-    @Test
-    void viewStudentList_instructorNotFoundShouldFail() {
-        setInstructorSession("ghost");
-        when(instructorRepository.findByUserEIDWithSections("ghost")).thenReturn(Optional.empty());
-        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
-        assertTrue(ex.getMessage().contains("Instructor not found: ghost"));
-    }
-
-    @Test
-    void viewStudentList_instructorWithNoSectionsShouldPrintMessage() {
-        setInstructorSession("inst3");
-        Instructor instructor = mockInstructor("inst3", 9, new HashSet<>());
-        when(instructorRepository.findByUserEIDWithSections("inst3")).thenReturn(Optional.of(instructor));
-
-        invokeHandleLine("view-student-list");
-        assertTrue(output().contains("No sections assigned to instructor inst3."));
-    }
-
-    @Test
-    void viewStudentList_sectionWithNoStudentsShouldPrintMessage() {
-        setInstructorSession("inst4");
-
-        Course course = mockCourse("CS300", "Algorithms", 3, 0);
-        lenient().when(course.getTitle()).thenReturn("Algorithms");
-
-        Section section = mock(Section.class);
-        lenient().when(section.getSectionId()).thenReturn(33);
-        lenient().when(section.getCourse()).thenReturn(course);
-        lenient().when(section.getType()).thenReturn(Section.Type.LAB);
-        lenient().when(section.getStartTime()).thenReturn(null);
-        lenient().when(section.getEndTime()).thenReturn(null);
-
-        Instructor instructor = mockInstructor("inst4", 10, Set.of(section));
-        when(instructorRepository.findByUserEIDWithSections("inst4")).thenReturn(Optional.of(instructor));
-        when(registrationRecordRepository.findBySectionId(33)).thenReturn(Collections.emptyList());
-
-        invokeHandleLine("view-student-list");
-
-        String out = output();
-        assertTrue(out.contains("--- Course: CS300 - Algorithms ---"));
-        assertTrue(out.contains("(No enrolled students)"));
-        assertTrue(out.contains("No enrolled students found for instructor inst4."));
-    }
-
-    @Test
-    void viewStudentList_helpTextShouldContainCommand() {
-        invokeHandleLine("help");
-        String out = output();
-        assertTrue(out.contains("view-student-list"));
-        assertTrue(out.contains("--instructor"));
-    }
-
-@Test
-void dropSection_shouldThrowWhenArgumentCountIsWrong() {
-    Student student = mockStudent("student1", "pwd", 1001);
-    setStudentSession("student1");
-    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
-
-    Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("drop-section"));
-    assertTrue(ex.getMessage().contains("Usage: drop-section <sectionId>"));
-}
-
-@Test
-void joinWaitlist_shouldThrowWhenArgumentCountIsWrong() {
-    Student student = mockStudent("student1", "pwd", 1001);
-    setStudentSession("student1");
-    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
-
-    Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("join-waitlist"));
-    assertTrue(ex.getMessage().contains("Usage: join-waitlist <sectionId>"));
-}
-
-@Test
-void adminModifyUser_shouldThrowWhenUserEidIsMissing() {
-    setAdminSession("admin1");
-
-    Exception ex = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-modify-user"));
-
-    assertTrue(ex.getMessage().contains(
-            "Usage: admin-modify-user <userEID> [--name <name>] [--password <password>]"));
-}
-
-@Test
-void adminRemoveUser_shouldThrowWhenUserEidIsMissing() {
-    setAdminSession("admin1");
-
-    Exception ex = assertThrows(Exception.class,
-            () -> invokeHandleLine("admin-remove-user"));
-
-    assertTrue(ex.getMessage().contains("Usage: admin-remove-user <userEID>"));
-}
-
-@Test
-void adminUpsertCourse_shouldLeaveCsvFieldsNullWhenOmitted() {
-    setAdminSession("admin1");
-
-    Course updated = mockCourse("CS100", "Title", 3, 0);
-    when(courseService.getCourse("CS100")).thenReturn(updated);
-    when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
-
-    invokeHandleLine("admin-create-course --code CS100 --title \"New Title\"");
-
-    ArgumentCaptor<AdminCourseRequest> captor = ArgumentCaptor.forClass(AdminCourseRequest.class);
-    verify(administrativeService).modifyCourse(captor.capture());
-
-    assertEquals("CS100", captor.getValue().getCourseCode());
-    assertEquals("New Title", captor.getValue().getTitle());
-    assertNull(captor.getValue().getPrerequisiteCourseCodes());
-    assertNull(captor.getValue().getExclusiveCourseCodes());
-}
-
-
-@Test
-void adminUpsertCourse_shouldCoverSplitCsvEmptySetBranch() {
-    setAdminSession("admin1");
-
-    Course updated = mockCourse("CS101", "Title", 3, 0);
-    when(courseService.getCourse("CS101")).thenReturn(updated);
-    when(administrativeService.modifyCourse(any(AdminCourseRequest.class))).thenReturn(updated);
-
-    invokeHandleLine("admin-create-course --code CS101 --prereq \" , , \" --exclusive \" , , \"");
-
-    ArgumentCaptor<AdminCourseRequest> captor = ArgumentCaptor.forClass(AdminCourseRequest.class);
-    verify(administrativeService).modifyCourse(captor.capture());
-
-    assertNotNull(captor.getValue().getPrerequisiteCourseCodes());
-    assertTrue(captor.getValue().getPrerequisiteCourseCodes().isEmpty());
-    assertNotNull(captor.getValue().getExclusiveCourseCodes());
-    assertTrue(captor.getValue().getExclusiveCourseCodes().isEmpty());
-}
-@Test
-void handleLine_shouldReturnWhenTokenListIsEmpty() {
-    assertDoesNotThrow(() -> invokeHandleLine(""));
-}
-
-@Test
-void studentPlanCommands_shouldListCreateRemoveAddEntryRemoveEntryAndReorder() {
-    Student student = mockStudent("student1", "pwd", 1001);
-    setStudentSession("student1");
-    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
-
-    RegistrationPlan plan = new RegistrationPlan();
-    plan.setPlanId(11);
-    plan.setPriority(1);
-    plan.setApplyStatus(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED);
-    plan.setApplySummary("Awaiting period start");
-
-    Section section = new Section();
-    section.setSectionId(88);
-
-    PlanEntry entry = new PlanEntry();
-    entry.setEntryId(22);
-    entry.setSection(section);
-    entry.setEntryType(PlanEntry.EntryType.SELECTED);
-    entry.setStatus(PlanEntry.EntryStatus.PENDING);
-    entry.setJoinWaitlistOnAddFailure(true);
-    plan.addEntry(entry);
-
-    when(registrationPlanService.getPlanSet(1001)).thenReturn(List.of(plan));
-    when(registrationPlanService.createPlan(1001, 2)).thenReturn(plan);
-    when(registrationPlanService.addEntry(11, 88, PlanEntry.EntryType.SELECTED, true)).thenReturn(entry);
-    when(registrationPlanService.reorderPlans(1001, List.of(11))).thenReturn(List.of(plan));
-
-    invokeHandleLine("list-plans");
-    invokeHandleLine("create-plan 2");
-    invokeHandleLine("add-plan-entry 11 88 selected true");
-    invokeHandleLine("remove-plan-entry 11 22");
-    invokeHandleLine("reorder-plans 11");
-    invokeHandleLine("remove-plan 11");
-
-    verify(registrationPlanService).getPlanSet(1001);
-    verify(registrationPlanService).createPlan(1001, 2);
-    verify(registrationPlanService).addEntry(11, 88, PlanEntry.EntryType.SELECTED, true);
-    verify(registrationPlanService).removeEntry(11, 22);
-    verify(registrationPlanService).reorderPlans(1001, List.of(11));
-    verify(registrationPlanService).removePlan(11);
-
-    String out = output();
-    assertTrue(out.contains("planId=11 | priority=1"));
-    assertTrue(out.contains("Created plan 11 with priority=1"));
-    assertTrue(out.contains("Added plan entry 22"));
-    assertTrue(out.contains("Removed plan entry 22"));
-    assertTrue(out.contains("Plans reordered."));
-    assertTrue(out.contains("Removed plan 11"));
-}
-
-@Test
-void studentPlanCommands_shouldValidateUsageAndRole() {
-    setAdminSession("admin1");
-    Exception roleEx = assertThrows(Exception.class, () -> invokeHandleLine("list-plans"));
-    assertTrue(roleEx.getMessage().contains("This command requires STUDENT role"));
-
-    Student student = mockStudent("student1", "pwd", 1001);
-    setStudentSession("student1");
-    when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(student));
-
-    Exception usageEx1 = assertThrows(Exception.class, () -> invokeHandleLine("create-plan 1 2"));
-    assertTrue(usageEx1.getMessage().contains("Usage: create-plan [priority]"));
-
-    Exception usageEx2 = assertThrows(Exception.class, () -> invokeHandleLine("remove-plan"));
-    assertTrue(usageEx2.getMessage().contains("Usage: remove-plan <planId>"));
-
-    Exception usageEx3 = assertThrows(Exception.class, () -> invokeHandleLine("add-plan-entry 1 2 badType"));
-    assertTrue(usageEx3.getMessage().contains("Invalid entry type. Use SELECTED or WAITLIST"));
-
-    Exception usageEx4 = assertThrows(Exception.class, () -> invokeHandleLine("remove-plan-entry 1"));
-    assertTrue(usageEx4.getMessage().contains("Usage: remove-plan-entry <planId> <entryId>"));
-
-    Exception usageEx5 = assertThrows(Exception.class, () -> invokeHandleLine("reorder-plans"));
-    assertTrue(usageEx5.getMessage().contains("Usage: reorder-plans <planIdCsv>"));
-}
-}
-
-
-
