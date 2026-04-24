@@ -450,8 +450,6 @@ class AdministrativeServiceTest {
         verify(passwordEncoder, never()).encode(anyString());
     }
 
-    // ?�?� createCourse ??additional validation paths ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void createCourse_nullCode_throws() {
         courseReq.setCourseCode(null);
@@ -496,14 +494,10 @@ class AdministrativeServiceTest {
         assertThrows(RuntimeException.class, () -> service.modifyCourse(courseReq));
     }
 
-    // ?�?� removeCourse ??null code ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void removeCourse_nullCode_throws() {
         assertThrows(RuntimeException.class, () -> service.removeCourse(null));
     }
-
-    // ?�?� createSection ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
     @Test
     void createSection_nullVenue_throws() {
@@ -589,8 +583,6 @@ class AdministrativeServiceTest {
         assertNotNull(result);
         verify(sectionRepository).save(any(Section.class));
     }
-
-    // ?�?� modifySection ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
     @Test
     void modifySection_nullSectionId_throws() {
@@ -733,8 +725,6 @@ class AdministrativeServiceTest {
         assertNotNull(service.modifySection(req));
     }
 
-    // ?�?� deleteSection ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void deleteSection_nullSectionId_throws() {
         AdminSectionService req = new AdminSectionService();
@@ -748,8 +738,6 @@ class AdministrativeServiceTest {
         service.deleteSection(req);
         verify(sectionRepository).deleteById(10);
     }
-
-    // ?�?� createRegistrationPeriod ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
     @Test
     void createRegistrationPeriod_nullCohort_throws() {
@@ -797,8 +785,6 @@ class AdministrativeServiceTest {
         assertThrows(RuntimeException.class, () -> service.createRegistrationPeriod(req));
     }
 
-    // ?�?� deleteRegistrationPeriod ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void deleteRegistrationPeriod_nullPeriodId_throws() {
         assertThrows(RuntimeException.class, () -> service.deleteRegistrationPeriod(null));
@@ -816,8 +802,6 @@ class AdministrativeServiceTest {
         service.deleteRegistrationPeriod(42);
         verify(registrationPeriodRepository).deleteById(42);
     }
-
-    // ?�?� listRegistrationPeriods ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
     @Test
     void listRegistrationPeriods_allCohorts_returnsSortedList() {
@@ -1100,8 +1084,6 @@ class AdministrativeServiceTest {
         verify(studentUserManagementService).removeStudent("1");
     }
 
-    // ?�?� Instructor create/modify/remove tests ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void createInstructor_blankEID_throws() {
         instructorReq.setUserEID("");
@@ -1193,8 +1175,6 @@ class AdministrativeServiceTest {
         verify(instructorUserManagementService).removeInstructor("1");
     }
 
-    // ?�?� Cross-role EID uniqueness ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void createAdmin_duplicateEIDInStudentRepo_throws() {
         when(adminUserManagementService.createUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
@@ -1206,6 +1186,5 @@ class AdministrativeServiceTest {
         when(adminUserManagementService.createUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createUser(userReq));
     }
-// >>>>>>> 9e98a01 (create role and oop)
 }
 
