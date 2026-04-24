@@ -4,6 +4,7 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,8 +21,9 @@ public class CourseService {
         return courseRepository.getCourseByCourseCode(courseCode);
     }
 
+    @Transactional(readOnly = true)
     public List<Course> getAllCourses() {
-        return courseRepository.findAll();
+        return courseRepository.findAllWithSections();
     }
 
     public List<Course> getAllCoursesWithAllData() {
