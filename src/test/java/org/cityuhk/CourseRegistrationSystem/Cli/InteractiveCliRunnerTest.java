@@ -1053,7 +1053,7 @@ void studentPlanCommands_shouldValidateUsageAndRole() {
 
     Exception usageEx5 = assertThrows(Exception.class, () -> invokeHandleLine("reorder-plans"));
     assertTrue(usageEx5.getMessage().contains("Usage: reorder-plans <planIdCsv>"));
-}
+    }
 }
 
 

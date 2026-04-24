@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -235,4 +236,16 @@ class TextTimetableFormatterTest {
 
         assertNotNull(result);
     }
+
+    @Test 
+    void coverTrimToWidthNullViaReflection() throws Exception {
+        Method m = TextTimetableFormatter.class
+                .getDeclaredMethod("trimToWidth", String.class, int.class);
+        m.setAccessible(true);
+
+        String result = (String) m.invoke(formatter, null, 12);
+        assertEquals("", result);
+    }
+
+
 }
