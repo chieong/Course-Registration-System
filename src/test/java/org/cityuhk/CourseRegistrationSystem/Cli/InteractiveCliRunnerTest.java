@@ -3,7 +3,6 @@ package org.cityuhk.CourseRegistrationSystem.Cli;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -100,7 +99,7 @@ class InteractiveCliRunnerTest {
 
     @Test
     void testLoginInvalidArgs() throws Exception {
-        List<String> args = Arrays.asList("only_one_arg");
+        List<String> args = List.of("only_one_arg");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
         method.setAccessible(true);
         assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
@@ -160,7 +159,7 @@ class InteractiveCliRunnerTest {
         setActiveStudentSession();
         when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
 
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAddSection", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -182,7 +181,7 @@ class InteractiveCliRunnerTest {
         setActiveStudentSession();
         when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
 
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleDropSection", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -195,7 +194,7 @@ class InteractiveCliRunnerTest {
         setActiveStudentSession();
         when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
 
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleJoinWaitlist", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -208,7 +207,7 @@ class InteractiveCliRunnerTest {
         setActiveStudentSession();
         when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
 
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleDropWaitlist", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -230,9 +229,8 @@ class InteractiveCliRunnerTest {
         when(plan.getApplySummary()).thenReturn("Test Summary");
         when(plan.getEntries()).thenReturn(new ArrayList<>());
 
-        when(registrationPlanService.getPlanSet(0)).thenReturn(Arrays.asList(plan));
+        when(registrationPlanService.getPlanSet(0)).thenReturn(List.of(plan));
 
-        List<String> args = Collections.emptyList();
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleListPlans");
         method.setAccessible(true);
         method.invoke(cliRunner);
@@ -264,7 +262,7 @@ class InteractiveCliRunnerTest {
 
         when(registrationPlanService.createPlan(0, 2)).thenReturn(plan);
 
-        List<String> args = Arrays.asList("2");
+        List<String> args = List.of("2");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleCreatePlan", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -296,7 +294,7 @@ class InteractiveCliRunnerTest {
         setActiveStudentSession();
         when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
 
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleRemovePlan", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -376,9 +374,9 @@ class InteractiveCliRunnerTest {
         when(plan1.getPriority()).thenReturn(1);
 
         when(registrationPlanService.reorderPlans(0, Arrays.asList(1, 2)))
-                .thenReturn(Arrays.asList(plan1));
+                .thenReturn(List.of(plan1));
 
-        List<String> args = Arrays.asList("1,2");
+        List<String> args = List.of("1,2");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleReorderPlans", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -449,7 +447,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminListUsers() throws Exception {
         setActiveAdminSession();
-        when(administrativeService.listUsers()).thenReturn(Arrays.asList(testAdmin));
+        when(administrativeService.listUsers()).thenReturn(Collections.singletonList(testAdmin));
 
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListUsers");
         method.setAccessible(true);
@@ -499,7 +497,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminRemoveUser() throws Exception {
         setActiveAdminSession();
-        List<String> args = Arrays.asList("admin1");
+        List<String> args = List.of("admin1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveUser", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -562,7 +560,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminRemoveStudent() throws Exception {
         setActiveAdminSession();
-        List<String> args = Arrays.asList("student1");
+        List<String> args = List.of("student1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveStudent", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -575,7 +573,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminListInstructors() throws Exception {
         setActiveAdminSession();
-        when(administrativeService.listInstructors()).thenReturn(Arrays.asList(testInstructor));
+        when(administrativeService.listInstructors()).thenReturn(Collections.singletonList(testInstructor));
 
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListInstructors");
         method.setAccessible(true);
@@ -638,7 +636,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminRemoveInstructor() throws Exception {
         setActiveAdminSession();
-        List<String> args = Arrays.asList("instructor1");
+        List<String> args = List.of("instructor1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveInstructor", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -679,7 +677,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminRemoveCourse() throws Exception {
         setActiveAdminSession();
-        List<String> args = Arrays.asList("CS101");
+        List<String> args = List.of("CS101");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveCourse", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -692,7 +690,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminListSections() throws Exception {
         setActiveAdminSession();
-        when(administrativeService.listSections(null)).thenReturn(Arrays.asList(testSection));
+        when(administrativeService.listSections(null)).thenReturn(Collections.singletonList(testSection));
 
         List<String> args = Collections.emptyList();
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
@@ -705,7 +703,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminListSectionsByCode() throws Exception {
         setActiveAdminSession();
-        when(administrativeService.listSections("CS101")).thenReturn(Arrays.asList(testSection));
+        when(administrativeService.listSections("CS101")).thenReturn(Collections.singletonList(testSection));
 
         List<String> args = Arrays.asList("--course", "CS101");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
@@ -756,7 +754,7 @@ class InteractiveCliRunnerTest {
     @Test
     void testAdminRemoveSection() throws Exception {
         setActiveAdminSession();
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminRemoveSection", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -773,7 +771,7 @@ class InteractiveCliRunnerTest {
         when(period.getPeriodId()).thenReturn(1);
         when(period.getCohort()).thenReturn(2024);
 
-        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Arrays.asList(period));
+        when(administrativeService.listRegistrationPeriods(null)).thenReturn(List.of(period));
 
         List<String> args = Collections.emptyList();
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListPeriods", List.class);
@@ -790,7 +788,7 @@ class InteractiveCliRunnerTest {
         when(period.getPeriodId()).thenReturn(1);
 
         when(administrativeService.createRegistrationPeriod(any())).thenReturn(null);
-        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Arrays.asList(period));
+        when(administrativeService.listRegistrationPeriods(null)).thenReturn(List.of(period));
 
         List<String> args = Arrays.asList("--cohort", "2024", "--start", "2026-05-01T09:00", "--end", "2026-05-31T17:00");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreatePeriod", List.class);
@@ -806,9 +804,9 @@ class InteractiveCliRunnerTest {
         RegistrationPeriod period = mock(RegistrationPeriod.class);
         when(period.getPeriodId()).thenReturn(1);
 
-        when(administrativeService.listRegistrationPeriods(null)).thenReturn(Arrays.asList(period));
+        when(administrativeService.listRegistrationPeriods(null)).thenReturn(List.of(period));
 
-        List<String> args = Arrays.asList("1");
+        List<String> args = List.of("1");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminDeletePeriod", List.class);
         method.setAccessible(true);
         method.invoke(cliRunner, args);
@@ -850,13 +848,13 @@ class InteractiveCliRunnerTest {
         when(testCourse.getCourseCode()).thenReturn("CS101");
 
         when(testSection.getCourse()).thenReturn(testCourse);
-        when(testInstructor.getSections()).thenReturn(new HashSet<>(Arrays.asList(testSection)));
+        when(testInstructor.getSections()).thenReturn(new HashSet<>(Collections.singletonList(testSection)));
 
         RegistrationRecord record = mock(RegistrationRecord.class);
         when(record.getStudent()).thenReturn(testStudent);
 
         when(instructorRepository.findByUserEIDWithSections("instructor1")).thenReturn(Optional.of(testInstructor));
-        when(registrationRecordRepository.findBySectionId(0)).thenReturn(new ArrayList<>(Arrays.asList(record)));
+        when(registrationRecordRepository.findBySectionId(0)).thenReturn(new ArrayList<>(List.of(record)));
 
         List<String> args = Collections.emptyList();
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewStudentList", List.class);
@@ -879,7 +877,7 @@ class InteractiveCliRunnerTest {
 
     @Test
     void testListCourses() throws Exception {
-        when(courseService.getAllCourses()).thenReturn(Arrays.asList(testCourse));
+        when(courseService.getAllCourses()).thenReturn(Collections.singletonList(testCourse));
 
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleListCourses");
         method.setAccessible(true);
@@ -906,10 +904,10 @@ class InteractiveCliRunnerTest {
         setActiveStudentSession();
         when(testCourse.getPrerequisiteCourses()).thenReturn(new HashSet<>());
         when(testCourse.getExclusiveCourses()).thenReturn(new HashSet<>());
-        when(testCourse.getSections()).thenReturn(new HashSet<>(Arrays.asList(testSection)));
-        when(testSection.getInstructors()).thenReturn(new HashSet<>(Arrays.asList(testInstructor)));
+        when(testCourse.getSections()).thenReturn(new HashSet<>(Collections.singletonList(testSection)));
+        when(testSection.getInstructors()).thenReturn(new HashSet<>(Collections.singletonList(testInstructor)));
 
-        when(courseService.getAllCoursesWithAllData()).thenReturn(Arrays.asList(testCourse));
+        when(courseService.getAllCoursesWithAllData()).thenReturn(Collections.singletonList(testCourse));
         when(registrationRecordRepository.countEnrolled(0)).thenReturn(10);
         when(waitlistRecordRepository.countWaitlisted(0)).thenReturn(2);
 
