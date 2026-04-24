@@ -38,6 +38,22 @@ public class TextTimetableExporter implements TimetableExporter {
     }
 
     @Override
+    public String print(TimetableData timetableData) throws TimetableExportException {
+        if (timetableData == null) {
+            throw new TimetableExportException("Timetable data cannot be null");
+        }
+        if (timetableData.getSections() == null || timetableData.getSections().isEmpty()) {
+            throw new TimetableExportException("No section records to print");
+        }
+
+        try {
+            return printToString(timetableData);
+        } catch (Exception ex) {
+            throw new TimetableExportException("Failed to fetch timetable data.");
+        }
+    }
+
+    @Override
     public String getFileExtension() {
         return ".txt";
     }
@@ -70,5 +86,22 @@ public class TextTimetableExporter implements TimetableExporter {
         }
 
         return outputPath;
+    }
+
+    private String printToString(TimetableData timetableData) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append(formatter.formatTitle(timetableData));
+        sb.append(formatter.formatHeader());
+
+        List<Section> sections = new ArrayList<>(timetableData.getSections());
+        Collections.sort(sections);
+        for (Section section : sections) {
+            String row = formatter.formatRow(section, timetableData);
+            if (row != null) {
+                sb.append(row);
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
     }
 }

@@ -24,6 +24,18 @@ public class TimetableService {
         this.instructorOwnerProvider = instructorOwnerProvider;
     }
 
+    public String getStudentTimetableString(Integer studentId) throws TimetableExportException, TimetableValidationException{
+        TimetableData data = buildTimetableData(studentId, studentOwnerProvider, null, null);
+        validator.validateTimetableData(data);
+        return defaultExporter.print(data);
+    }
+
+    public String getInstructorTimetableString(Integer studentId) throws TimetableExportException, TimetableValidationException{
+        TimetableData data = buildTimetableData(studentId, instructorOwnerProvider, null, null);
+        validator.validateTimetableData(data);
+        return defaultExporter.print(data);
+    }
+
     public Path exportStudentTimetable(Integer studentId) throws TimetableExportException, TimetableValidationException {
         return exportTimetable(studentId, studentOwnerProvider, defaultExporter);
     }

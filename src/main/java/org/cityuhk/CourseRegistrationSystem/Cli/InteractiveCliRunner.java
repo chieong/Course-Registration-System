@@ -156,6 +156,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "drop-waitlist":
                 handleDropWaitlist(args);
                 return;
+            case "show-timetable":
+                handleShowTimeTable(args);
+                return;
             case "export-timetable":
                 handleExportTimetable(args);
                 return;
@@ -269,6 +272,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  drop-section <sectionId>");
         System.out.println("  join-waitlist <sectionId>");
         System.out.println("  drop-waitlist <sectionId>");
+        System.out.println("  show-timetable");
         System.out.println("  export-timetable [outputPath]");
         System.out.println("  list-plans");
         System.out.println("  create-plan [priority]");
@@ -539,6 +543,22 @@ public class InteractiveCliRunner implements CommandLineRunner {
         int sectionId = parseInteger(args.get(0), "sectionId");
         registrationService.dropWaitlist(student.getStudentId(), sectionId);
         System.out.println("Removed from waitlist.");
+    }
+
+    private void handleShowTimeTable(List<String> args) throws Exception {
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: show-timetable");
+        }
+
+        if (activeSession.getRole() == CliRole.STUDENT) {
+            Student student = requireStudent();
+            String output = timetableService.getStudentTimetableString(student.getStudentId());
+            System.out.println(output);
+        } else if (activeSession.getRole() == CliRole.INSTRUCTOR) {
+            Instructor instructor = requireInstructor();
+            String output = timetableService.getStudentTimetableString(instructor.getStaffId());
+            System.out.println(output);
+        }
     }
 
     private void handleExportTimetable(List<String> args) throws Exception {

@@ -7,6 +7,8 @@ public interface TimetableExporter {
 
     Path export(TimetableData timetableData) throws TimetableExportException;
 
+    String  print(TimetableData timetableData) throws TimetableExportException;
+
     String getFileExtension();
 
     String getFormatName();
