@@ -20,7 +20,6 @@ const statusLabel = document.getElementById("timetableStatus");
 const summaryName = document.getElementById("summaryName");
 const summaryProgramme = document.getElementById("summaryProgramme");
 const summaryTotalCourses = document.getElementById("summaryTotalCourses");
-const summaryTerm = document.getElementById("summaryTerm");
 
 function timeToHour(time) {
   return Number.parseInt(String(time).slice(0, 2), 10);
@@ -138,7 +137,6 @@ function renderAll() {
 }
 
 function updateSummary(session, timetable) {
-  summaryTerm.textContent = "Current Term";
   summaryName.textContent = asText(timetable.displayName || (session ? session.displayName : ""));
   summaryProgramme.textContent = asText(timetable.programme || timetable.role);
   summaryTotalCourses.textContent = `${timetable.totalCourses} Course${timetable.totalCourses === 1 ? "" : "s"}`;

@@ -3,7 +3,6 @@ const scheduleBody = document.getElementById("masterScheduleBody");
 const statusText = document.getElementById("masterScheduleStatus");
 
 const filters = {
-  academicTerm: document.getElementById("academicTerm"),
   courseCode: document.getElementById("courseCode"),
   department: document.getElementById("department"),
   instructor: document.getElementById("instructor"),

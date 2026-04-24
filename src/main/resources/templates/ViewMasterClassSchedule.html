@@ -14,21 +14,12 @@
     <div class="container">
         <h1>View Master Class Schedule</h1>
         <p>
-            Select an academic term and optionally add filters to find matching courses.
+            Use the filters below to find matching courses.
         </p>
 
         <form th:action="@{/schedule}" method="get" class="schedule-form">
             <div class="top-filter-area">
                 <div class="top-filter-row">
-                    <div class="form-group term-field">
-                        <label for="academicTerm">Academic Term</label>
-                        <select id="academicTerm" name="academicTerm">
-                            <option value="">-- Select a Term --</option>
-                            <option value="Fall 2025">Fall 2025</option>
-                            <option value="Spring 2026">Spring 2026</option>
-                        </select>
-                    </div>
-
                     <div class="form-group course-field">
                         <label for="courseCode">Course Code</label>
                         <input type="text" id="courseCode" name="courseCode" placeholder="e.g. CS101" />
@@ -91,7 +82,7 @@
         </form>
 
         <h2>Available Courses</h2>
-        <p>Showing courses for the selected term and applied filters.</p>
+    <p>Showing courses that match the applied filters.</p>
 
         <div class="table-wrapper">
             <table>

@@ -18,8 +18,6 @@ const planPager = document.getElementById("planPager");
 const summaryStudent = document.getElementById("summaryStudent");
 const summaryProgramme = document.getElementById("summaryProgramme");
 const summaryStudyYear = document.getElementById("summaryStudyYear");
-const summaryAcademicTerm = document.getElementById("summaryAcademicTerm");
-const academicTermSelect = document.getElementById("academicTerm");
 
 const previewDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const previewStartHour = 9;
@@ -43,13 +41,6 @@ function renderStudentSummary(session) {
 
   if (summaryStudyYear) {
     summaryStudyYear.textContent = asText(session && session.role, "STUDENT");
-  }
-
-  if (summaryAcademicTerm) {
-    const selectedTerm = academicTermSelect && academicTermSelect.selectedOptions.length
-      ? academicTermSelect.selectedOptions[0].textContent
-      : "Current Term";
-    summaryAcademicTerm.textContent = asText(selectedTerm, "Current Term");
   }
 }
 
@@ -817,17 +808,6 @@ planPager.addEventListener("click", (event) => {
 if (availableCourseSearch) {
   availableCourseSearch.addEventListener("input", () => {
     renderAvailableCourses();
-  });
-}
-
-if (academicTermSelect) {
-  academicTermSelect.addEventListener("change", () => {
-    if (summaryAcademicTerm) {
-      const selectedTerm = academicTermSelect.selectedOptions.length
-        ? academicTermSelect.selectedOptions[0].textContent
-        : "Current Term";
-      summaryAcademicTerm.textContent = asText(selectedTerm, "Current Term");
-    }
   });
 }
 

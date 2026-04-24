@@ -12,7 +12,7 @@
 	<main class="container">
 		<header class="page-header">
 			<h1>Manage Study Plan</h1>
-			<p class="muted">Build and adjust your semester plan before final registration.</p>
+			<p class="muted">Build and adjust your study plan before final registration.</p>
 		</header>
 
 		<div id="mpNotification" class="mu-notification is-hidden" role="status" aria-live="polite" hidden>
@@ -21,7 +21,7 @@
 		</div>
 
 		<section class="info-banner" aria-label="Study plan message">
-			Plan for Semester 2, 2026. Recommended workload is 15 to 18 credits.
+			Recommended workload is 15 to 18 credits.
 		</section>
 
 		<section class="summary-grid" aria-label="Student plan summary">
@@ -37,10 +37,6 @@
 				<h3>Study Year</h3>
 				<p id="summaryStudyYear">-</p>
 			</article>
-			<article class="summary-card">
-				<h3>Academic Term</h3>
-				<p id="summaryAcademicTerm">-</p>
-			</article>
 		</section>
 
 		<section class="section-card" aria-label="Plan setup filters">
@@ -48,15 +44,6 @@
 			<form class="schedule-form" th:action="@{/manageplan}" method="get">
 				<div class="top-filter-area">
 					<div class="top-filter-row">
-						<div class="form-group term-field">
-							<label for="academicTerm">Academic Term</label>
-							<select id="academicTerm" name="academicTerm">
-								<option value="Semester 1, 2026">Semester 1, 2026</option>
-								<option value="Semester 2, 2026" selected>Semester 2, 2026</option>
-								<option value="Summer, 2026">Summer, 2026</option>
-							</select>
-						</div>
-
 						<div class="form-group course-field">
 							<label for="keyword">Search Course</label>
 							<input id="keyword" name="keyword" type="text" placeholder="Course code or title" />
@@ -114,7 +101,7 @@
 				<div>
 					<div class="split-title">
 						<h2>Available Courses</h2>
-						<p class="muted">Add courses into your semester plan.</p>
+							<p class="muted">Add courses into your study plan.</p>
 					</div>
 
 					<div class="available-search">
@@ -145,7 +132,7 @@
 					</div>
 				</div>
 
-				<aside class="right-card" aria-label="Current semester plan">
+				<aside class="right-card" aria-label="Current study plan">
 					<h2>Current Plan</h2>
 					<div class="plan-carousel">
 						<button type="button" class="carousel-nav" id="prevPlanBtn" aria-label="Previous plan">&#x2039; Prev</button>
@@ -153,7 +140,7 @@
 						<button type="button" class="carousel-nav" id="nextPlanBtn" aria-label="Next plan">Next &#x203A;</button>
 						<button type="button" class="carousel-add-btn" id="addPlanBtn">+ New Plan</button>
 					</div>
-					<p class="muted">Courses selected for this term.</p>
+					<p class="muted">Courses selected in this plan.</p>
 
 					<div class="table-wrapper">
 						<table aria-label="Selected courses table">
