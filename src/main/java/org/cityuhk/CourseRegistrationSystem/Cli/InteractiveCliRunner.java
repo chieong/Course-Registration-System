@@ -803,7 +803,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
         for (Student s : students) {
             System.out.println(s.getStudentId() + " | " + s.getUserEID() + " | " + s.getUserName()
                     + " | major=" + valueOrDash(s.getMajor())
-                    + " | dept=" + valueOrDash(s.getDepartment()));
+                    + " | dept=" + valueOrDash(s.getDepartment())
+                    +" | cohort" + valueOrDash(s.getCohort().toString())
+            );
         }
     }
 
