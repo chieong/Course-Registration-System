@@ -1,15 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Administrative.User;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +33,7 @@ public class InstructorUserManagementService implements InstructorUserManagement
         return instructorRepository.findAll();
     }
 
-    public Instructor createInstructor(InstructorUserRequest request) {
+    public Instructor createInstructor(AdminInstructorRequest request) {
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
             throw new InvalidUserEIDException();
         }
@@ -57,29 +57,31 @@ public class InstructorUserManagementService implements InstructorUserManagement
         return instructorRepository.save(instructor);
     }
 
-    public Instructor modifyInstructor(Integer staffId, InstructorUserRequest request) {
-        Instructor existing = instructorRepository.findById(staffId)
-                .orElseThrow(() -> new UserNotFoundException("Instructor", staffId));
-
+    public Instructor modifyInstructor(AdminInstructorRequest request) {
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
             throw new InvalidUserEIDException();
         }
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new InvalidNameException();
-        }
-
         String normalizedUserEID = request.getUserEID().trim();
-        eidPolicy.assertUnique(normalizedUserEID, null, null, existing.getStaffId());
+        Instructor existing = instructorRepository.findByUserEID(normalizedUserEID)
+                .orElseThrow(() -> new UserNotFoundException("Instructor", normalizedUserEID));
 
+        // Logic: If user didn't change the EID, we use the normalized version of the old one
+        String newUserEID = (request.getUserEID() != null) ? request.getUserEID().trim() : existing.getUserEID();
+        eidPolicy.assertUnique(newUserEID, null, null, existing.getStaffId());
+
+        // Password Fallback
         String encodedPassword = existing.getPassword();
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             encodedPassword = passwordEncoder.encode(request.getPassword());
         }
 
+        // Name Fallback (Fixes the NullPointerException)
+        String updatedName = (request.getName() != null) ? request.getName().trim() : existing.getUserName();
+
         Instructor updated = new Instructor.InstructorBuilder()
                 .withStaffId(existing.getStaffId())
-                .withUserEID(normalizedUserEID)
-                .withName(request.getName().trim())
+                .withUserEID(newUserEID)
+                .withName(updatedName)
                 .withPassword(encodedPassword)
                 .withDepartment(request.getDepartment() != null ? request.getDepartment() : existing.getDepartment())
                 .build();
@@ -87,10 +89,12 @@ public class InstructorUserManagementService implements InstructorUserManagement
         return instructorRepository.save(updated);
     }
 
-    public void removeInstructor(Integer staffId) {
-        if (!instructorRepository.existsById(staffId)) {
-            throw new UserNotFoundException("Instructor", staffId);
+    public void removeInstructor(String userEID) {
+        String normalizedUserEID = userEID.trim();
+        Optional<Instructor> existing = instructorRepository.findByUserEID(normalizedUserEID);
+        if (existing.isEmpty()) {
+            throw new UserNotFoundException("Instructor", normalizedUserEID);
         }
-        instructorRepository.deleteById(staffId);
+        instructorRepository.deleteById(existing.get().getStaffId());
     }
 }

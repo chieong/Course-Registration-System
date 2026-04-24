@@ -3,6 +3,7 @@ package org.cityuhk.CourseRegistrationSystem.RestController.dto;
 public class AdminInstructorRequest {
     private String userEID;
     private String name;
+    private Integer staffId;
     private String password;
     private String department;
 
@@ -36,5 +37,13 @@ public class AdminInstructorRequest {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public Integer getStaffId() {
+        return staffId;
+    }
+
+    public void setStaffId(Integer staffId) {
+        this.staffId = staffId;
     }
 }

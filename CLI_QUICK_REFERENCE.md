@@ -52,8 +52,8 @@ A local session file is saved at:
 ### Student Users
 - `admin-list-students`
 - `admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>`
-- `admin-modify-student <studentId> [--eid <userEID>] [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]`
-- `admin-remove-student <studentId>`
+- `admin-modify-student <userEID> [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]`
+- `admin-remove-student <userEID>`
 
 ### Instructor Users
 - `admin-list-instructors`

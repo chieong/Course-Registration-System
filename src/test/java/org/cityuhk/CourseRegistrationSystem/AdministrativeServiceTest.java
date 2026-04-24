@@ -9,8 +9,8 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseReques
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
@@ -21,13 +21,7 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
-import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.RegistrationPeriodOverlapException;
@@ -51,7 +45,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -72,8 +65,8 @@ class AdministrativeServiceTest {
     @InjectMocks private AdministrativeService service;
 
     private AdminUserRequest userReq;
-    private StudentUserRequest studentReq;
-    private InstructorUserRequest instructorReq;
+    private AdminStudentRequest studentReq;
+    private AdminInstructorRequest instructorReq;
     private AdminCourseRequest courseReq;
     private Admin admin;
     private Student student;
@@ -88,12 +81,12 @@ class AdministrativeServiceTest {
         userReq.setName("Test Admin");
         userReq.setPassword("pass123");
 
-        studentReq = new StudentUserRequest();
+        studentReq = new AdminStudentRequest();
         studentReq.setUserEID("SEID123");
         studentReq.setName("Test Student");
         studentReq.setPassword("pass456");
 
-        instructorReq = new InstructorUserRequest();
+        instructorReq = new AdminInstructorRequest();
         instructorReq.setUserEID("IEID123");
         instructorReq.setName("Test Instructor");
         instructorReq.setPassword("pass789");
@@ -151,54 +144,55 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyUser_notFound_throws() {
-        when(adminUserManagementService.modifyUser(99, userReq)).thenThrow(new UserNotFoundException("Admin", 99));
-        assertThrows(UserNotFoundException.class, () -> service.modifyUser(99, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenThrow(new UserNotFoundException("Admin", "EID99"));
+        userReq.setUserEID("EID99");
+        assertThrows(UserNotFoundException.class, () -> service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_blankEID_throws() {
         userReq.setUserEID("");
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidUserEIDException());
-        assertThrows(InvalidUserEIDException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_blankName_throws() {
         userReq.setName("");
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidNameException());
-        assertThrows(InvalidNameException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_duplicateEID_throws() {
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
-        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_keepOldPassword_success() {
         userReq.setPassword("");
-        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
-        assertNotNull(service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenReturn(admin);
+        assertNotNull(service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_success() {
-        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
-        assertNotNull(service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenReturn(admin);
+        assertNotNull(service.modifyUser(userReq));
     }
 
     @Test
     void removeUser_notFound_throws() {
-        doThrow(new UserNotFoundException("Admin", 99)).when(adminUserManagementService).removeUser(99);
-        assertThrows(UserNotFoundException.class, () -> service.removeUser(99));
+        doThrow(new UserNotFoundException("Admin", "EID99")).when(adminUserManagementService).removeUser("EID99");
+        assertThrows(UserNotFoundException.class, () -> service.removeUser("EID99"));
     }
 
     @Test
     void removeUser_success() {
-        doNothing().when(adminUserManagementService).removeUser(1);
-        service.removeUser(1);
-        verify(adminUserManagementService).removeUser(1);
+        doNothing().when(adminUserManagementService).removeUser("EID123");
+        service.removeUser("EID123");
+        verify(adminUserManagementService).removeUser("EID123");
     }
 
     @Test
@@ -428,29 +422,29 @@ class AdministrativeServiceTest {
     @Test
     void modifyUser_nullEID_throws() {
         userReq.setUserEID(null);
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidUserEIDException());
-        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(RuntimeException.class, () -> service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_nullName_throws() {
         userReq.setName(null);
-        when(adminUserManagementService.modifyUser(1, userReq)).thenThrow(new InvalidNameException());
-        assertThrows(RuntimeException.class, () -> service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenThrow(new InvalidNameException());
+        assertThrows(RuntimeException.class, () -> service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_newEIDNotTaken_success() {
-        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
-        assertNotNull(service.modifyUser(1, userReq));
+        when(adminUserManagementService.modifyUser(userReq)).thenReturn(admin);
+        assertNotNull(service.modifyUser(userReq));
     }
 
     @Test
     void modifyUser_nullPassword_keepsExistingPassword() {
         // Null password must not re-encode; existing encoded password is preserved
         userReq.setPassword(null);
-        when(adminUserManagementService.modifyUser(1, userReq)).thenReturn(admin);
-        Admin result = service.modifyUser(1, userReq);
+        when(adminUserManagementService.modifyUser(userReq)).thenReturn(admin);
+        Admin result = service.modifyUser(userReq);
         assertNotNull(result);
         // passwordEncoder.encode must NOT have been called
         verify(passwordEncoder, never()).encode(anyString());
@@ -997,10 +991,6 @@ class AdministrativeServiceTest {
     }
 
 
-// =======
-
-    // ?�?� Student create/modify/remove tests ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-
     @Test
     void createStudent_blankEID_throws() {
         studentReq.setUserEID("");
@@ -1023,72 +1013,91 @@ class AdministrativeServiceTest {
     }
 
     @Test
-    void createStudent_duplicateEIDInStudentRepo_throws() {
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+    void createStudent_duplicateEIDInInstructorRepo_throws() {
+        // Arrange
+        String userEID = studentReq.getUserEID();
+        Instructor mockInstructor = mock(Instructor.class);
+
+        // First two checks pass (return empty)
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(userEID));
+
+        // Act & Assert
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_duplicateEIDInAdminRepo_throws() {
+        Admin mockAdmin = mock(Admin.class);
+
         when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
+
     @Test
-    void createStudent_duplicateEIDInInstructorRepo_throws() {
-        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+    void createStudent_duplicateEIDInStudentRepo_throws() {
+        // Arrange
+        String userEID = studentReq.getUserEID();
+        Student mockStudent = mock(Student.class);
+
+        // Mock the service to throw
+        when(studentUserManagementService.createStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(userEID));
+
+        // Act & Assert
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createStudent(studentReq));
     }
 
     @Test
     void createStudent_success() {
         when(studentUserManagementService.createStudent(studentReq)).thenReturn(student);
-        assertNotNull(service.createStudent(studentReq));
+        assertNotNull(studentUserManagementService.createStudent(studentReq));
     }
 
     @Test
     void modifyStudent_notFound_throws() {
-        when(studentUserManagementService.modifyStudent(99, studentReq)).thenThrow(new UserNotFoundException("Student", 99));
-        assertThrows(UserNotFoundException.class, () -> service.modifyStudent(99, studentReq));
+        when(studentUserManagementService.modifyStudent(studentReq)).thenThrow(new UserNotFoundException("Student", "SEID99"));
+        studentReq.setUserEID("SEID99");
+        assertThrows(UserNotFoundException.class, () -> service.modifyStudent(studentReq));
     }
 
     @Test
     void modifyStudent_blankEID_throws() {
         studentReq.setUserEID("");
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new InvalidUserEIDException());
-        assertThrows(InvalidUserEIDException.class, () -> service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(studentReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.modifyStudent(studentReq));
     }
 
     @Test
     void modifyStudent_blankName_throws() {
         studentReq.setName("");
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new InvalidNameException());
-        assertThrows(InvalidNameException.class, () -> service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(studentReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.modifyStudent(studentReq));
     }
 
     @Test
     void modifyStudent_duplicateEID_throws() {
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
-        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(studentReq)).thenThrow(new UserEidAlreadyExistsException(studentReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyStudent(studentReq));
     }
 
     @Test
     void modifyStudent_success() {
-        when(studentUserManagementService.modifyStudent(1, studentReq)).thenReturn(student);
-        assertNotNull(service.modifyStudent(1, studentReq));
+        when(studentUserManagementService.modifyStudent(studentReq)).thenReturn(student);
+        assertNotNull(service.modifyStudent(studentReq));
     }
 
     @Test
     void removeStudent_notFound_throws() {
-        doThrow(new UserNotFoundException("Student", 99)).when(studentUserManagementService).removeStudent(99);
-        assertThrows(UserNotFoundException.class, () -> service.removeStudent(99));
+        doThrow(new UserNotFoundException("Student", "99")).when(studentUserManagementService).removeStudent("99");
+        assertThrows(UserNotFoundException.class, () -> service.removeStudent("99"));
     }
 
     @Test
     void removeStudent_success() {
-        doNothing().when(studentUserManagementService).removeStudent(1);
-        service.removeStudent(1);
-        verify(studentUserManagementService).removeStudent(1);
+        doNothing().when(studentUserManagementService).removeStudent("1");
+        service.removeStudent("1");
+        verify(studentUserManagementService).removeStudent("1");
     }
 
     // ?�?� Instructor create/modify/remove tests ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
@@ -1140,47 +1149,48 @@ class AdministrativeServiceTest {
 
     @Test
     void modifyInstructor_notFound_throws() {
-        when(instructorUserManagementService.modifyInstructor(99, instructorReq)).thenThrow(new UserNotFoundException("Instructor", 99));
-        assertThrows(UserNotFoundException.class, () -> service.modifyInstructor(99, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(instructorReq)).thenThrow(new UserNotFoundException("Instructor", "IEID99"));
+        instructorReq.setUserEID("IEID99");
+        assertThrows(UserNotFoundException.class, () -> service.modifyInstructor(instructorReq));
     }
 
     @Test
     void modifyInstructor_blankEID_throws() {
         instructorReq.setUserEID("");
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new InvalidUserEIDException());
-        assertThrows(InvalidUserEIDException.class, () -> service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(instructorReq)).thenThrow(new InvalidUserEIDException());
+        assertThrows(InvalidUserEIDException.class, () -> service.modifyInstructor(instructorReq));
     }
 
     @Test
     void modifyInstructor_blankName_throws() {
         instructorReq.setName("");
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new InvalidNameException());
-        assertThrows(InvalidNameException.class, () -> service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(instructorReq)).thenThrow(new InvalidNameException());
+        assertThrows(InvalidNameException.class, () -> service.modifyInstructor(instructorReq));
     }
 
     @Test
     void modifyInstructor_duplicateEID_throws() {
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenThrow(new UserEidAlreadyExistsException(instructorReq.getUserEID()));
-        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(instructorReq)).thenThrow(new UserEidAlreadyExistsException(instructorReq.getUserEID()));
+        assertThrows(UserEidAlreadyExistsException.class, () -> service.modifyInstructor(instructorReq));
     }
 
     @Test
     void modifyInstructor_success() {
-        when(instructorUserManagementService.modifyInstructor(1, instructorReq)).thenReturn(instructor);
-        assertNotNull(service.modifyInstructor(1, instructorReq));
+        when(instructorUserManagementService.modifyInstructor(instructorReq)).thenReturn(instructor);
+        assertNotNull(service.modifyInstructor(instructorReq));
     }
 
     @Test
     void removeInstructor_notFound_throws() {
-        doThrow(new UserNotFoundException("Instructor", 99)).when(instructorUserManagementService).removeInstructor(99);
-        assertThrows(UserNotFoundException.class, () -> service.removeInstructor(99));
+        doThrow(new UserNotFoundException("Instructor", "99")).when(instructorUserManagementService).removeInstructor("99");
+        assertThrows(UserNotFoundException.class, () -> service.removeInstructor("99"));
     }
 
     @Test
     void removeInstructor_success() {
-        doNothing().when(instructorUserManagementService).removeInstructor(1);
-        service.removeInstructor(1);
-        verify(instructorUserManagementService).removeInstructor(1);
+        doNothing().when(instructorUserManagementService).removeInstructor("1");
+        service.removeInstructor("1");
+        verify(instructorUserManagementService).removeInstructor("1");
     }
 
     // ?�?� Cross-role EID uniqueness ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�

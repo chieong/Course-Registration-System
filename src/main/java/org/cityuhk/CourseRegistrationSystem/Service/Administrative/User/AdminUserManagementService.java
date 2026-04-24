@@ -55,39 +55,41 @@ public class AdminUserManagementService implements AdminUserManagementOperations
         return adminRepository.save(admin);
     }
 
-    public Admin modifyUser(Integer staffId, AdminUserRequest request) {
-        Admin existingAdmin = adminRepository.findById(staffId)
-                .orElseThrow(() -> new UserNotFoundException("Admin", staffId));
-
+    public Admin modifyUser(AdminUserRequest request) {
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
             throw new InvalidUserEIDException();
         }
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new InvalidNameException();
-        }
-
         String normalizedUserEID = request.getUserEID().trim();
-        eidPolicy.assertUnique(normalizedUserEID, existingAdmin.getStaffId(), null, null);
+        Admin existingAdmin = adminRepository.findByUserEID(normalizedUserEID)
+                .orElseThrow(() -> new UserNotFoundException("Admin", normalizedUserEID));
 
+        // Unique check
+        String newUserEID = (request.getUserEID() != null) ? request.getUserEID().trim() : existingAdmin.getUserEID();
+        eidPolicy.assertUnique(newUserEID, existingAdmin.getStaffId(), null, null);
+
+        // Password Fallback
         String encodedPassword = existingAdmin.getPassword();
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             encodedPassword = passwordEncoder.encode(request.getPassword());
         }
 
+        // Name Fallback
+        String updatedName = (request.getName() != null) ? request.getName().trim() : existingAdmin.getUserName();
+
         Admin updatedAdmin = new Admin.AdminBuilder()
                 .withStaffId(existingAdmin.getStaffId())
-                .withUserEID(normalizedUserEID)
-                .withName(request.getName().trim())
+                .withUserEID(newUserEID)
+                .withName(updatedName)
                 .withPassword(encodedPassword)
                 .build();
 
         return adminRepository.save(updatedAdmin);
     }
 
-    public void removeUser(Integer staffId) {
-        if (!adminRepository.existsById(staffId)) {
-            throw new UserNotFoundException("Admin", staffId);
-        }
-        adminRepository.deleteById(staffId);
+    public void removeUser(String userEID) {
+        String normalizedUserEID = userEID.trim();
+        Admin admin = adminRepository.findByUserEID(normalizedUserEID)
+                .orElseThrow(() -> new UserNotFoundException("Admin", normalizedUserEID));
+        adminRepository.deleteById(admin.getStaffId());
     }
 }

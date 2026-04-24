@@ -7,6 +7,6 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 public interface AdminUserManagementOperations {
     List<Admin> listUsers();
     Admin createUser(AdminUserRequest request);
-    Admin modifyUser(Integer staffId, AdminUserRequest request);
-    void removeUser(Integer staffId);
+    Admin modifyUser(AdminUserRequest request);
+    void removeUser(String userEID);
 }

@@ -2,11 +2,11 @@ package org.cityuhk.CourseRegistrationSystem.Service.Administrative.User;
 
 import java.util.List;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 
 public interface StudentUserManagementOperations {
     List<Student> listStudents();
-    Student createStudent(StudentUserRequest request);
-    Student modifyStudent(Integer studentId, StudentUserRequest request);
-    void removeStudent(Integer studentId);
+    Student createStudent(AdminStudentRequest request);
+    Student modifyStudent(AdminStudentRequest request);
+    void removeStudent(String userEID);
 }

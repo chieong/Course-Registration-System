@@ -18,12 +18,7 @@ import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.*;
 import org.cityuhk.CourseRegistrationSystem.Repository.*;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.*;
 import org.cityuhk.CourseRegistrationSystem.Service.Academic.CourseService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.AdministrativeService;
 import org.cityuhk.CourseRegistrationSystem.Service.Registration.RegistrationPlanService;
@@ -246,11 +241,16 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "admin-delete-period":
                 handleAdminDeletePeriod(args);
                 return;
+            case "admin-assign-instructor":
+                handleAssignInstruction(args);
+                return;
+            case "admin-unassign-instructor":
+                handleUnassignInstruction(args);
+                return;
             default:
                 System.out.println("Unknown command. Type help to see available commands.");
         }
     }
-
     private void printWelcome() {
         System.out.println("Course Registration CLI");
         System.out.println("Type help to list commands.");
@@ -282,16 +282,16 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  reorder-plans <planIdCsv>");
         System.out.println("  admin-list-users");
         System.out.println("  admin-create-user <userEID> <name> <password>");
-        System.out.println("  admin-modify-user <staffId> <userEID> <name> [password]");
-        System.out.println("  admin-remove-user <staffId>");
+        System.out.println("  admin-modify-user <userEID> [--name <name>] [--password <password>]");
+        System.out.println("  admin-remove-user <userEID>");
         System.out.println("  admin-list-students");
         System.out.println("  admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>");
-        System.out.println("  admin-modify-student <studentId> [--eid <userEID>] [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]");
-        System.out.println("  admin-remove-student <studentId>");
+        System.out.println("  admin-modify-student <userEID> [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]");
+        System.out.println("  admin-remove-student <userEID>");
         System.out.println("  admin-list-instructors");
         System.out.println("  admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
-        System.out.println("  admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
-        System.out.println("  admin-remove-instructor <staffId>");
+        System.out.println("  admin-modify-instructor <userEID> [--name <name>] [--password <password>] [--dept <department>]");
+        System.out.println("  admin-remove-instructor <userEID>");
         System.out.println("  admin-create-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)");
         System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (alias of admin-create-course)");
         System.out.println("  admin-remove-course <courseCode>");
@@ -302,6 +302,8 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-list-periods [--cohort <cohort>]");
         System.out.println("  admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>");
         System.out.println("  admin-delete-period <periodId>");
+        System.out.println("  admin-assign-instructor <sectionId> <instructorEID>");
+        System.out.println("  admin-unassign-instructor <sectionId> <instructorEID>");
         System.out.println("Use double quotes for values with spaces.");
     }
 
@@ -751,32 +753,36 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private void handleAdminModifyUser(List<String> args) {
         requireAdminSession();
-        if (args.size() != 3 && args.size() != 4) {
-            throw new IllegalArgumentException("Usage: admin-modify-user <staffId> <userEID> <name> [password]");
+        if (args.isEmpty()) {
+            throw new IllegalArgumentException("Usage: admin-modify-user <userEID> [--name <name>] [--password <password>]");
         }
 
-        int staffId = parseInteger(args.get(0), "staffId");
-
+        String userEID = args.get(0);
         AdminUserRequest request = new AdminUserRequest();
-        request.setUserEID(args.get(1));
-        request.setName(args.get(2));
-        if (args.size() == 4) {
-            request.setPassword(args.get(3));
+        request.setUserEID(userEID);
+
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(1, args.size()));
+
+        if (options.containsKey("name")) {
+            request.setName(options.get("name"));
+        }
+        if (options.containsKey("password")) {
+            request.setPassword(options.get("password"));
         }
 
-        Admin updated = administrativeService.modifyUser(staffId, request);
+        Admin updated = administrativeService.modifyUser(request);
         System.out.println("Updated admin user " + updated.getStaffId());
     }
 
     private void handleAdminRemoveUser(List<String> args) {
         requireAdminSession();
         if (args.size() != 1) {
-            throw new IllegalArgumentException("Usage: admin-remove-user <staffId>");
+            throw new IllegalArgumentException("Usage: admin-remove-user <userEID>");
         }
 
-        int staffId = parseInteger(args.get(0), "staffId");
-        administrativeService.removeUser(staffId);
-        System.out.println("Removed admin user " + staffId);
+        String userEID = args.get(0);
+        administrativeService.removeUser(userEID);
+        System.out.println("Removed admin user " + userEID);
     }
 
     private void handleAdminListStudents() {
@@ -802,7 +808,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
         List<String> positional = args.subList(0, 9);
 
-        StudentUserRequest request = new StudentUserRequest();
+        AdminStudentRequest request = new AdminStudentRequest();
         request.setUserEID(positional.get(0));
         request.setName(positional.get(1));
         request.setPassword(positional.get(2));
@@ -820,21 +826,20 @@ public class InteractiveCliRunner implements CommandLineRunner {
     private void handleAdminModifyStudent(List<String> args) {
         requireAdminSession();
 
-        // Ensure at least the studentId is present
+        // Ensure at least the userEID is present
         if (args.isEmpty()) {
             throw new IllegalArgumentException(
-                    "Usage: admin-modify-student <studentId> [--eid <eid>] [--name <name>] [--password <password>] " +
+                    "Usage: admin-modify-student <userEID> [--name <name>] [--password <password>] " +
                             "[--min-creds <min>] [--max-creds <max>] [--major <major>] [--cohort <cohort>] " +
                             "[--dept <dept>] [--max-degree <max>]");
         }
 
-        int studentId = parseInteger(args.get(0), "studentId");
+        String userEID = args.get(0);
+        AdminStudentRequest request = new AdminStudentRequest();
+        request.setUserEID(userEID);
 
         Map<String, String> options = CliCommandParser.parseOptions(args.subList(1, args.size()));
 
-        StudentUserRequest request = new StudentUserRequest();
-
-        if (options.containsKey("eid")) request.setUserEID(options.get("eid"));
         if (options.containsKey("name")) request.setName(options.get("name"));
         if (options.containsKey("password")) request.setPassword(options.get("password"));
 
@@ -857,18 +862,18 @@ public class InteractiveCliRunner implements CommandLineRunner {
             request.setMaxDegreeCredit(Integer.parseInt(options.get("max-degree")));
         }
 
-        Student updated = administrativeService.modifyStudent(studentId, request);
-        System.out.println("Updated student " + updated.getStudentId());
+        Student updated = administrativeService.modifyStudent(request);
+        System.out.println("Updated student " + updated.getUserEID() + " with studentId=" + updated.getStudentId());
     }
 
     private void handleAdminRemoveStudent(List<String> args) {
         requireAdminSession();
         if (args.size() != 1) {
-            throw new IllegalArgumentException("Usage: admin-remove-student <studentId>");
+            throw new IllegalArgumentException("Usage: admin-remove-student <userEID>");
         }
-        int studentId = parseInteger(args.get(0), "studentId");
-        administrativeService.removeStudent(studentId);
-        System.out.println("Removed student " + studentId);
+        String studentEID =  args.get(0);
+        administrativeService.removeStudent(studentEID);
+        System.out.println("Removed student " + studentEID);
     }
 
     private void handleAdminListInstructors() {
@@ -894,7 +899,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         List<String> positional = args.subList(0, 3);
         Map<String, String> options = CliCommandParser.parseOptions(args.subList(3, args.size()));
 
-        InstructorUserRequest request = new InstructorUserRequest();
+        AdminInstructorRequest request = new AdminInstructorRequest();
         request.setUserEID(positional.get(0));
         request.setName(positional.get(1));
         request.setPassword(positional.get(2));
@@ -906,45 +911,42 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private void handleAdminModifyInstructor(List<String> args) {
         requireAdminSession();
-        if (args.size() < 3) {
+
+        // Validate minimum requirement: the userEID must be present
+        if (args.isEmpty()) {
             throw new IllegalArgumentException(
-                    "Usage: admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
+                    "Usage: admin-modify-instructor <userEID> [--name <name>] [--password <password>] [--dept <department>]");
         }
 
-        int staffId = parseInteger(args.get(0), "staffId");
+        String userEID = args.get(0);
 
-        int optionStart = 1;
-        while (optionStart < args.size() && !args.get(optionStart).startsWith("--")) {
-            optionStart++;
+        Map<String, String> options = CliCommandParser.parseOptions(args.subList(1, args.size()));
+
+        AdminInstructorRequest request = new AdminInstructorRequest();
+        request.setUserEID(userEID);
+
+        if (options.containsKey("name")) {
+            request.setName(options.get("name"));
         }
-        List<String> positional = args.subList(1, optionStart);
-        Map<String, String> options = CliCommandParser.parseOptions(args.subList(optionStart, args.size()));
-
-        if (positional.size() < 2) {
-            throw new IllegalArgumentException(
-                    "Usage: admin-modify-instructor <staffId> <userEID> <name> [password] [--dept <dept>]");
+        if (options.containsKey("password")) {
+            request.setPassword(options.get("password"));
+        }
+        if (options.containsKey("dept")) {
+            request.setDepartment(options.get("dept"));
         }
 
-        InstructorUserRequest request = new InstructorUserRequest();
-        request.setUserEID(positional.get(0));
-        request.setName(positional.get(1));
-        if (positional.size() >= 3) {
-            request.setPassword(positional.get(2));
-        }
-        request.setDepartment(options.get("dept"));
-
-        Instructor updated = administrativeService.modifyInstructor(staffId, request);
-        System.out.println("Updated instructor " + updated.getStaffId());
+        Instructor updated = administrativeService.modifyInstructor(request);
+        System.out.println("Updated instructor: " + updated.getUserEID());
     }
 
     private void handleAdminRemoveInstructor(List<String> args) {
         requireAdminSession();
         if (args.size() != 1) {
-            throw new IllegalArgumentException("Usage: admin-remove-instructor <staffId>");
+            throw new IllegalArgumentException("Usage: admin-remove-instructor <userEID>");
         }
-        int staffId = parseInteger(args.get(0), "staffId");
-        administrativeService.removeInstructor(staffId);
-        System.out.println("Removed instructor " + staffId);
+        String userEID = args.get(0);
+        administrativeService.removeInstructor(userEID);
+        System.out.println("Removed instructor " + userEID);
     }
 
     private void handleAdminCreateCourse(List<String> args) {
@@ -1258,7 +1260,31 @@ public class InteractiveCliRunner implements CommandLineRunner {
         List<RegistrationPeriod> periods = administrativeService.listRegistrationPeriods(null);
         printPeriodList(periods);
     }
+    private void handleUnassignInstruction(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 2) {
+            throw new IllegalArgumentException("Usage: admin-assign-instructor <sectionId> <instructorEID>");
+        }
 
+        Integer sectionId = parseInteger(args.get(0), "sectionId");
+        String instructorEID = args.get(1);
+
+        administrativeService.unassignInstructor(instructorEID, sectionId);
+        System.out.println("Instructor " + instructorEID + " unassigned.");
+    }
+
+    private void handleAssignInstruction(List<String> args) {
+        requireAdminSession();
+        if (args.size() != 2) {
+            throw new IllegalArgumentException("Usage admin-assign-instructor <sectionId> <instructorEID>");
+        }
+
+        Integer sectionId = parseInteger(args.get(0), "sectionId");
+        String instructorEID = args.get(1);
+
+        administrativeService.assignInstructor(instructorEID, sectionId);
+        System.out.println("Instructor " + instructorEID + " assigned to SectionId" +  sectionId);
+    }
     private void printPeriodList(List<RegistrationPeriod> periods) {
         if (periods.isEmpty()) {
             System.out.println("No registration periods found.");

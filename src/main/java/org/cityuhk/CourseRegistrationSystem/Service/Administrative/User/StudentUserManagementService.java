@@ -1,15 +1,15 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Administrative.User;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +33,7 @@ public class StudentUserManagementService implements StudentUserManagementOperat
         return studentRepository.findAll();
     }
 
-    public Student createStudent(StudentUserRequest request) {
+    public Student createStudent(AdminStudentRequest request) {
         if (request.getUserEID() == null || request.getUserEID().isBlank()) {
             throw new InvalidUserEIDException();
         }
@@ -77,45 +77,36 @@ public class StudentUserManagementService implements StudentUserManagementOperat
         return studentRepository.save(student);
     }
 
-    public Student modifyStudent(Integer studentId, StudentUserRequest request) {
-        Student existing = studentRepository.findById(studentId)
-                .orElseThrow(() -> new UserNotFoundException("Student", studentId));
-
-        if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new InvalidUserEIDException();
-        }
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new InvalidNameException();
-        }
-
+    public Student modifyStudent(AdminStudentRequest request) {
         String normalizedUserEID = request.getUserEID().trim();
-        eidPolicy.assertUnique(normalizedUserEID, null, existing.getStudentId(), null);
-
-        String encodedPassword = existing.getPassword();
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            encodedPassword = passwordEncoder.encode(request.getPassword());
-        }
+        Student existing = studentRepository.findByUserEID(normalizedUserEID)
+                .orElseThrow(() -> new UserNotFoundException("Student", normalizedUserEID));
 
         Student updated = new Student.StudentBuilder()
                 .withStudentId(existing.getStudentId())
                 .withUserEID(normalizedUserEID)
-                .withName(request.getName().trim())
-                .withPassword(encodedPassword)
+
+                .withName(request.getName() != null ? request.getName().trim() : existing.getUserName())
+                .withPassword(request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : existing.getPassword())
+
                 .withMajor(request.getMajor() != null ? request.getMajor() : existing.getMajor())
                 .withDepartment(request.getDepartment() != null ? request.getDepartment() : existing.getDepartment())
-                .withMinSemesterCredit(existing.getMinSemesterCredit())
-                .withMaxSemesterCredit(existing.getMaxSemesterCredit())
-                .withCohort(existing.getCohort())
-                .withMaxDegreeCredit(existing.getMaxDegreeCredit())
+
+                .withMinSemesterCredit(request.getMinSemesterCredit() != null ? request.getMinSemesterCredit() : existing.getMinSemesterCredit())
+                .withMaxSemesterCredit(request.getMaxSemesterCredit() != null ? request.getMaxSemesterCredit() : existing.getMaxSemesterCredit())
+                .withMaxDegreeCredit(request.getMaxDegreeCredit() != null ? request.getMaxDegreeCredit() : existing.getMaxDegreeCredit())
+                .withCohort(request.getCohort() != null ? request.getCohort() : existing.getCohort())
+
                 .build();
 
         return studentRepository.save(updated);
     }
 
-    public void removeStudent(Integer studentId) {
-        if (!studentRepository.existsById(studentId)) {
-            throw new UserNotFoundException("Student", studentId);
+    public void removeStudent(String userEID) {
+        Optional<Student> student = studentRepository.findByUserEID(userEID);
+        if (student.isEmpty()) {
+            throw new UserNotFoundException("Student", userEID);
         }
-        studentRepository.deleteById(studentId);
+        studentRepository.deleteById(student.get().getStudentId());
     }
 }

@@ -2,64 +2,38 @@ package org.cityuhk.CourseRegistrationSystem.Service.Administrative;
 
 import java.util.List;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
+import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
+import org.cityuhk.CourseRegistrationSystem.Exception.UserEidAlreadyExistsException;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
 
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.InstructorUserRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.StudentUserRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
-import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
-import org.cityuhk.CourseRegistrationSystem.Model.Section;
-import org.cityuhk.CourseRegistrationSystem.Model.*;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.CourseRepository;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementOperations;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementService;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.GlobalUserEidUniquenessPolicy;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementOperations;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementService;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementOperations;
-import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Service
 public class AdministrativeService {
@@ -109,77 +83,17 @@ public class AdministrativeService {
 
     @Transactional
     public Admin createUser(AdminUserRequest request) {
-        // if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-        //     throw new RuntimeException("User EID is required");
-        // }
-        // if (request.getName() == null || request.getName().isBlank()) {
-        //     throw new RuntimeException("Name is required");
-        // }
-        // if (request.getPassword() == null || request.getPassword().isBlank()) {
-        //     throw new RuntimeException("Password is required");
-        // }
-        //
-        // String normalizedUserEID = request.getUserEID().trim();
-        // if (adminRepository.findByUserEID(normalizedUserEID).isPresent()) {
-        //     throw new RuntimeException("User EID already exists");
-        // }
-        //
-        // Admin admin =
-        //         new Admin.AdminBuilder()
-        //                 .withUserEID(normalizedUserEID)
-        //                 .withName(request.getName().trim())
-        //                 .withPassword(passwordEncoder.encode(request.getPassword()))
-        //                 .build();
-        //
-        // return adminRepository.save(admin);
         return adminUserManagementService.createUser(request);
     }
 
     @Transactional
-    public Admin modifyUser(Integer staffId, AdminUserRequest request) {
-        // Admin existingAdmin =
-        //         adminRepository
-        //                 .findById(staffId)
-        //                 .orElseThrow(() -> new RuntimeException("Admin user not found"));
-        //
-        // if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-        //     throw new RuntimeException("User EID is required");
-        // }
-        // if (request.getName() == null || request.getName().isBlank()) {
-        //     throw new RuntimeException("Name is required");
-        // }
-        //
-        // String normalizedUserEID = request.getUserEID().trim();
-        // adminRepository
-        //         .findByUserEID(normalizedUserEID)
-        //         .ifPresent(
-        //                 admin -> {
-        //                     if (admin.getStaffId() != existingAdmin.getStaffId()) {
-        //                         throw new RuntimeException("User EID already exists");
-        //                     }
-        //                 });
-        //
-        // String encodedPassword = existingAdmin.getPassword();
-        // if (request.getPassword() != null && !request.getPassword().isBlank()) {
-        //     encodedPassword = passwordEncoder.encode(request.getPassword());
-        // }
-        //
-        // Admin updatedAdmin =
-        //         (Admin)
-        //                 new Admin.AdminBuilder()
-        //                         .withStaffId(existingAdmin.getStaffId())
-        //                         .withUserEID(normalizedUserEID)
-        //                         .withName(request.getName().trim())
-        //                         .withPassword(encodedPassword)
-        //                         .build();
-        //
-        // return adminRepository.save(updatedAdmin);
-        return adminUserManagementService.modifyUser(staffId, request);
+    public Admin modifyUser(AdminUserRequest request) {
+        return adminUserManagementService.modifyUser(request);
     }
 
     @Transactional
-    public void removeUser(Integer staffId) {
-        adminUserManagementService.removeUser(staffId);
+    public void removeUser(String userEID) {
+        adminUserManagementService.removeUser(userEID);
     }
 
     // Student user operations
@@ -190,18 +104,18 @@ public class AdministrativeService {
     }
 
     @Transactional
-    public Student createStudent(StudentUserRequest request) {
+    public Student createStudent(AdminStudentRequest request) {
         return studentUserManagementService.createStudent(request);
     }
 
     @Transactional
-    public Student modifyStudent(Integer studentId, StudentUserRequest request) {
-        return studentUserManagementService.modifyStudent(studentId, request);
+    public Student modifyStudent(AdminStudentRequest request) {
+        return studentUserManagementService.modifyStudent(request);
     }
 
     @Transactional
-    public void removeStudent(Integer studentId) {
-        studentUserManagementService.removeStudent(studentId);
+    public void removeStudent(String userEID) {
+        studentUserManagementService.removeStudent(userEID);
     }
 
     // Instructor user operations
@@ -212,208 +126,22 @@ public class AdministrativeService {
     }
 
     @Transactional
-    public Instructor createInstructor(InstructorUserRequest request) {
+    public Instructor createInstructor(AdminInstructorRequest request) {
         return instructorUserManagementService.createInstructor(request);
     }
 
     @Transactional
-    public Instructor modifyInstructor(Integer staffId, InstructorUserRequest request) {
-        return instructorUserManagementService.modifyInstructor(staffId, request);
+    public Instructor modifyInstructor(AdminInstructorRequest request) {
+        return instructorUserManagementService.modifyInstructor(request);
     }
 
     @Transactional
-    public void removeInstructor(Integer staffId) {
-        instructorUserManagementService.removeInstructor(staffId);
+    public void removeInstructor(String userEID) {
+        instructorUserManagementService.removeInstructor(userEID);
     }
 
-    // TODO old version? 
-    // @Transactional(readOnly = true)
-    // public List<Student> listStudents() {
-    //     return studentRepository.findAll();
-    // }
 
-    @Transactional
-    public Student createStudent(AdminStudentRequest request) {
-        validateRequiredUserFields(request.getUserEID(), request.getName(), request.getPassword());
-        String normalizedUserEID = request.getUserEID().trim();
-        ensureUniqueUserEID(normalizedUserEID, null, null, null);
-
-        Student student =
-                (Student)
-                        new Student.StudentBuilder()
-                                .withUserEID(normalizedUserEID)
-                                .withName(request.getName().trim())
-                                .withPassword(passwordEncoder.encode(request.getPassword()))
-                                .withMajor(safeString(request.getMajor(), "Undeclared"))
-                                .withDepartment(safeString(request.getDepartment(), "General"))
-                                .withCohort(safeInt(request.getCohort(), 2024))
-                                .withMinSemesterCredit(safeInt(request.getMinSemesterCredit(), 9))
-                                .withMaxSemesterCredit(safeInt(request.getMaxSemesterCredit(), 18))
-                                .withMaxDegreeCredit(safeInt(request.getMaxDegreeCredit(), 120))
-                                .build();
-        return studentRepository.save(student);
-    }
-
-    @Transactional
-    public Student modifyStudent(Integer studentId, AdminStudentRequest request) {
-        Student existing =
-                studentRepository
-                        .findById(studentId)
-                        .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new RuntimeException("User EID is required");
-        }
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new RuntimeException("Name is required");
-        }
-
-        String normalizedUserEID = request.getUserEID().trim();
-        ensureUniqueUserEID(normalizedUserEID, null, existing.getStudentId(), null);
-
-        String encodedPassword = existing.getPassword();
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            encodedPassword = passwordEncoder.encode(request.getPassword());
-        }
-
-        Student updated =
-                (Student)
-                        new Student.StudentBuilder()
-                                .withStudentId(existing.getStudentId())
-                                .withUserEID(normalizedUserEID)
-                                .withName(request.getName().trim())
-                                .withPassword(encodedPassword)
-                                .withMajor(safeString(request.getMajor(), existing.getMajor()))
-                                .withDepartment(safeString(request.getDepartment(), existing.getDepartment()))
-                                .withCohort(safeInt(request.getCohort(), existing.getCohort()))
-                                .withMinSemesterCredit(safeInt(request.getMinSemesterCredit(), existing.getMinSemesterCredit()))
-                                .withMaxSemesterCredit(safeInt(request.getMaxSemesterCredit(), existing.getMaxSemesterCredit()))
-                                .withMaxDegreeCredit(safeInt(request.getMaxDegreeCredit(), existing.getMaxDegreeCredit()))
-                                .build();
-
-        return studentRepository.save(updated);
-    }
-
-    // TODO old version? 
-    // @Transactional
-    // public void removeStudent(Integer studentId) {
-    //     if (!studentRepository.existsById(studentId)) {
-    //         throw new RuntimeException("Student not found");
-    //     }
-    //     studentRepository.deleteById(studentId);
-    // }
-
-    // TODO old version? 
-    // @Transactional(readOnly = true)
-    // public List<Instructor> listInstructors() {
-    //     return instructorRepository.findAll();
-    // }
-
-    @Transactional
-    public Instructor createInstructor(AdminInstructorRequest request) {
-        validateRequiredUserFields(request.getUserEID(), request.getName(), request.getPassword());
-        String normalizedUserEID = request.getUserEID().trim();
-        ensureUniqueUserEID(normalizedUserEID, null, null, null);
-
-        Instructor instructor =
-                new Instructor.InstructorBuilder()
-                        .withUserEID(normalizedUserEID)
-                        .withName(request.getName().trim())
-                        .withPassword(passwordEncoder.encode(request.getPassword()))
-                        .withDepartment(safeString(request.getDepartment(), "General"))
-                        .build();
-        return instructorRepository.save(instructor);
-    }
-
-    @Transactional
-    public Instructor modifyInstructor(Integer staffId, AdminInstructorRequest request) {
-        Instructor existing =
-                instructorRepository
-                        .findById(staffId)
-                        .orElseThrow(() -> new RuntimeException("Instructor not found"));
-
-        if (request.getUserEID() == null || request.getUserEID().isBlank()) {
-            throw new RuntimeException("User EID is required");
-        }
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new RuntimeException("Name is required");
-        }
-
-        String normalizedUserEID = request.getUserEID().trim();
-        ensureUniqueUserEID(normalizedUserEID, null, null, existing.getStaffId());
-
-        String encodedPassword = existing.getPassword();
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            encodedPassword = passwordEncoder.encode(request.getPassword());
-        }
-
-        Instructor updated =
-                new Instructor.InstructorBuilder()
-                        .withStaffId(existing.getStaffId())
-                        .withUserEID(normalizedUserEID)
-                        .withName(request.getName().trim())
-                        .withPassword(encodedPassword)
-                        .withDepartment(safeString(request.getDepartment(), existing.getDepartment()))
-                        .build();
-        return instructorRepository.save(updated);
-    }
-
-    // TODO old version?
-    // @Transactional
-    // public void removeInstructor(Integer staffId) {
-    //     if (!instructorRepository.existsById(staffId)) {
-    //         throw new RuntimeException("Instructor not found");
-    //     }
-    //     instructorRepository.deleteById(staffId);
-    // }
-
-    private void validateRequiredUserFields(String userEID, String name, String password) {
-        if (userEID == null || userEID.isBlank()) {
-            throw new RuntimeException("User EID is required");
-        }
-        if (name == null || name.isBlank()) {
-            throw new RuntimeException("Name is required");
-        }
-        if (password == null || password.isBlank()) {
-            throw new RuntimeException("Password is required");
-        }
-    }
-
-    private void ensureUniqueUserEID(
-            String userEID,
-            Integer adminId,
-            Integer studentId,
-            Integer instructorId) {
-        adminRepository.findByUserEID(userEID).ifPresent(admin -> {
-            if (adminId == null || admin.getStaffId() != adminId) {
-                throw new RuntimeException("User EID already exists");
-            }
-        });
-        studentRepository.findByUserEID(userEID).ifPresent(student -> {
-            if (studentId == null || !student.getStudentId().equals(studentId)) {
-                throw new RuntimeException("User EID already exists");
-            }
-        });
-        instructorRepository.findByUserEID(userEID).ifPresent(instructor -> {
-            if (instructorId == null || !instructor.getStaffId().equals(instructorId)) {
-                throw new RuntimeException("User EID already exists");
-            }
-        });
-    }
-
-    private String safeString(String value, String fallback) {
-        if (value == null || value.isBlank()) {
-            return fallback;
-        }
-        return value.trim();
-    }
-
-    private int safeInt(Integer value, Integer fallback) {
-        if (value == null) {
-            return fallback;
-        }
-        return value;
-    }
+    // Course operations
 
     @Transactional
     public Course createCourse(AdminCourseRequest request) {
@@ -690,6 +418,8 @@ public class AdministrativeService {
 
     @Transactional
     public void assignInstructor(String userEID,Integer sectionId) {
+        userEID = userEID.trim();
+
         Instructor instructor = instructorRepository.findByUserEID(userEID).orElseThrow(()-> new RuntimeException("Instructor not found"));
         Section section = sectionRepository.findById(sectionId).orElseThrow(() -> new RuntimeException("Section not found"));
 
@@ -702,6 +432,8 @@ public class AdministrativeService {
 
     @Transactional
     public void unassignInstructor(String userEID,Integer sectionId) {
+        userEID = userEID.trim();
+
         Instructor instructor = instructorRepository.findByUserEID(userEID).orElseThrow(()-> new RuntimeException("Instructor not found"));
         Section section = sectionRepository.findById(sectionId).orElseThrow(() -> new RuntimeException("Section not found"));
 
