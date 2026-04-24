@@ -1,13 +1,23 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Primary
@@ -143,13 +153,54 @@ public class CsvCourseRepository implements CourseRepositoryPort {
 
     @Override
     public List<Course> findAllWithSections() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findAllWithSections'");
+        List<Course> courses = loadAll();
+        attachSections(courses);
+        return courses;
     }
 
     @Override
     public List<Course> findAllWithAllData() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findAllWithAllData'");
+        return findAllWithSections();
+    }
+
+    private void attachSections(List<Course> courses) {
+        Map<Integer, Course> coursesById = courses.stream()
+                .filter(course -> course.getCourseId() != null)
+                .collect(Collectors.toMap(Course::getCourseId, course -> course));
+
+        for (String[] row : store.readRows(CsvSectionRepository.FILE)) {
+            if (row.length < 8) {
+                continue;
+            }
+
+            try {
+                Integer courseId = Integer.parseInt(row[1]);
+                Course course = coursesById.get(courseId);
+                if (course == null) {
+                    continue;
+                }
+
+                Section section = new Section();
+                section.setSectionId(Integer.parseInt(row[0]));
+                section.setCourse(course);
+                section.setEnrollCapacity(Integer.parseInt(row[2]));
+                section.setWaitlistCapacity(Integer.parseInt(row[3]));
+                section.setVenue(row[6]);
+
+                if (!row[4].isBlank() || !row[5].isBlank()) {
+                    LocalDateTime start = row[4].isBlank() ? null : LocalDateTime.parse(row[4]);
+                    LocalDateTime end = row[5].isBlank() ? null : LocalDateTime.parse(row[5]);
+                    section.setTime(start, end);
+                }
+
+                if (!row[7].isBlank()) {
+                    section.setType(Section.Type.valueOf(row[7]));
+                }
+
+                course.getSections().add(section);
+            } catch (RuntimeException ignored) {
+                // Skip malformed rows to preserve the forgiving behavior of the CSV repositories.
+            }
+        }
     }
 }

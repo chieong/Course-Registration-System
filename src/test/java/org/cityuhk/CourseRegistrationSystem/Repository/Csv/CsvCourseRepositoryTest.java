@@ -1,15 +1,22 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
-import org.cityuhk.CourseRegistrationSystem.Model.Course;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Section;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class CsvCourseRepositoryTest {
 
@@ -133,5 +140,28 @@ class CsvCourseRepositoryTest {
         Optional<Course> found = repo2.findByCourseCode("CS101");
         assertTrue(found.isPresent());
         assertFalse(found.get().getPrerequisiteCourses().isEmpty());
+    }
+
+    @Test
+    void findAllWithSections_LoadsSectionsForCourses() {
+        Course savedCourse = repo.save(buildCourse("CS101", "Intro CS"));
+
+        CsvSectionRepository sectionRepo = new CsvSectionRepository(store, idGen, repo);
+        Section section = new Section();
+        section.setCourse(savedCourse);
+        section.setEnrollCapacity(30);
+        section.setWaitlistCapacity(5);
+        section.setVenue("B5501");
+        section.setType(Section.Type.LECTURE);
+        section.setTime(LocalDateTime.parse("2026-05-10T09:00"), LocalDateTime.parse("2026-05-10T10:50"));
+        sectionRepo.save(section);
+
+        List<Course> courses = repo.findAllWithSections();
+
+        assertEquals(1, courses.size());
+        assertEquals(1, courses.get(0).getSections().size());
+        Section loadedSection = courses.get(0).getSections().iterator().next();
+        assertEquals("B5501", loadedSection.getVenue());
+        assertEquals(Section.Type.LECTURE, loadedSection.getType());
     }
 }
