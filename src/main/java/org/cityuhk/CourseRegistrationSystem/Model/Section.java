@@ -67,8 +67,8 @@ public class Section implements Comparable<Section>{
         this.waitlistCapacity = waitlistCapacity;
         this.startTime = startTime;
         this.endTime = endTime;
-        if((startTime != null && endTime != null) && endTime.isBefore(startTime)) {
-            throw new IllegalArgumentException("Start time cannot be before end time");
+        if ((startTime != null && endTime != null) && endTime.isBefore(startTime)) {
+            throw new IllegalArgumentException("End time cannot be before start time");
         }
         this.venue = venue;
     }
@@ -148,8 +148,8 @@ public class Section implements Comparable<Section>{
     public void setTime(LocalDateTime startTime, LocalDateTime endTime) throws IllegalArgumentException {
         this.startTime = startTime;
         this.endTime = endTime;
-        if(endTime.isBefore(startTime)) {
-            throw new IllegalArgumentException("Start time cannot be before end time");
+        if ((startTime != null && endTime != null) && endTime.isBefore(startTime)) {
+            throw new IllegalArgumentException("End time cannot be before start time");
         }
     }
 

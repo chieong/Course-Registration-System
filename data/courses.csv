@@ -1,3 +1,5 @@
 courseId,courseCode,title,credits,description,prerequisiteCourseIds,exclusiveCourseIds
 1,CSV101,CsvCourse,3,CSV test,,
-2,CSV201,CSV Course,3,csv test,,
+3,CSV099,Base Course A,3,base a,,
+4,CSV098,Base Course B,3,base b,,
+2,CSV201,CSV Course Updated,4,csv test updated,3,4

@@ -2,3 +2,4 @@ staffId,userEID,name,password
 1,admin,admincsv,$2a$10$i09Dy/yP0bRIvAulufoWU.KVNlEQch1cKhesYr5Jz6d84Xz1sMXwS
 2,csvtest1,CsvUser,$2a$10$.WcMtI.jKab6JoYhUZ2geeoXTL7W8ltxSclVHVrXsGNykD2nLxSpm
 3,csvu1,CSV User One,$2a$10$hC/F9CfWJkacf3/mK1Crze0hmZ1Ml9Attme5DJsenrFYNXRa5TjU2
+4,csvadmin1,CSV Admin One Updated,$2a$10$v3aXcR0Hyl4WzmXx7CXQWOdo47RPlB8.5FIGLNJhXHXaV4DtaxNFe

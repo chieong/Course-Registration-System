@@ -1,4 +1,5 @@
 entity,nextId
-student,2
-admin,4
-course,3
+student,3
+admin,5
+course,5
+section,2

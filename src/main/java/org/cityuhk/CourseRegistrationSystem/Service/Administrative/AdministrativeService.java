@@ -1,19 +1,9 @@
 package org.cityuhk.CourseRegistrationSystem.Service.Administrative;
 
-import java.util.List;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 
-import org.cityuhk.CourseRegistrationSystem.Exception.InvalidNameException;
-import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
-import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
-import org.cityuhk.CourseRegistrationSystem.Exception.UserEidAlreadyExistsException;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
-
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
-import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
@@ -26,8 +16,12 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepository
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminStudentRequest;
+import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementOperations;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementOperations;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementOperations;
