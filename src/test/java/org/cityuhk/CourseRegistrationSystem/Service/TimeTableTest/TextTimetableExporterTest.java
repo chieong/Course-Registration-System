@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DisplayName("TextTimetableExporter Tests")
@@ -153,4 +154,85 @@ class TextTimetableExporterTest {
         assertTrue(content.contains("Title"));
         assertTrue(content.contains("Header"));
     }
+
+    @Test
+    @DisplayName("Should throw exception when writeToFile fails")
+    void testExportCatchBlock() {
+        Set<Section> sections = new HashSet<>();
+        sections.add(mockSection);
+
+        when(mockTimetableData.getSections()).thenReturn(sections);
+        when(mockTimetableData.getUserType()).thenReturn(TimetableData.UserType.Student);
+        when(mockTimetableData.getOwnerId()).thenReturn(123);
+
+        // 🔥 Force exception inside writeToFile()
+        when(mockFormatter.formatTitle(any()))
+                .thenThrow(new RuntimeException("IO failure"));
+
+        when(mockSection.compareTo(any())).thenReturn(0);
+
+        TimetableExportException ex = assertThrows(
+                TimetableExportException.class,
+                () -> exporter.export(mockTimetableData));
+
+        assertTrue(ex.getMessage().contains("Failed to export timetable"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when print data is null")
+    void testPrintWithNullData() {
+        assertThrows(TimetableExportException.class,
+                () -> exporter.print(null));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when printing empty sections")
+    void testPrintWithEmptySections() {
+        when(mockTimetableData.getSections()).thenReturn(new HashSet<>());
+
+        assertThrows(TimetableExportException.class,
+                () -> exporter.print(mockTimetableData));
+    }
+
+    @Test
+    @DisplayName("Should print timetable successfully")
+    void testPrintSuccess() throws TimetableExportException {
+        Set<Section> sections = new HashSet<>();
+        sections.add(mockSection);
+
+        when(mockTimetableData.getSections()).thenReturn(sections);
+        when(mockFormatter.formatTitle(mockTimetableData)).thenReturn("Title\n");
+        when(mockFormatter.formatHeader()).thenReturn("Header\n");
+        when(mockFormatter.formatRow(mockSection, mockTimetableData)).thenReturn("Row");
+        when(mockSection.compareTo(any())).thenReturn(0);
+
+        String result = exporter.print(mockTimetableData);
+
+        assertNotNull(result);
+        assertTrue(result.contains("Title"));
+        assertTrue(result.contains("Header"));
+        assertTrue(result.contains("Row"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when printToString fails")
+    void testPrintCatchBlock() {
+        Set<Section> sections = new HashSet<>();
+        sections.add(mockSection);
+
+        when(mockTimetableData.getSections()).thenReturn(sections);
+
+        // 🔥 Force exception
+        when(mockFormatter.formatTitle(any()))
+                .thenThrow(new RuntimeException("formatter crash"));
+
+        when(mockSection.compareTo(any())).thenReturn(0);
+
+        TimetableExportException ex = assertThrows(
+                TimetableExportException.class,
+                () -> exporter.print(mockTimetableData));
+
+        assertTrue(ex.getMessage().contains("Failed to fetch timetable data"));
+    }
+
 }

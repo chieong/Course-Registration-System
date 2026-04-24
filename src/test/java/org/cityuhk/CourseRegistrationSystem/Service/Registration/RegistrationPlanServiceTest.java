@@ -563,4 +563,142 @@ class RegistrationPlanServiceTest {
         assertTrue(ownerPlan.getEntries().isEmpty());
         verify(registrationPlanRepository).save(ownerPlan);
     }
+
+    @Test
+    void getPlanSet_InitializesAllLazyAssociations() {
+        // ===== Arrange =====
+        Course course = new Course(
+                "CS999",
+                "Advanced Testing",
+                3,
+                "",
+                new java.util.HashSet<>(), // sections (non-null!)
+                Set.of(),
+                Set.of()
+        );
+
+        Section section = new Section();
+        section.setSectionId(999);
+        section.setCourse(course);
+
+        PlanEntry entry = new PlanEntry();
+        entry.setSection(section);
+
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
+        plan.setPlanId(100);
+        plan.addEntry(entry); // entries != null
+
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+                .thenReturn(List.of(plan));
+
+        // ===== Act =====
+        List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+        // ===== Assert =====
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getEntries().size());
+        assertEquals(999, result.get(0).getEntries().get(0).getSection().getSectionId());
+        assertEquals("CS999",
+                result.get(0)
+                    .getEntries()
+                    .get(0)
+                    .getSection()
+                    .getCourse()
+                    .getCourseCode());
+    }
+
+    @Test
+    void getPlanSet_WhenPlanHasNullEntries_HitsContinueBranch() {
+        RegistrationPlan planWithNullEntries = new RegistrationPlan(student, 1);
+        planWithNullEntries.setPlanId(100);
+        // IMPORTANT: do NOT add any entries
+
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+                .thenReturn(List.of(planWithNullEntries));
+
+        List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+        assertEquals(1, result.size());
+        assertSame(planWithNullEntries, result.get(0));
+    }
+
+    @Test
+    void getPlanSet_WhenEntryHasNullSection_HitsInnerContinueBranch() {
+        PlanEntry entryWithNullSection = new PlanEntry();
+        entryWithNullSection.setSection(null);
+
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
+        plan.setPlanId(200);
+        plan.addEntry(entryWithNullSection); // entries initialized, section is null
+
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+                .thenReturn(List.of(plan));
+
+        List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getEntries().size());
+        assertSame(entryWithNullSection, result.get(0).getEntries().get(0));
+    }
+
+    @Test
+    void getPlanSet_WhenPlansContainNullAndNonNullEntries_CoversBothIfBranches() {
+        // --- Plan 1: entries == null (hits continue) ---
+        RegistrationPlan nullEntriesPlan = new RegistrationPlan(student, 1);
+        nullEntriesPlan.setPlanId(1);
+        // IMPORTANT: do NOT add any entries → entries == null
+
+        // --- Plan 2: entries != null (falls through) ---
+        Course course = new Course(
+                "CS101",
+                "Test Course",
+                3,
+                "",
+                new java.util.HashSet<>(), // non-null sections
+                Set.of(),
+                Set.of()
+        );
+
+        Section section = new Section();
+        section.setSectionId(101);
+        section.setCourse(course);
+
+        PlanEntry entry = new PlanEntry();
+        entry.setSection(section);
+
+        RegistrationPlan nonNullEntriesPlan = new RegistrationPlan(student, 2);
+        nonNullEntriesPlan.setPlanId(2);
+        nonNullEntriesPlan.addEntry(entry); // entries != null
+
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+                .thenReturn(List.of(nullEntriesPlan, nonNullEntriesPlan));
+
+        // --- Act ---
+        List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+        // --- Assert ---
+        assertEquals(2, result.size());
+        assertSame(nullEntriesPlan, result.get(0));
+        assertSame(nonNullEntriesPlan, result.get(1));
+        assertEquals(1, nonNullEntriesPlan.getEntries().size());
+    }   
+    @Test
+    void getPlanSet_WhenEntriesFieldIsNull_HitsContinueBranch() throws Exception {
+        RegistrationPlan plan = new RegistrationPlan(student, 1);
+        plan.setPlanId(1);
+
+        // 🔴 FORCE entries = null (constructor initializes it otherwise)
+        java.lang.reflect.Field entriesField =
+                RegistrationPlan.class.getDeclaredField("entries");
+        entriesField.setAccessible(true);
+        entriesField.set(plan, null);
+
+        when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+                .thenReturn(List.of(plan));
+
+        List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+        assertEquals(1, result.size());
+        assertSame(plan, result.get(0));
+    }
 }

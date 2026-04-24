@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DisplayName("TimetableService Tests")
@@ -215,4 +216,51 @@ class TimetableServiceTest {
                 service.exportStudentTimetable(999)
         );
     }
+
+    @Test
+    @DisplayName("Should return student timetable as string")
+    void testGetStudentTimetableString() 
+            throws TimetableExportException, TimetableValidationException {
+
+        Set<Section> sections = new HashSet<>();
+        sections.add(mock(Section.class));
+        String expectedOutput = "Student Timetable";
+
+        when(mockStudentProvider.userType()).thenReturn(TimetableData.UserType.Student);
+        when(mockStudentProvider.ownerIdLabel()).thenReturn("Student ID");
+        doNothing().when(mockStudentProvider).validateForExport(123);
+        when(mockStudentProvider.loadSections(123)).thenReturn(sections);
+        when(mockDefaultExporter.print(any())).thenReturn(expectedOutput);
+
+        String result = service.getStudentTimetableString(123);
+
+        assertNotNull(result);
+        assertEquals(expectedOutput, result);
+        verify(mockValidator, times(1)).validateTimetableData(any());
+        verify(mockDefaultExporter, times(1)).print(any());
+    }
+
+    @Test
+    @DisplayName("Should return instructor timetable as string")
+    void testGetInstructorTimetableString() 
+            throws TimetableExportException, TimetableValidationException {
+
+        Set<Section> sections = new HashSet<>();
+        sections.add(mock(Section.class));
+        String expectedOutput = "Instructor Timetable";
+
+        when(mockInstructorProvider.userType()).thenReturn(TimetableData.UserType.Instructor);
+        when(mockInstructorProvider.ownerIdLabel()).thenReturn("Staff ID");
+        doNothing().when(mockInstructorProvider).validateForExport(456);
+        when(mockInstructorProvider.loadSections(456)).thenReturn(sections);
+        when(mockDefaultExporter.print(any())).thenReturn(expectedOutput);
+
+        String result = service.getInstructorTimetableString(456);
+
+        assertNotNull(result);
+        assertEquals(expectedOutput, result);
+        verify(mockValidator, times(1)).validateTimetableData(any());
+        verify(mockDefaultExporter, times(1)).print(any());
+    }
+
 }

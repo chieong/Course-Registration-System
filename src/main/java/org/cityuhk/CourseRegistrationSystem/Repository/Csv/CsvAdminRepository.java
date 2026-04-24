@@ -1,13 +1,16 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Primary
@@ -82,8 +85,8 @@ public class CsvAdminRepository implements AdminRepositoryPort {
     @Override
     public synchronized Admin save(Admin admin) {
         List<Admin> all = loadAll();
-        if (admin.getStaffId() == 0) {
-            // new entity – generate an ID via reflection workaround: rebuild with new ID
+        Integer staffId = admin.getStaffId();
+        if (staffId == null || staffId == 0) {
             int newId = idGen.nextId("admin");
             admin = new Admin.AdminBuilder()
                     .withStaffId(newId)
@@ -93,8 +96,7 @@ public class CsvAdminRepository implements AdminRepositoryPort {
                     .build();
             all.add(admin);
         } else {
-            int id = admin.getStaffId();
-            all.removeIf(a -> a.getStaffId() == id);
+            all.removeIf(a -> Objects.equals(a.getStaffId(), staffId));
             all.add(admin);
         }
         saveAll(all);
