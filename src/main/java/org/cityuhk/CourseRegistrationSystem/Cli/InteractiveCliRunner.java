@@ -153,6 +153,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "join-waitlist":
                 handleJoinWaitlist(args);
                 return;
+            case "drop-waitlist":
+                handleDropWaitlist(args);
+                return;
             case "export-timetable":
                 handleExportTimetable(args);
                 return;
@@ -265,6 +268,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  add-section <sectionId>");
         System.out.println("  drop-section <sectionId>");
         System.out.println("  join-waitlist <sectionId>");
+        System.out.println("  drop-waitlist <sectionId>");
         System.out.println("  export-timetable [outputPath]");
         System.out.println("  list-plans");
         System.out.println("  create-plan [priority]");
@@ -525,6 +529,16 @@ public class InteractiveCliRunner implements CommandLineRunner {
         int sectionId = parseInteger(args.get(0), "sectionId");
         registrationService.waitListSection(student.getStudentId(), sectionId, LocalDateTime.now());
         System.out.println("Added to waitlist.");
+    }
+
+    private void handleDropWaitlist(List<String> args) {
+        Student student = requireStudent();
+        if (args.size() != 1) {
+            throw new IllegalArgumentException("Usage: drop-waitlist <sectionId>");
+        }
+        int sectionId = parseInteger(args.get(0), "sectionId");
+        registrationService.dropWaitlist(student.getStudentId(), sectionId);
+        System.out.println("Removed from waitlist.");
     }
 
     private void handleExportTimetable(List<String> args) throws Exception {

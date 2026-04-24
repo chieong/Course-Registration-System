@@ -278,7 +278,7 @@ public class RegistrationServiceTest {
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
         when(registrationPeriodRepository.getActiveCohortByTime(any(LocalDateTime.class))).thenReturn(eligibleCohorts);
         when(registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId)).thenReturn(Optional.empty());
-
+        when(waitlistRecordRepository.exists(studentId, sectionId)).thenReturn(true);
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> registrationService.dropSection(studentId, sectionId, timestamp));
         assertEquals("Not enrolled", exception.getMessage());
