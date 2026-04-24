@@ -99,6 +99,17 @@ public class RegistrationPlanRestController {
         }
     }
 
+    @PostMapping("/{planId}/save")
+    public ResponseEntity<?> saveOrSubmit(@PathVariable Integer planId) {
+        try {
+            RegistrationPlanService.PlanSubmitResult result = registrationPlanService.saveOrSubmitPlan(planId, LocalDateTime.now());
+            PlanResponse planResponse = toPlanResponse(result.plan());
+            return ResponseEntity.ok(new PlanSaveResponse(result.submitted(), result.message(), planResponse));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
     @PutMapping("/{studentId}/reorder")
     public ResponseEntity<?> reorder(@PathVariable Integer studentId,
                                      @RequestBody PlanReorderRequest request) {
@@ -187,6 +198,13 @@ public class RegistrationPlanRestController {
                 String endTime,
                 String venue,
                 String sectionType
+            ) {
+            }
+
+            public record PlanSaveResponse(
+                boolean submitted,
+                String message,
+                PlanResponse plan
             ) {
             }
 }

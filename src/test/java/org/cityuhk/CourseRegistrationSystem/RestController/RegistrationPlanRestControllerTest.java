@@ -70,4 +70,30 @@ class RegistrationPlanRestControllerTest {
         assertEquals(1, body.get(0).entries().size());
         assertEquals("CSC318", body.get(0).entries().get(0).courseCode());
     }
+
+    @Test
+    void saveOrSubmit_returnsPayloadWithMessage() {
+        RegistrationPlan plan = new RegistrationPlan();
+        plan.setPlanId(5);
+        plan.setPriority(1);
+        plan.setApplyStatus(RegistrationPlan.ApplyStatus.APPLIED);
+        plan.setApplySummary("Submitted and applied successfully");
+
+        RegistrationPlanService.PlanSubmitResult result =
+                new RegistrationPlanService.PlanSubmitResult(true, "Plan submitted and registration updated.", plan);
+
+        when(registrationPlanService.saveOrSubmitPlan(org.mockito.ArgumentMatchers.eq(5), org.mockito.ArgumentMatchers.any(LocalDateTime.class)))
+                .thenReturn(result);
+
+        ResponseEntity<?> response = controller.saveOrSubmit(5);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertInstanceOf(RegistrationPlanRestController.PlanSaveResponse.class, response.getBody());
+
+        RegistrationPlanRestController.PlanSaveResponse body =
+                (RegistrationPlanRestController.PlanSaveResponse) response.getBody();
+        assertEquals(true, body.submitted());
+        assertEquals("Plan submitted and registration updated.", body.message());
+        assertEquals(Integer.valueOf(5), body.plan().planId());
+    }
 }

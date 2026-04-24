@@ -360,20 +360,24 @@ function renderPreviewTimetable() {
   previewTimetableBody.innerHTML = "";
   conflictList.innerHTML = "";
 
-  const selectedRows = Array.from(selectedPlanBody.querySelectorAll("tr[data-code]"));
+  const currentPlan = getCurrentPlan();
+  const selectedEntries = currentPlan
+    ? (currentPlan.entries || []).filter((entry) => entry.entryType === "SELECTED")
+    : [];
 
   const slotMap = {};
   const occupiedCells = new Set();
   const conflicts = [];
 
-  selectedRows.forEach((row) => {
-    const code = row.dataset.code;
-    const category = row.dataset.category || "N/A";
-    const location = row.dataset.location || "TBA";
-    const day = row.dataset.day;
-    const parsed = parseStartEndHours(row.dataset.time || "");
+  selectedEntries.forEach((entry) => {
+    const code = asText(entry.courseCode);
+    const category = categoryFromType(entry.sectionType) || "N/A";
+    const location = asText(entry.venue, "TBA");
+    const day = asText(entry.day);
+    const time = toTimeRange(asText(entry.startTime, "00:00"), asText(entry.endTime, "00:00"));
+    const parsed = parseStartEndHours(time);
 
-    if (!code || !day || !previewDays.includes(day) || !parsed) {
+    if (!code || code === "-" || !day || !previewDays.includes(day) || !parsed) {
       return;
     }
 
@@ -409,19 +413,36 @@ function renderPreviewTimetable() {
         cell.classList.add("preview-empty");
       } else if (entries.length > 1) {
         cell.classList.add("conflict-cell");
-        conflicts.push(`${day} ${String(hour).padStart(2, "0")}:00 - ${String(hour + 1).padStart(2, "0")}:00: ${entries.map((entry) => entry.code).join(", ")}`);
-
-        entries.forEach((entry) => {
+        conflicts.push(`${day} ${String(hour).padStart(2, "0")}:00 - ${String(hour + 1).padStart(2, "0")}:00: ${entries.map((e) => e.code).join(", ")}`);
+        entries.forEach((e) => {
           const block = document.createElement("div");
           block.className = "preview-course-block conflict-block";
-          block.innerHTML = `<span class="preview-course-code">${entry.code}</span><span class="preview-course-meta">${entry.category} | ${entry.location}</span>`;
+          block.innerHTML = `<span class="preview-course-code">${e.code}</span><span class="preview-course-meta">${e.category} | ${e.location}</span>`;
           cell.appendChild(block);
         });
       } else {
-        const entry = entries[0];
+        const e = entries[0];
+        let rowSpan = 1;
+        for (let nextHour = hour + 1; nextHour < previewEndHour; nextHour += 1) {
+          const nextEntries = slotMap[`${day}|${nextHour}`] || [];
+          if (nextEntries.length === 1 && nextEntries[0].code === e.code) {
+            rowSpan += 1;
+          } else {
+            break;
+          }
+        }
+        if (rowSpan > 1) {
+          cell.rowSpan = rowSpan;
+          cell.classList.add("preview-merged");
+          for (let coveredHour = hour + 1; coveredHour < hour + rowSpan; coveredHour += 1) {
+            occupiedCells.add(`${day}|${coveredHour}`);
+          }
+        } else {
+          cell.classList.add("preview-filled");
+        }
         const block = document.createElement("div");
         block.className = "preview-course-block";
-        block.innerHTML = `<span class="preview-course-code">${entry.code}</span><span class="preview-course-meta">${entry.category} | ${entry.location}</span>`;
+        block.innerHTML = `<span class="preview-course-code">${e.code}</span><span class="preview-course-meta">${e.category} | ${e.location}</span>`;
         cell.appendChild(block);
       }
 
@@ -709,14 +730,25 @@ waitlistBody.addEventListener("click", async (event) => {
   }
 });
 
-submitPlanBtn.addEventListener("click", () => {
+submitPlanBtn.addEventListener("click", async () => {
   const currentPlan = getCurrentPlan();
   if (!currentPlan) {
     return;
   }
 
-  currentPlan.savedSignature = getPlanSignature(currentPlan);
-  window.alert("Plan changes saved.");
+  try {
+    const result = await apiRequest(`/api/plans/${currentPlan.planId}/save`, { method: "POST" });
+    await loadAvailableSections();
+    await loadPlans();
+    renderCurrentPlan();
+
+    const message = result && result.message
+      ? result.message
+      : "Plan changes saved.";
+    window.alert(message);
+  } catch (error) {
+    window.alert(error.message || "Failed to save plan.");
+  }
 });
 
 undoPlanBtn.addEventListener("click", async () => {
