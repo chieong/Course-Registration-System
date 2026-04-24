@@ -1180,5 +1180,260 @@ class AdministrativeServiceTest {
         when(adminUserManagementService.createUser(userReq)).thenThrow(new UserEidAlreadyExistsException(userReq.getUserEID()));
         assertThrows(UserEidAlreadyExistsException.class, () -> service.createUser(userReq));
     }
+
+    @Test
+void listStudents_delegatesToStudentService() {
+    when(studentUserManagementService.listStudents()).thenReturn(List.of(student));
+
+    List<Student> result = service.listStudents();
+
+    assertEquals(1, result.size());
+    verify(studentUserManagementService).listStudents();
+}
+
+@Test
+void createStudent_delegatesToStudentService() {
+    when(studentUserManagementService.createStudent(studentReq)).thenReturn(student);
+
+    Student result = service.createStudent(studentReq);
+
+    assertNotNull(result);
+    verify(studentUserManagementService).createStudent(studentReq);
+}
+
+@Test
+void modifyStudent_delegatesToStudentService() {
+    when(studentUserManagementService.modifyStudent(studentReq)).thenReturn(student);
+
+    Student result = service.modifyStudent(studentReq);
+
+    assertNotNull(result);
+    verify(studentUserManagementService).modifyStudent(studentReq);
+}
+
+@Test
+void removeStudent_delegatesToStudentService() {
+    doNothing().when(studentUserManagementService).removeStudent("SEID123");
+
+    service.removeStudent("SEID123");
+
+    verify(studentUserManagementService).removeStudent("SEID123");
+}
+
+
+
+@Test
+void createSection_withInstructorIds_assignsInstructors() {
+    Instructor ins = buildInstructor("i001", 8);
+
+    when(instructorRepository.findById(8)).thenReturn(Optional.of(ins));
+    when(sectionRepository.save(any(Section.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+    req.setVenue("Y101");
+    req.setInstructorStaffIds(Set.of(8)); // 👈 key
+
+    Section result = service.createSection(req);
+
+    assertTrue(result.getInstructors().contains(ins));
+}
+
+@Test
+void modifySection_withInstructorIds_updatesInstructors() {
+    Instructor ins = buildInstructor("i002", 9);
+
+    when(instructorRepository.findById(9)).thenReturn(Optional.of(ins));
+
+    Section existing = new Section(course, 50, 10,
+            LocalDateTime.of(2026, 9, 1, 9, 0),
+            LocalDateTime.of(2026, 9, 1, 10, 50),
+            "Y101");
+    existing.setSectionId(10);
+
+    when(sectionRepository.findById(10)).thenReturn(Optional.of(existing));
+    when(sectionRepository.save(any())).thenReturn(existing);
+
+    AdminSectionService req = new AdminSectionService();
+    req.setSectionId(10);
+    req.setInstructorStaffIds(Set.of(9)); // 👈 key
+
+    Section result = service.modifySection(req);
+
+    assertTrue(result.getInstructors().contains(ins));
+}
+
+@Test
+void listSections_nullCourseCode_returnsAll() {
+    Section s1 = new Section(course, 50, 10,
+            LocalDateTime.now(), LocalDateTime.now(), "Y101");
+    when(sectionRepository.findAll()).thenReturn(List.of(s1));
+
+    List<Section> result = service.listSections(null);
+
+    assertEquals(1, result.size());
+}
+
+@Test
+void listSections_filterByCourseCode() {
+    Course cs101 = new Course("CS101", "Intro", 3, null, Set.of(), Set.of(), null);
+    Course cs999 = new Course("CS999", "Other", 3, null, Set.of(), Set.of(), null);
+
+    Section s1 = new Section(cs101, 50, 10,
+            LocalDateTime.now(), LocalDateTime.now(), "Y101");
+    Section s2 = new Section(cs999, 50, 10,
+            LocalDateTime.now(), LocalDateTime.now(), "Y102");
+
+    when(sectionRepository.findAll()).thenReturn(List.of(s1, s2));
+
+    List<Section> result = service.listSections("CS101");
+
+    assertEquals(1, result.size());
+    assertEquals("CS101", result.get(0).getCourse().getCourseCode());
+}
+
+@Test
+void listInstructors_delegatesToInstructorService() {
+    when(instructorUserManagementService.listInstructors())
+            .thenReturn(List.of(instructor));
+
+    List<Instructor> result = service.listInstructors();
+
+    assertEquals(1, result.size());
+    verify(instructorUserManagementService).listInstructors();
+}
+
+@Test
+void createSection_nullWaitlistCapacity_throws() {
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setStartTime(LocalDateTime.now());
+    req.setEndTime(LocalDateTime.now().plusHours(1));
+    req.setVenue("Y101");
+    // waitlistCapacity NOT set
+
+    assertThrows(RuntimeException.class,
+            () -> service.createSection(req));
+}
+
+@Test
+void createSection_nullEndTimeOnly_throws() {
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(30);
+    req.setWaitlistCapacity(10);
+
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(null); // ✅ second OR branch
+
+    req.setVenue("Y101");
+
+    assertThrows(RuntimeException.class, () -> service.createSection(req));
+}
+
+@Test
+void createSection_nullEndTime_triggersOrBranch() {
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+
+    // ✅ startTime present, endTime missing
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(null);
+
+    req.setVenue("Y101");
+
+    assertThrows(RuntimeException.class,
+            () -> service.createSection(req));
+}
+
+@Test
+void createSection_instructorIds_containsNull_skipsNullAndSucceeds() {
+    Instructor ins = buildInstructor("i001", 8);
+    when(instructorRepository.findById(8)).thenReturn(Optional.of(ins));
+    when(sectionRepository.save(any(Section.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+    req.setVenue("Y101");
+
+    Set<Integer> ids = new java.util.HashSet<>();
+    ids.add(null);   // covers continue branch
+    ids.add(8);
+    req.setInstructorStaffIds(ids);
+
+    Section result = service.createSection(req);
+
+    assertNotNull(result);
+    assertTrue(result.getInstructors().contains(ins));
+    verify(instructorRepository).findById(8);
+}
+
+@Test
+void createSection_instructorIdNotFound_throws() {
+    when(instructorRepository.findById(999)).thenReturn(Optional.empty());
+
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+    req.setVenue("Y101");
+    req.setInstructorStaffIds(Set.of(999)); // covers orElseThrow branch
+
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> service.createSection(req));
+    assertEquals("Instructor not found: 999", ex.getMessage());
+}
+
+@Test
+void createSection_nullVenue_throwsVenueRequired() {
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+    req.setVenue(null); // left side of OR
+
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> service.createSection(req));
+    assertEquals("Venue is required", ex.getMessage());
+}
+
+@Test
+void createSection_blankVenue_throwsVenueRequired() {
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+    req.setVenue("   "); // right side of OR
+
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> service.createSection(req));
+    assertEquals("Venue is required", ex.getMessage());
+}
+
+
 }
 
