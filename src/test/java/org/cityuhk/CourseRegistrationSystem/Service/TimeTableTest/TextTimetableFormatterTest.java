@@ -247,5 +247,99 @@ class TextTimetableFormatterTest {
         assertEquals("", result);
     }
 
+    @Test
+    @DisplayName("Should use default formatters when timetableData is null")
+    void testFormatRowWithNullTimetableData() {
+        LocalDateTime startTime = LocalDateTime.of(2024, 4, 23, 9, 0);
+        LocalDateTime endTime = LocalDateTime.of(2024, 4, 23, 10, 30);
+
+        when(mockSection.getCourse()).thenReturn(mockCourse);
+        when(mockCourse.getCourseCode()).thenReturn("CS101");
+        when(mockSection.getType()).thenReturn(mock(Section.Type.class));
+        when(mockSection.getType().name()).thenReturn("Lecture");
+        when(mockSection.getVenue()).thenReturn("Room 101");
+        when(mockSection.getStartTime()).thenReturn(startTime);
+        when(mockSection.getEndTime()).thenReturn(endTime);
+        when(mockSection.getSectionId()).thenReturn(1);
+
+        // 👇 timetableData = null
+        String result = formatter.formatRow(mockSection, null);
+
+        assertTrue(result.contains("Tue"));          // default day formatter
+        assertTrue(result.contains("09:00-10:30"));  // default time formatter
+    }
+
+    @Test
+    @DisplayName("Should handle course with null courseCode")
+    void testFormatRowWithNullCourseCode() {
+        LocalDateTime startTime = LocalDateTime.of(2024, 4, 23, 9, 0);
+        LocalDateTime endTime = LocalDateTime.of(2024, 4, 23, 10, 30);
+
+        when(mockSection.getCourse()).thenReturn(mockCourse);
+        when(mockCourse.getCourseCode()).thenReturn(null); // ✅ missing branch
+        when(mockSection.getType()).thenReturn(mock(Section.Type.class));
+        when(mockSection.getType().name()).thenReturn("Lecture");
+        when(mockSection.getVenue()).thenReturn("Room 101");
+        when(mockSection.getStartTime()).thenReturn(startTime);
+        when(mockSection.getEndTime()).thenReturn(endTime);
+        when(mockSection.getSectionId()).thenReturn(1);
+
+        when(mockTimetableData.getDayFormatter()).thenReturn(DateTimeFormatter.ofPattern("EEE"));
+        when(mockTimetableData.getTimeFormatter()).thenReturn(DateTimeFormatter.ofPattern("HH:mm"));
+
+        String result = formatter.formatRow(mockSection, mockTimetableData);
+
+        assertNotNull(result);
+        assertFalse(result.contains("CS101")); // proves empty-string branch
+    }
+
+    @Test
+    @DisplayName("Should handle non-null startTime with null endTime")
+    void testFormatRowWithNullEndTimeOnly() {
+        LocalDateTime startTime = LocalDateTime.of(2024, 4, 23, 9, 0);
+
+        when(mockSection.getCourse()).thenReturn(mockCourse);
+        when(mockCourse.getCourseCode()).thenReturn("CS101");
+        when(mockSection.getType()).thenReturn(mock(Section.Type.class));
+        when(mockSection.getType().name()).thenReturn("Lecture");
+        when(mockSection.getVenue()).thenReturn("Room 101");
+        when(mockSection.getStartTime()).thenReturn(startTime);
+        when(mockSection.getEndTime()).thenReturn(null); // ✅ missing branch
+        when(mockSection.getSectionId()).thenReturn(1);
+
+        when(mockTimetableData.getDayFormatter()).thenReturn(DateTimeFormatter.ofPattern("EEE"));
+        when(mockTimetableData.getTimeFormatter()).thenReturn(DateTimeFormatter.ofPattern("HH:mm"));
+
+        String result = formatter.formatRow(mockSection, mockTimetableData);
+
+        assertTrue(result.contains("N/A")); // confirms false branch of &&
+    }
+    @Test
+    @DisplayName("Should handle null venue field")
+    void testFormatRowWithNullVenue() {
+        LocalDateTime startTime = LocalDateTime.of(2024, 4, 23, 9, 0);
+        LocalDateTime endTime = LocalDateTime.of(2024, 4, 23, 10, 30);
+
+        when(mockSection.getCourse()).thenReturn(mockCourse);
+        when(mockCourse.getCourseCode()).thenReturn("CS101");
+        when(mockSection.getType()).thenReturn(mock(Section.Type.class));
+        when(mockSection.getType().name()).thenReturn("Lecture");
+
+        when(mockSection.getVenue()).thenReturn(null); // ✅ MISSING BRANCH
+
+        when(mockSection.getStartTime()).thenReturn(startTime);
+        when(mockSection.getEndTime()).thenReturn(endTime);
+        when(mockSection.getSectionId()).thenReturn(1);
+
+        when(mockTimetableData.getDayFormatter())
+                .thenReturn(DateTimeFormatter.ofPattern("EEE"));
+        when(mockTimetableData.getTimeFormatter())
+                .thenReturn(DateTimeFormatter.ofPattern("HH:mm"));
+
+        String result = formatter.formatRow(mockSection, mockTimetableData);
+
+        assertNotNull(result);
+        assertFalse(result.contains("Room 101")); // proves "" branch
+    }
 
 }
