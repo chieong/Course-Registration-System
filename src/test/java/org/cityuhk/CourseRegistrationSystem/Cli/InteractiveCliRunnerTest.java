@@ -21,13 +21,16 @@ import java.util.Set;
 
 import org.cityuhk.CourseRegistrationSystem.Model.Admin;
 import org.cityuhk.CourseRegistrationSystem.Model.Course;
+import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.AdminRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.InstructorRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.Repository.StudentRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
@@ -69,6 +72,8 @@ class InteractiveCliRunnerTest {
     private StudentRepository studentRepository;
     @Mock
     private InstructorRepository instructorRepository;
+    @Mock
+    private RegistrationRecordRepository registrationRecordRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -129,6 +134,25 @@ class InteractiveCliRunnerTest {
 
     private void setStudentSession(String eid) {
         ReflectionTestUtils.setField(runner, "activeSession", new CliSession(eid, CliRole.STUDENT));
+    }
+
+    private void setInstructorSession(String eid) {
+        ReflectionTestUtils.setField(runner, "activeSession", new CliSession(eid, CliRole.INSTRUCTOR));
+    }
+
+    private Instructor mockInstructor(String eid, int staffId, Set<Section> sections) {
+        Instructor instructor = mock(Instructor.class);
+        lenient().when(instructor.getUserEID()).thenReturn(eid);
+        lenient().when(instructor.getStaffId()).thenReturn(staffId);
+        lenient().when(instructor.getSections()).thenReturn(sections);
+        return instructor;
+    }
+
+    private RegistrationRecord mockRegistrationRecord(Student student, Section section) {
+        RegistrationRecord record = mock(RegistrationRecord.class);
+        lenient().when(record.getStudent()).thenReturn(student);
+        lenient().when(record.getSection()).thenReturn(section);
+        return record;
     }
 
     private Admin mockAdmin(String eid, String pwd, int staffId, String userName) {
@@ -710,6 +734,156 @@ private Course mockCourse(String code, String title, int credits, int sectionCou
     void handleLine_shouldPrintUnknownCommand() {
         invokeHandleLine("something-unsupported");
         assertTrue(output().contains("Unknown command. Type help to see available commands."));
+    }
+
+    // ---------------------------
+    // view-student-list
+    // ---------------------------
+
+    @Test
+    void viewStudentList_instructorShouldSeeEnrolledStudentsGroupedByCourse() {
+        setInstructorSession("inst1");
+
+        Course course = mockCourse("CS101", "Intro Programming", 3, 0);
+        lenient().when(course.getTitle()).thenReturn("Intro Programming");
+
+        Section section = mock(Section.class);
+        lenient().when(section.getSectionId()).thenReturn(11);
+        lenient().when(section.getCourse()).thenReturn(course);
+        lenient().when(section.getType()).thenReturn(Section.Type.LECTURE);
+        lenient().when(section.getStartTime()).thenReturn(null);
+        lenient().when(section.getEndTime()).thenReturn(null);
+
+        Student student = mockStudent("S2301001", "enc", 1001);
+        lenient().when(student.getUserName()).thenReturn("Isaac Tan");
+        lenient().when(student.getMajor()).thenReturn("BSc Computer Science");
+        lenient().when(student.getCohort()).thenReturn(2);
+
+        RegistrationRecord record = mockRegistrationRecord(student, section);
+
+        Instructor instructor = mockInstructor("inst1", 7, Set.of(section));
+        when(instructorRepository.findByUserEIDWithSections("inst1")).thenReturn(Optional.of(instructor));
+        when(registrationRecordRepository.findBySectionId(11)).thenReturn(List.of(record));
+
+        invokeHandleLine("view-student-list");
+
+        String out = output();
+        assertTrue(out.contains("--- Course: CS101 - Intro Programming ---"));
+        assertTrue(out.contains("Section 11"));
+        assertTrue(out.contains("Student ID"));
+        assertTrue(out.contains("1001"));
+        assertTrue(out.contains("Isaac Tan"));
+        assertTrue(out.contains("BSc Computer Science"));
+        assertTrue(out.contains("Year 2"));
+        assertTrue(out.contains("S2301001"));
+        assertTrue(out.contains("ACTIVE"));
+    }
+
+    @Test
+    void viewStudentList_adminShouldSeeInstructorDataWithFlag() {
+        setAdminSession("admin1");
+
+        Course course = mockCourse("CS204", "Database Systems", 3, 0);
+        lenient().when(course.getTitle()).thenReturn("Database Systems");
+
+        Section section = mock(Section.class);
+        lenient().when(section.getSectionId()).thenReturn(22);
+        lenient().when(section.getCourse()).thenReturn(course);
+        lenient().when(section.getType()).thenReturn(Section.Type.TUTORIAL);
+        lenient().when(section.getStartTime()).thenReturn(null);
+        lenient().when(section.getEndTime()).thenReturn(null);
+
+        Student student = mockStudent("S2400561", "enc", 2002);
+        lenient().when(student.getUserName()).thenReturn("Mei Lin");
+        lenient().when(student.getMajor()).thenReturn("BSc Computer Science");
+        lenient().when(student.getCohort()).thenReturn(1);
+
+        RegistrationRecord record = mockRegistrationRecord(student, section);
+
+        Instructor instructor = mockInstructor("inst2", 8, Set.of(section));
+        when(instructorRepository.findByUserEIDWithSections("inst2")).thenReturn(Optional.of(instructor));
+        when(registrationRecordRepository.findBySectionId(22)).thenReturn(List.of(record));
+
+        invokeHandleLine("view-student-list --instructor inst2");
+
+        String out = output();
+        assertTrue(out.contains("--- Course: CS204 - Database Systems ---"));
+        assertTrue(out.contains("2002"));
+        assertTrue(out.contains("Mei Lin"));
+        assertTrue(out.contains("Year 1"));
+        assertTrue(out.contains("ACTIVE"));
+    }
+
+    @Test
+    void viewStudentList_shouldRejectUnauthenticated() {
+        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
+        assertTrue(ex.getMessage().contains("Please login first"));
+    }
+
+    @Test
+    void viewStudentList_shouldRejectStudentRole() {
+        setStudentSession("student1");
+        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
+        assertTrue(ex.getMessage().contains("This command requires INSTRUCTOR or ADMIN role"));
+    }
+
+    @Test
+    void viewStudentList_adminWithoutInstructorFlagShouldFail() {
+        setAdminSession("admin1");
+        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
+        assertTrue(ex.getMessage().contains("ADMIN must specify --instructor"));
+    }
+
+    @Test
+    void viewStudentList_instructorNotFoundShouldFail() {
+        setInstructorSession("ghost");
+        when(instructorRepository.findByUserEIDWithSections("ghost")).thenReturn(Optional.empty());
+        Exception ex = assertThrows(Exception.class, () -> invokeHandleLine("view-student-list"));
+        assertTrue(ex.getMessage().contains("Instructor not found: ghost"));
+    }
+
+    @Test
+    void viewStudentList_instructorWithNoSectionsShouldPrintMessage() {
+        setInstructorSession("inst3");
+        Instructor instructor = mockInstructor("inst3", 9, new HashSet<>());
+        when(instructorRepository.findByUserEIDWithSections("inst3")).thenReturn(Optional.of(instructor));
+
+        invokeHandleLine("view-student-list");
+        assertTrue(output().contains("No sections assigned to instructor inst3."));
+    }
+
+    @Test
+    void viewStudentList_sectionWithNoStudentsShouldPrintMessage() {
+        setInstructorSession("inst4");
+
+        Course course = mockCourse("CS300", "Algorithms", 3, 0);
+        lenient().when(course.getTitle()).thenReturn("Algorithms");
+
+        Section section = mock(Section.class);
+        lenient().when(section.getSectionId()).thenReturn(33);
+        lenient().when(section.getCourse()).thenReturn(course);
+        lenient().when(section.getType()).thenReturn(Section.Type.LAB);
+        lenient().when(section.getStartTime()).thenReturn(null);
+        lenient().when(section.getEndTime()).thenReturn(null);
+
+        Instructor instructor = mockInstructor("inst4", 10, Set.of(section));
+        when(instructorRepository.findByUserEIDWithSections("inst4")).thenReturn(Optional.of(instructor));
+        when(registrationRecordRepository.findBySectionId(33)).thenReturn(Collections.emptyList());
+
+        invokeHandleLine("view-student-list");
+
+        String out = output();
+        assertTrue(out.contains("--- Course: CS300 - Algorithms ---"));
+        assertTrue(out.contains("(No enrolled students)"));
+        assertTrue(out.contains("No enrolled students found for instructor inst4."));
+    }
+
+    @Test
+    void viewStudentList_helpTextShouldContainCommand() {
+        invokeHandleLine("help");
+        String out = output();
+        assertTrue(out.contains("view-student-list"));
+        assertTrue(out.contains("--instructor"));
     }
 
 @Test

@@ -14,4 +14,16 @@ public class studentListResponse {
         this.section = section;
         this.course = course;
     }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public Section getSection() {
+        return section;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
 }

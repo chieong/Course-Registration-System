@@ -55,7 +55,7 @@ class CourseServiceTest {
         Course c1 = new Course("CS101", "Intro CS", 3, "Basics", Set.of(), Set.of(), Set.of());
         Course c2 = new Course("CS102", "Data Structures", 3, "Core", Set.of(), Set.of(), Set.of());
         List<Course> expected = List.of(c1, c2);
-        when(courseRepository.findAll()).thenReturn(expected);
+        when(courseRepository.findAllWithSections()).thenReturn(expected);
 
         List<Course> found = courseService.getAllCourses();
 
@@ -63,7 +63,7 @@ class CourseServiceTest {
         assertSame(expected, found);
         assertSame(c1, found.get(0));
         assertSame(c2, found.get(1));
-        verify(courseRepository).findAll();
+        verify(courseRepository).findAllWithSections();
         verifyNoMoreInteractions(courseRepository);
     }
 }

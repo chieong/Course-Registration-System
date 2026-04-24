@@ -131,15 +131,15 @@ public class RegistrationService {
         Section  section = sectionRepository.findById(sectionId)
                 .orElseThrow(() -> new RuntimeException("Section not found"));
 
+        Optional<RegistrationRecord> existingRecord =
+            registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId);
+
         List<Integer> eligibleCohorts =
                 registrationPeriodRepository.getActiveCohortByTime(LocalDateTime.now());
-        if (!eligibleCohorts.contains(student.getCohort())) {
+        if (!eligibleCohorts.contains(student.getCohort()) && existingRecord.isEmpty()) {
             throw new RuntimeException("Student not eligible to register");
         }
 
-
-        Optional<RegistrationRecord> existingRecord =
-                registrationRecordRepository.findByStudentIdAndSectionId(studentId, sectionId);
         if (existingRecord.isEmpty()) {
             throw new RuntimeException("Not enrolled");
         }
