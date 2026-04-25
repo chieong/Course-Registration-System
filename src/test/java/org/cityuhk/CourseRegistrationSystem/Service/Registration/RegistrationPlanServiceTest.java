@@ -4,6 +4,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.Course;
 import org.cityuhk.CourseRegistrationSystem.Model.PlanEntry;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPlan;
+import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
@@ -29,11 +30,13 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -711,4 +714,264 @@ class RegistrationPlanServiceTest {
         assertEquals(1, result.size());
         assertSame(plan, result.get(0));
     }
+
+    @Test
+void getPlanSet_whenSectionHasNullCourse_skipsCourseBlock() {
+    PlanEntry entry = new PlanEntry();
+    Section section = new Section();
+    section.setSectionId(10);
+    section.setCourse(null); // ✅ missing branch
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.addEntry(entry);
+
+    when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+            .thenReturn(List.of(plan));
+
+    List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+    assertEquals(1, result.size());
+}
+
+@Test
+void getPlanSet_whenCourseHasNullSections_skipsInnerIf() {
+    Course course = new Course(
+            "CS1",
+            "Test",
+            3,
+            "",
+            null, // ✅ missing branch
+            Set.of(),
+            Set.of()
+    );
+
+    Section section = new Section();
+    section.setSectionId(11);
+    section.setCourse(course);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.addEntry(entry);
+
+    when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+            .thenReturn(List.of(plan));
+
+    List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+    assertEquals(1, result.size());
+}
+
+@Test
+void saveOrSubmitPlan_skipsNonSelectedEntries() {
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.WAITLIST); // ✅ skip branch
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10)).thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of());
+
+    registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    assertEquals(RegistrationPlan.ApplyStatus.APPLIED, plan.getApplyStatus());
+}
+
+@Test
+void saveOrSubmitPlan_whenStudentIsNull_throws() {
+    RegistrationPlan plan = new RegistrationPlan();
+    plan.setPlanId(10);
+    plan.setStudent(null); // ✅ force branch
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+
+    RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now()));
+
+    assertEquals("Student not found for plan", ex.getMessage());
+}
+
+@Test
+void saveOrSubmitPlan_inactivePeriod_savesDraft() {
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.empty());
+
+    RegistrationPlanService.PlanSubmitResult result =
+            registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    assertFalse(result.submitted());
+    assertEquals(RegistrationPlan.ApplyStatus.NOT_ATTEMPTED, plan.getApplyStatus());
+}
+
+
+
+@Test
+void saveOrSubmitPlan_sectionAlreadyRegistered_marksApplied1() {
+    // Arrange
+    Section section = new Section();
+    section.setSectionId(20);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    // ✅ CORRECT: create RegistrationRecord using constructor
+    RegistrationRecord record =
+            new RegistrationRecord(student, section, LocalDateTime.now());
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of(record));
+
+    // Act
+    registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    // Assert
+    assertEquals(PlanEntry.EntryStatus.APPLIED, entry.getStatus());
+}
+
+@Test
+void saveOrSubmitPlan_dropsObsoleteSections() {
+    // Existing registered section (will be dropped)
+    Section oldSection = new Section();
+    oldSection.setSectionId(99);
+
+    RegistrationRecord record =
+            new RegistrationRecord(student, oldSection, LocalDateTime.now());
+
+    // Plan has NO selected entries -> desiredSectionIds = empty
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of(record));
+
+    // Act
+    registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    // Assert: dropSection was called
+    verify(registrationService)
+            .dropSection(eq(1), eq(99), any());
+}
+
+
+
+@Test
+void saveOrSubmitPlan_sectionAlreadyRegistered_marksApplied() {
+    Section section = new Section();
+    section.setSectionId(20);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    RegistrationRecord existingRecord =
+            new RegistrationRecord(student, section, LocalDateTime.now());
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of(existingRecord));
+
+    RegistrationPlanService.PlanSubmitResult result =
+            registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    assertTrue(result.submitted());
+    assertEquals(PlanEntry.EntryStatus.APPLIED, entry.getStatus());
+}
+
+@Test
+void saveOrSubmitPlan_addSectionFails_marksEntryFailed() {
+    Section section = new Section();
+    section.setSectionId(30);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of());
+
+    doThrow(new RuntimeException("capacity full"))
+            .when(registrationService)
+            .addSection(eq(1), eq(30), any());
+
+    RegistrationPlanService.PlanSubmitResult result =
+            registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    assertTrue(result.submitted());
+    assertEquals(RegistrationPlan.ApplyStatus.FAILED, result.plan().getApplyStatus());
+    assertEquals(PlanEntry.EntryStatus.FAILED, entry.getStatus());
+    assertEquals("capacity full", entry.getFailureReason());
+}
+
+
 }
