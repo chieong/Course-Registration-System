@@ -3,6 +3,10 @@ package org.cityuhk.CourseRegistrationSystem.Cli;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -103,6 +107,57 @@ class InteractiveCliRunnerTest {
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
         method.setAccessible(true);
         assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testLoginAdminSuccess() throws Exception {
+        when(testAdmin.getPassword()).thenReturn("hashed-admin-password");
+        when(testAdmin.getUserEID()).thenReturn("admin1");
+        when(adminRepository.findByUserEID("admin1")).thenReturn(Optional.of(testAdmin));
+        when(passwordEncoder.matches("password", "hashed-admin-password")).thenReturn(true);
+
+        List<String> args = Arrays.asList("admin1", "password");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(sessionStore).save(argThat(session ->
+                "admin1".equals(session.getUserEid()) && session.getRole() == CliRole.ADMIN));
+    }
+
+    @Test
+    void testLoginStudentSuccess() throws Exception {
+        when(testStudent.getPassword()).thenReturn("hashed-student-password");
+        when(testStudent.getUserEID()).thenReturn("student1");
+        when(adminRepository.findByUserEID("student1")).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID("student1")).thenReturn(Optional.of(testStudent));
+        when(passwordEncoder.matches("password", "hashed-student-password")).thenReturn(true);
+
+        List<String> args = Arrays.asList("student1", "password");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(sessionStore).save(argThat(session ->
+                "student1".equals(session.getUserEid()) && session.getRole() == CliRole.STUDENT));
+    }
+
+    @Test
+    void testLoginInstructorSuccessWithPlaintextFallback() throws Exception {
+        when(testInstructor.getPassword()).thenReturn("password");
+        when(testInstructor.getUserEID()).thenReturn("instructor1");
+        when(adminRepository.findByUserEID("instructor1")).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID("instructor1")).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID("instructor1")).thenReturn(Optional.of(testInstructor));
+        when(passwordEncoder.matches("password", "password")).thenThrow(new IllegalArgumentException());
+
+        List<String> args = Arrays.asList("instructor1", "password");
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLogin", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(sessionStore).save(argThat(session ->
+                "instructor1".equals(session.getUserEid()) && session.getRole() == CliRole.INSTRUCTOR));
     }
 
     @Test
@@ -989,6 +1044,274 @@ class InteractiveCliRunnerTest {
         assertEquals("N/A", result);
     }
 
+    @Test
+    void testRunProcessesHelpAndQuitCommands() throws Exception {
+        when(sessionStore.load()).thenReturn(Optional.empty());
+
+        String originalInput = "help\nquit\n";
+        InputStream previousIn = System.in;
+        PrintStream previousOut = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        try {
+            System.setIn(new ByteArrayInputStream(originalInput.getBytes()));
+            System.setOut(new PrintStream(output));
+
+            cliRunner.run();
+        } finally {
+            System.setIn(previousIn);
+            System.setOut(previousOut);
+        }
+
+        String console = output.toString();
+        assertTrue(console.contains("Course Registration CLI"));
+        assertTrue(console.contains("Available commands:"));
+        assertTrue(console.contains("CLI session closed."));
+        verify(sessionStore).load();
+    }
+
+    @Test
+    void testHandleLineUnknownCommandPrintsMessage() throws Exception {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream previousOut = System.out;
+        try {
+            System.setOut(new PrintStream(output));
+            invokeHandleLine("unknown-cmd");
+        } finally {
+            System.setOut(previousOut);
+        }
+
+        assertTrue(output.toString().contains("Unknown command. Type help to see available commands."));
+    }
+
+    @Test
+    void testHandleLineExitSetsRunningFalse() throws Exception {
+        setRunning(true);
+
+        invokeHandleLine("exit");
+
+        assertFalse(isRunning());
+    }
+
+    @Test
+    void testLoadSavedSessionClearsInvalidStoredAdminSession() throws Exception {
+        when(sessionStore.load()).thenReturn(Optional.of(new CliSession("admin1", CliRole.ADMIN)));
+        when(adminRepository.findByUserEID("admin1")).thenReturn(Optional.empty());
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("loadSavedSession");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        verify(sessionStore).clear();
+    }
+
+    @Test
+    void testLoadSavedSessionRestoresValidInstructorSession() throws Exception {
+        when(sessionStore.load()).thenReturn(Optional.of(new CliSession("instructor1", CliRole.INSTRUCTOR)));
+        when(instructorRepository.findByUserEID("instructor1")).thenReturn(Optional.of(testInstructor));
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("loadSavedSession");
+        method.setAccessible(true);
+        method.invoke(cliRunner);
+
+        java.lang.reflect.Field field = InteractiveCliRunner.class.getDeclaredField("activeSession");
+        field.setAccessible(true);
+        CliSession restored = (CliSession) field.get(cliRunner);
+        assertNotNull(restored);
+        assertEquals("instructor1", restored.getUserEid());
+        assertEquals(CliRole.INSTRUCTOR, restored.getRole());
+    }
+
+    @Test
+    void testShowTimetableRejectsUnexpectedArguments() throws Exception {
+        setActiveStudentSession();
+        List<String> args = List.of("unexpected");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleShowTimeTable", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testShowTimetableRequiresAuthentication() throws Exception {
+        List<String> args = Collections.emptyList();
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleShowTimeTable", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testExportTimetableRequiresAuthentication() throws Exception {
+        List<String> args = Collections.emptyList();
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleExportTimetable", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testExportTimetableRejectsTooManyArguments() throws Exception {
+        setActiveStudentSession();
+        List<String> args = Arrays.asList("a.txt", "b.txt");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleExportTimetable", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testValidateCourseOptionsThrowsForUnknownOption() throws Exception {
+        Map<String, String> options = new HashMap<>();
+        options.put("code", "CS101");
+        options.put("unknown", "x");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("validateCourseOptions", Map.class, String.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, options, "admin-create-course"));
+    }
+
+    @Test
+    void testSplitCsvReturnsEmptySetForOnlyBlankElements() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("splitCsv", String.class);
+        method.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<String> result = (Set<String>) method.invoke(cliRunner, " ,  , ");
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testAdminListSectionsRejectsUnknownOption() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList("--unknown", "value");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testAdminCreateSectionRequiresVenue() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Arrays.asList(
+                "--course", "CS101",
+                "--type", "LECTURE",
+                "--enroll-capacity", "30",
+                "--waitlist-capacity", "10",
+                "--start", "2026-05-01T09:00",
+                "--end", "2026-05-01T10:30");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateSection", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testAdminCreateSectionRejectsUnknownCourse() throws Exception {
+        setActiveAdminSession();
+        when(courseService.getCourse("CS999")).thenReturn(null);
+
+        List<String> args = Arrays.asList(
+                "--course", "CS999",
+                "--type", "LECTURE",
+                "--enroll-capacity", "30",
+                "--waitlist-capacity", "10",
+                "--start", "2026-05-01T09:00",
+                "--end", "2026-05-01T10:30",
+                "--venue", "Room 101");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateSection", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testAdminModifySectionRequiresSectionId() throws Exception {
+        setActiveAdminSession();
+        when(courseService.getCourse("CS101")).thenReturn(testCourse);
+
+        List<String> args = Arrays.asList("--course", "CS101", "--enroll-capacity", "20");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminModifySection", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testViewStudentListAdminRequiresInstructorOption() throws Exception {
+        setActiveAdminSession();
+        List<String> args = Collections.emptyList();
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewStudentList", List.class);
+        method.setAccessible(true);
+
+        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
+    }
+
+    @Test
+    void testViewStudentListAdminUsesSpecifiedInstructor() throws Exception {
+        setActiveAdminSession();
+        when(testInstructor.getSections()).thenReturn(Collections.emptySet());
+        when(instructorRepository.findByUserEIDWithSections("instructor1")).thenReturn(Optional.of(testInstructor));
+
+        List<String> args = Arrays.asList("--instructor", "instructor1");
+
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleViewStudentList", List.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, args);
+
+        verify(instructorRepository).findByUserEIDWithSections("instructor1");
+    }
+
+    @Test
+    void testSectionTimeLabelReturnsDashWhenTimeMissing() throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("sectionTimeLabel", Section.class);
+        method.setAccessible(true);
+
+        String result = (String) method.invoke(cliRunner, testSection);
+
+        assertEquals("-", result);
+    }
+
+    @Test
+    void testRunContinuesAfterCommandErrorUntilQuit() throws Exception {
+        when(sessionStore.load()).thenReturn(Optional.empty());
+        when(adminRepository.findByUserEID("invalid")).thenReturn(Optional.empty());
+        when(studentRepository.findByUserEID("invalid")).thenReturn(Optional.empty());
+        when(instructorRepository.findByUserEID("invalid")).thenReturn(Optional.empty());
+
+        String originalInput = "login invalid password\nquit\n";
+        InputStream previousIn = System.in;
+        PrintStream previousOut = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        try {
+            System.setIn(new ByteArrayInputStream(originalInput.getBytes()));
+            System.setOut(new PrintStream(output));
+
+            cliRunner.run();
+        } finally {
+            System.setIn(previousIn);
+            System.setOut(previousOut);
+        }
+
+        String console = output.toString();
+        assertTrue(console.contains("ERROR: Invalid credentials"));
+        assertTrue(console.contains("CLI session closed."));
+    }
+
     // ============== Helper Methods ==============
 
     private void setActiveStudentSession() throws Exception {
@@ -1011,6 +1334,25 @@ class InteractiveCliRunnerTest {
         field.setAccessible(true);
         field.set(cliRunner, session);
     }
+
+    private void setRunning(boolean value) throws Exception {
+        java.lang.reflect.Field field = InteractiveCliRunner.class.getDeclaredField("running");
+        field.setAccessible(true);
+        field.set(cliRunner, value);
+    }
+
+    private boolean isRunning() throws Exception {
+        java.lang.reflect.Field field = InteractiveCliRunner.class.getDeclaredField("running");
+        field.setAccessible(true);
+        return (boolean) field.get(cliRunner);
+    }
+
+    private void invokeHandleLine(String line) throws Exception {
+        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleLine", String.class);
+        method.setAccessible(true);
+        method.invoke(cliRunner, line);
+    }
+
     // ============== parseIntegerCsv Tests ==============
 
     @Test

@@ -566,6 +566,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
 
     private void handleShowTimeTable(List<String> args) throws Exception {
+        requireAuthenticated();
         if (!args.isEmpty()) {
             throw new IllegalArgumentException("Usage: show-timetable");
         }
@@ -582,6 +583,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
 
     private void handleExportTimetable(List<String> args) throws Exception {
+        requireAuthenticated();
 
         if (args.size() > 1) {
             throw new IllegalArgumentException("Usage: export-timetable [outputPath]");

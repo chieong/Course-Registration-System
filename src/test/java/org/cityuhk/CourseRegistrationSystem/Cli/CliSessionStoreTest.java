@@ -75,6 +75,28 @@ class CliSessionStoreTest {
     }
 
     @Test
+    void loadReturnsEmptyWhenUserEidIsMissing() throws Exception {
+        Path file = tempDir.resolve("session.properties");
+        Files.writeString(file, "role=ADMIN\n");
+        CliSessionStore store = new TestCliSessionStore(file);
+
+        Optional<CliSession> loaded = store.load();
+
+        assertTrue(loaded.isEmpty());
+    }
+
+    @Test
+    void loadReturnsEmptyWhenRoleIsMissing() throws Exception {
+        Path file = tempDir.resolve("session.properties");
+        Files.writeString(file, "userEid=testuser\n");
+        CliSessionStore store = new TestCliSessionStore(file);
+
+        Optional<CliSession> loaded = store.load();
+
+        assertTrue(loaded.isEmpty());
+    }
+
+    @Test
     void loadReturnsEmptyWhenRoleIsInvalid() throws Exception {
         Path file = tempDir.resolve("session.properties");
         Files.writeString(file, "userEid=testuser\nrole=NOT_A_ROLE\n");
