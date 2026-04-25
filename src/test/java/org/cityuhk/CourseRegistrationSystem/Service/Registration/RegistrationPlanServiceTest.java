@@ -31,11 +31,13 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -974,4 +976,175 @@ void saveOrSubmitPlan_addSectionFails_marksEntryFailed() {
 }
 
 
+
+
+@Test
+void applyPlan_addSectionSuccess_marksEntryApplied() {
+    Section section = new Section();
+    section.setSectionId(50);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of()); // ✅ toAdd contains sectionId
+
+    doNothing().when(registrationService)
+            .addSection(eq(1), eq(50), any());
+
+    registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    assertEquals(PlanEntry.EntryStatus.APPLIED, entry.getStatus());
+    assertNull(entry.getFailureReason());
+}
+
+@Test
+void applyPlan_addSectionFails_marksEntryFailed() {
+    Section section = new Section();
+    section.setSectionId(60);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of());
+
+    doThrow(new RuntimeException("capacity full"))
+            .when(registrationService)
+            .addSection(eq(1), eq(60), any());
+
+    RegistrationPlanService.PlanSubmitResult result =
+            registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    assertEquals(RegistrationPlan.ApplyStatus.FAILED, result.plan().getApplyStatus());
+    assertEquals(PlanEntry.EntryStatus.FAILED, entry.getStatus());
+    assertEquals("capacity full", entry.getFailureReason());
+}
+
+@Test
+void saveOrSubmitPlan_sectionWithNullSectionId_executesSecondOrBranch() {
+    // Section exists…
+    Section section = new Section();
+    // …but sectionId is NULL ✅
+    section.setSectionId(null);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setEntryType(PlanEntry.EntryType.SELECTED);
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.setPlanId(10);
+    plan.addEntry(entry);
+
+    RegistrationPeriod period = new RegistrationPeriod(
+            2024,
+            LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1)
+    );
+
+    when(registrationPlanRepository.findById(10))
+            .thenReturn(Optional.of(plan));
+    when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
+            .thenReturn(Optional.of(period));
+    when(registrationRecordRepository.findByStudentId(1))
+            .thenReturn(List.of());
+
+    RegistrationPlanService.PlanSubmitResult result =
+            registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
+
+    // ✅ Assert side effects (NOT exception)
+    assertEquals(RegistrationPlan.ApplyStatus.FAILED, result.plan().getApplyStatus());
+    assertEquals(PlanEntry.EntryStatus.FAILED, entry.getStatus());
+    assertEquals("Section not found", entry.getFailureReason());
+}
+
+@Test
+void getPlanSet_courseWithNullSections_executesInnerFalseBranch() {
+    Course course = new Course(
+            "CS404",
+            "Ghost Course",
+            3,
+            "",
+            null,          // ✅ sections = null
+            Set.of(),
+            Set.of()
+    );
+
+    Section section = new Section();
+    section.setSectionId(404);
+    section.setCourse(course);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.addEntry(entry);
+
+    when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+            .thenReturn(List.of(plan));
+
+    List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+    assertEquals(1, result.size());
+}
+
+@Test
+void getPlanSet_courseExists_butSectionsNull_executesFalseInnerBranch() {
+    Course course = new Course(
+            "CSX",
+            "Edge Course",
+            3,
+            "",
+            null,     // ✅ sections == null
+            Set.of(),
+            Set.of()
+    );
+
+    Section section = new Section();
+    section.setSectionId(999);
+    section.setCourse(course);
+
+    PlanEntry entry = new PlanEntry();
+    entry.setSection(section);
+
+    RegistrationPlan plan = new RegistrationPlan(student, 1);
+    plan.addEntry(entry);
+
+    when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
+            .thenReturn(List.of(plan));
+
+    List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
+
+    assertEquals(1, result.size());
+}
 }
