@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -254,6 +255,30 @@ class AdminUserManagementServiceTest {
                 () -> service.removeUser("a011"));
     }
 
+    @Test
+void modifyUser_WhenNameBlank_UsesTrimmedEmptyString() {
+    Admin existing = new Admin.AdminBuilder()
+            .withStaffId(4)
+            .withUserEID("a004")
+            .withName("Original")
+            .withPassword("PWD")
+            .build();
+
+    AdminUserRequest request = new AdminUserRequest();
+    request.setUserEID("a004");
+    request.setName("   ");     // blank but not null
+    request.setPassword(null);  // skip password branch
+
+    when(adminRepository.findByUserEID("a004"))
+            .thenReturn(Optional.of(existing));
+    doNothing().when(eidPolicy).assertUnique("a004", 4, null, null);
+    when(adminRepository.save(any(Admin.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Admin updated = service.modifyUser(request);
+
+    assertEquals("", updated.getUserName());
+}
     
 }
 
