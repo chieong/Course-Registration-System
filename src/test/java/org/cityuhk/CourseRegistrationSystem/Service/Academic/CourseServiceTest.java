@@ -66,4 +66,20 @@ class CourseServiceTest {
         verify(courseRepository).findAllWithSections();
         verifyNoMoreInteractions(courseRepository);
     }
+
+    @Test
+void getAllCoursesWithAllData_ReturnsRepositoryResult() {
+    Course c1 = new Course("CS201", "Algorithms", 3, "Core", Set.of(), Set.of(), Set.of());
+    Course c2 = new Course("CS202", "Databases", 3, "Core", Set.of(), Set.of(), Set.of());
+    List<Course> expected = List.of(c1, c2);
+
+    when(courseRepository.findAllWithAllData()).thenReturn(expected);
+
+    List<Course> found = courseService.getAllCoursesWithAllData();
+
+    assertSame(expected, found);
+    assertEquals(2, found.size());
+    verify(courseRepository).findAllWithAllData();
+    verifyNoMoreInteractions(courseRepository);
+}
 }
