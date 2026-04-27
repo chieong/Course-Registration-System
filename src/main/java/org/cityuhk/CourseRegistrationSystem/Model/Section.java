@@ -61,7 +61,7 @@ public class Section implements Comparable<Section> {
             LocalDateTime startTime,
             LocalDateTime endTime,
             String venue) {
-        this.course = code;
+        this.course = course;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
         setTime(startTime, endTime);
