@@ -8,11 +8,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -527,9 +529,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         if (dateTime == null) {
             return "N/A";
         }
-        return String.format("%04d-%02d-%02d %02d:%02d",
-                dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                dateTime.getHour(), dateTime.getMinute());
+        return String.format("%s %02d:%02d", dateTime.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH), dateTime.getHour(), dateTime.getMinute());
     }
 
     private void handleAddSection(List<String> args) {
