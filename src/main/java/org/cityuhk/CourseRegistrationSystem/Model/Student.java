@@ -132,7 +132,6 @@ public class Student extends User
         }
     }
 
-    // @Override
     public boolean validateSemesterCreditCount(int additional) {
 
         int sum = additional;
@@ -143,7 +142,6 @@ public class Student extends User
         return (sum >= minSemesterCredit && sum <= maxSemesterCredit);
     }
 
-    // @Override
     public String getDepartment() {
         return department;
     }
@@ -164,8 +162,6 @@ public class Student extends User
         return new RegistrationRecord(this, section, timestamp);
     }
 
-    // getter
-    // add when needed
     public Integer getStudentId() {
         return studentId;
     }
