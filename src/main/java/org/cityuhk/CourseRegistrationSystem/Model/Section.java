@@ -1,6 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Model;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -65,11 +67,7 @@ public class Section implements Comparable<Section>{
         this.course = code;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        if ((startTime != null && endTime != null) && endTime.isBefore(startTime)) {
-            throw new IllegalArgumentException("End time cannot be before start time");
-        }
+        setTime(startTime, endTime);
         this.venue = venue;
     }
 
@@ -134,7 +132,24 @@ public class Section implements Comparable<Section>{
     }
 
     public boolean overlaps(Section other) {
-        return startTime.isBefore(other.endTime) && endTime.isAfter(other.startTime);
+        return overlaps(other.startTime.getDayOfWeek(), other.startTime.toLocalTime(), other.endTime.toLocalTime());
+    }
+
+    public boolean overlaps(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        return this.startTime.getDayOfWeek() == dayOfWeek
+            && this.startTime.toLocalTime().isBefore(endTime) 
+            && this.endTime.toLocalTime().isAfter(startTime);
+    }
+
+    public boolean overlapsInVenue(Section other) {
+        return overlapsInVenue(venue, other.startTime.getDayOfWeek(), other.startTime.toLocalTime(), other.endTime.toLocalTime());
+    }
+
+    public boolean overlapsInVenue(String venue, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        return this.venue.equals(venue) 
+            && this.startTime.getDayOfWeek() == dayOfWeek
+            && this.startTime.toLocalTime().isBefore(endTime) 
+            && this.endTime.toLocalTime().isAfter(startTime);
     }
 
     public int addCredits(int sum) {
@@ -148,7 +163,7 @@ public class Section implements Comparable<Section>{
     public void setTime(LocalDateTime startTime, LocalDateTime endTime) throws IllegalArgumentException {
         this.startTime = startTime;
         this.endTime = endTime;
-        if ((startTime != null && endTime != null) && endTime.isBefore(startTime)) {
+        if ((startTime != null && endTime != null) && (endTime.isBefore(startTime) || endTime.isEqual(startTime))) {
             throw new IllegalArgumentException("End time cannot be before start time");
         }
     }

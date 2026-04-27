@@ -1,6 +1,8 @@
 package org.cityuhk.CourseRegistrationSystem.Repository.Csv;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -151,5 +153,13 @@ public class CsvSectionRepository implements SectionRepositoryPort {
     @Override
     public List<Section> findAll() {
         return loadAll();
+    }
+
+    @Override
+    public boolean overlapsInVenue(String venue, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        return loadAll().stream()
+            .filter(s -> s.overlapsInVenue(venue, dayOfWeek, startTime, endTime))
+            .findAny()
+            .isPresent();
     }
 }

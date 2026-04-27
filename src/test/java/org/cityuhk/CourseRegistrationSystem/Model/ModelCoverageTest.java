@@ -89,6 +89,7 @@ class ModelCoverageTest {
         Section section = new Section();
         assertDoesNotThrow(() -> section.setTime(start, end));
         assertThrows(IllegalArgumentException.class, () -> section.setTime(end, start));
+        assertThrows(IllegalArgumentException.class, () -> section.setTime(start, start));
     }
 
     @Test

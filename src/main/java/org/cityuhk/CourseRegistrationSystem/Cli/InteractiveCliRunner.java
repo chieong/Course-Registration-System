@@ -7,8 +7,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.TextStyle;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1106,6 +1111,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
                 "enroll-capacity",
                 "waitlist-capacity",
                 "start",
+                "weekday",
                 "end",
                 "venue",
                 "instructors");
@@ -1134,6 +1140,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
         }
         if (options.get("waitlist-capacity") == null || options.get("waitlist-capacity").isBlank()) {
             throw new IllegalArgumentException("--waitlist-capacity is required");
+        }
+        if (options.get("weekday") == null || options.get("weekday").isBlank()) {
+            throw new IllegalArgumentException("--weekday is required");
         }
         if (options.get("start") == null || options.get("start").isBlank()) {
             throw new IllegalArgumentException("--start is required");
@@ -1182,14 +1191,28 @@ public class InteractiveCliRunner implements CommandLineRunner {
             request.setWaitlistCapacity(parseInteger(waitlistCapacity, "waitlist-capacity"));
         }
 
+        String weekday = options.get("--weekday");
+        DayOfWeek dayOfWeek = DayOfWeek.MONDAY;
+        if (weekday != null && !weekday.isBlank()) {
+            try {
+                int dayOfWeekNumeric = Integer.parseInt(weekday);
+                if (dayOfWeekNumeric < 1 || dayOfWeekNumeric > 7) {
+                    throw new IllegalArgumentException();
+                }
+                dayOfWeek = DayOfWeek.of(dayOfWeekNumeric);
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Invalid weekday for " + "weekday" + " (expected integer from 1 to 7): " + weekday);
+            }
+        }
+
         String start = options.get("start");
         if (start != null && !start.isBlank()) {
-            request.setStartTime(parseDateTime(start, "start"));
+            request.setStartTime(parseTime(start, "start").atDate(LocalDate.now()).with(TemporalAdjusters.next(dayOfWeek)));
         }
 
         String end = options.get("end");
         if (end != null && !end.isBlank()) {
-            request.setEndTime(parseDateTime(end, "end"));
+            request.setEndTime(parseTime(end, "end").atDate(LocalDate.now()).with(TemporalAdjusters.next(dayOfWeek)));
         }
 
         String venue = options.get("venue");
@@ -1430,12 +1453,24 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private int parseInteger(String value, String fieldName) {
         try {
-            return Integer.parseInt(value);
+            int valueParsed = Integer.parseInt(value);
+            if (valueParsed < 1) {
+                throw new NumberFormatException();
+            }
+            return valueParsed;
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Invalid integer for " + fieldName + ": " + value);
+            throw new IllegalArgumentException("Invalid integer for " + fieldName + " (expected postive integer): " + value);
         }
     }
     
+    private LocalTime parseTime(String value, String fieldName) {
+        try {
+            return LocalTime.parse(value);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid time for " + fieldName + " (expected HH:mm): " + value);
+        }
+    }
+
     private LocalDateTime parseDateTime(String value, String fieldName) {
         try {
             return LocalDateTime.parse(value);
