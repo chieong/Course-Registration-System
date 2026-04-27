@@ -349,6 +349,10 @@ public class InteractiveCliRunner implements CommandLineRunner {
         String userEid = args.get(0);
         String password = args.get(1);
 
+        if(activeSession != null) {
+            System.out.println("Already logged in");
+        }
+
         Optional<Admin> admin = adminRepository.findByUserEID(userEid)
                 .filter(a -> passwordMatches(password, a.getPassword()));
         if (admin.isPresent()) {
@@ -395,6 +399,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
     }
 
     private void handleLogout() throws IOException {
+        if (activeSession != null) {
+            System.out.println("No active session");
+        }
         activeSession = null;
         sessionStore.clear();
         System.out.println("Logged out.");
