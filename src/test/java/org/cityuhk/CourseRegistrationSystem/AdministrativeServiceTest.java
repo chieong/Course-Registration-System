@@ -47,6 +47,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -1437,6 +1438,69 @@ void createSection_blankVenue_throwsVenueRequired() {
     assertEquals("Venue is required", ex.getMessage());
 }
 
+@Test
+void modifyCourse_studentEnrolled_throws() {
+    // Arrange
+    when(courseRepository.findByCourseCode("CS101"))
+            .thenReturn(Optional.of(course));
+    when(registrationRecordRepository.existsByCourseCode("CS101"))
+            .thenReturn(true);
+
+    // Act + Assert
+    RuntimeException ex = assertThrows(
+            RuntimeException.class,
+            () -> service.modifyCourse(courseReq)
+    );
+
+    assertEquals("There are student enrolled.", ex.getMessage());
+}
+
+@Test
+void removeCourse_studentEnrolled_throws() {
+    // Arrange
+    when(courseRepository.findByCourseCode("CS101"))
+            .thenReturn(Optional.of(course));
+    when(registrationRecordRepository.existsByCourseCode("CS101"))
+            .thenReturn(true);
+
+    // Act + Assert
+    RuntimeException ex = assertThrows(
+            RuntimeException.class,
+            () -> service.removeCourse("CS101")
+    );
+
+    assertEquals("There are student enrolled.", ex.getMessage());
+}
+
+@Test
+void createSection_timeConflictInVenue_throws() {
+    // Arrange
+    AdminSectionService req = new AdminSectionService();
+    req.setCourse(course);
+    req.setSectionType(Section.Type.LECTURE);
+    req.setEnrollCapacity(50);
+    req.setWaitlistCapacity(10);
+    req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
+    req.setEndTime(LocalDateTime.of(2026, 9, 1, 10, 50));
+    req.setVenue("Y101");
+
+    when(sectionRepository.overlapsInVenue(
+            eq("Y101"),
+            any(LocalDateTime.class),
+            any(LocalDateTime.class)))
+            .thenReturn(true);
+
+    // Act + Assert
+    RuntimeException ex = assertThrows(
+            RuntimeException.class,
+            () -> service.createSection(req)
+    );
+
+    assertEquals(
+            "Time conflict with existing section in same venue",
+            ex.getMessage()
+    );
+}
 
 }
 
