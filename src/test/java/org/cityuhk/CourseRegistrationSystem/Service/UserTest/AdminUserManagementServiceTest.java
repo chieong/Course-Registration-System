@@ -49,9 +49,6 @@ class AdminUserManagementServiceTest {
         validRequest.setPassword("pw");
     }
 
-    // =====================================================
-    // listUsers
-    // =====================================================
     @Test
     void listUsers_ReturnsAllAdmins() {
         Admin a1 = mock(Admin.class);
@@ -64,9 +61,6 @@ class AdminUserManagementServiceTest {
         assertEquals(2, result.size());
     }
 
-    // =====================================================
-    // createUser – success
-    // =====================================================
     @Test
     void createUser_WhenValid_CreatesAdmin() {
         when(passwordEncoder.encode("pw")).thenReturn("ENCODED");
@@ -81,9 +75,6 @@ class AdminUserManagementServiceTest {
         assertEquals("ENCODED", created.getPassword());
     }
 
-    // =====================================================
-    // createUser – validation branches
-    // =====================================================
     @Test
     void createUser_WhenUserEIDNull_ThrowsException() {
         validRequest.setUserEID(null);
@@ -132,9 +123,6 @@ class AdminUserManagementServiceTest {
                 () -> service.createUser(validRequest));
     }
 
-    // =====================================================
-    // modifyUser – success with updates
-    // =====================================================
     @Test
     void modifyUser_WhenValid_ReplacesFields() {
         Admin existing = new Admin.AdminBuilder()
@@ -157,9 +145,6 @@ class AdminUserManagementServiceTest {
         assertEquals("NEWPWD", updated.getPassword());
     }
 
-    // =====================================================
-    // modifyUser – fallback branches
-    // =====================================================
     @Test
     void modifyUser_WhenOptionalFieldsNull_UsesExistingValues() {
         Admin existing = new Admin.AdminBuilder()
@@ -208,9 +193,6 @@ class AdminUserManagementServiceTest {
         assertEquals("OLDPWD", updated.getPassword());
     }
 
-    // =====================================================
-    // modifyUser – validation & not found
-    // =====================================================
     @Test
     void modifyUser_WhenUserEIDInvalid_ThrowsException() {
         validRequest.setUserEID("   ");
@@ -228,9 +210,6 @@ class AdminUserManagementServiceTest {
                 () -> service.modifyUser(validRequest));
     }
 
-    // =====================================================
-    // removeUser
-    // =====================================================
     @Test
     void removeUser_WhenExists_DeletesAdmin() {
         Admin admin = new Admin.AdminBuilder()

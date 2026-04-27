@@ -26,7 +26,6 @@ class CsvFileStoreTest {
         assertEquals(tempDir, store.getBaseDir());
     }
 
-    // ── readRows ──────────────────────────────────────────────────────────────
 
     @Test
     void readRows_FileAbsent_ReturnsEmptyList() {
@@ -57,7 +56,6 @@ class CsvFileStoreTest {
         assertArrayEquals(new String[]{"val1", "val2"}, rows.get(0));
     }
 
-    // ── writeRows / round-trip ────────────────────────────────────────────────
 
     @Test
     void writeRows_CreatesFileWithHeaderAndData() {
@@ -94,7 +92,6 @@ class CsvFileStoreTest {
         assertTrue(rows.isEmpty());
     }
 
-    // ── parseLine ─────────────────────────────────────────────────────────────
 
     @Test
     void parseLine_SimpleValues() {
@@ -126,8 +123,6 @@ class CsvFileStoreTest {
     void parseLine_QuotedFieldEndingWithEscapedQuote_PreservesQuote() {
         assertArrayEquals(new String[]{"value\""}, CsvFileStore.parseLine("\"value\"\"\""));
     }
-
-    // ── joinLine / escapeCsv ──────────────────────────────────────────────────
 
     @Test
     void joinLine_PlainValues_NoQuoting() {

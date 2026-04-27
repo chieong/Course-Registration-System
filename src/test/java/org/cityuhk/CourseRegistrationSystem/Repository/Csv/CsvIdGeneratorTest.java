@@ -53,8 +53,7 @@ class CsvIdGeneratorTest {
 
     @Test
     void nextId_NewEntityStartsAt1AfterRestart() {
-        idGen.nextId("admin"); // 1 — only admin written to disk
-
+        idGen.nextId("admin"); 
         CsvIdGenerator idGen2 = new CsvIdGenerator(store);
         assertEquals(1, idGen2.nextId("course")); // course starts fresh
     }

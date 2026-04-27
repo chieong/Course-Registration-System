@@ -1011,11 +1011,11 @@ class InteractiveCliRunnerTest {
     void testFormatDateTime() throws Exception {
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("formatDateTime", LocalDateTime.class);
         method.setAccessible(true);
-        String result = (String) method.invoke(cliRunner, LocalDateTime.of(2026, 5, 1, 9, 0));  // ← Use cliRunner
+        String result = (String) method.invoke(cliRunner, LocalDateTime.of(2026, 5, 1, 9, 0));  
         assertNotNull(result);
         assertTrue(result.contains("Fri")); // 2026-05-01 is a Friday
 
-        result = (String) method.invoke(cliRunner, (LocalDateTime) null);  // ← Use cliRunner
+        result = (String) method.invoke(cliRunner, (LocalDateTime) null); 
         assertEquals("N/A", result);
     }
 

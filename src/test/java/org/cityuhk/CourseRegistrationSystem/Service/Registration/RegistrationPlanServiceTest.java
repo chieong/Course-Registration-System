@@ -581,7 +581,6 @@ class RegistrationPlanServiceTest {
 
     @Test
     void getPlanSet_InitializesAllLazyAssociations() {
-        // ===== Arrange =====
         Course course = new Course(
                 "CS999",
                 "Advanced Testing",
@@ -606,10 +605,8 @@ class RegistrationPlanServiceTest {
         when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
                 .thenReturn(List.of(plan));
 
-        // ===== Act =====
         List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
 
-        // ===== Assert =====
         assertEquals(1, result.size());
         assertEquals(1, result.get(0).getEntries().size());
         assertEquals(999, result.get(0).getEntries().get(0).getSection().getSectionId());
@@ -626,7 +623,6 @@ class RegistrationPlanServiceTest {
     void getPlanSet_WhenPlanHasNullEntries_HitsContinueBranch() {
         RegistrationPlan planWithNullEntries = new RegistrationPlan(student, 1);
         planWithNullEntries.setPlanId(100);
-        // IMPORTANT: do NOT add any entries
 
         when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
                 .thenReturn(List.of(planWithNullEntries));
@@ -658,18 +654,14 @@ class RegistrationPlanServiceTest {
 
     @Test
     void getPlanSet_WhenPlansContainNullAndNonNullEntries_CoversBothIfBranches() {
-        // --- Plan 1: entries == null (hits continue) ---
         RegistrationPlan nullEntriesPlan = new RegistrationPlan(student, 1);
         nullEntriesPlan.setPlanId(1);
-        // IMPORTANT: do NOT add any entries → entries == null
-
-        // --- Plan 2: entries != null (falls through) ---
         Course course = new Course(
                 "CS101",
                 "Test Course",
                 3,
                 "",
-                new java.util.HashSet<>(), // non-null sections
+                new java.util.HashSet<>(),
                 Set.of(),
                 Set.of()
         );
@@ -683,15 +675,15 @@ class RegistrationPlanServiceTest {
 
         RegistrationPlan nonNullEntriesPlan = new RegistrationPlan(student, 2);
         nonNullEntriesPlan.setPlanId(2);
-        nonNullEntriesPlan.addEntry(entry); // entries != null
+        nonNullEntriesPlan.addEntry(entry); 
 
         when(registrationPlanRepository.findByStudentIdOrderByPriorityAsc(1))
                 .thenReturn(List.of(nullEntriesPlan, nonNullEntriesPlan));
 
-        // --- Act ---
+
         List<RegistrationPlan> result = registrationPlanService.getPlanSet(1);
 
-        // --- Assert ---
+
         assertEquals(2, result.size());
         assertSame(nullEntriesPlan, result.get(0));
         assertSame(nonNullEntriesPlan, result.get(1));
@@ -702,7 +694,7 @@ class RegistrationPlanServiceTest {
         RegistrationPlan plan = new RegistrationPlan(student, 1);
         plan.setPlanId(1);
 
-        // 🔴 FORCE entries = null (constructor initializes it otherwise)
+
         java.lang.reflect.Field entriesField =
                 RegistrationPlan.class.getDeclaredField("entries");
         entriesField.setAccessible(true);
@@ -722,7 +714,7 @@ void getPlanSet_whenSectionHasNullCourse_skipsCourseBlock() {
     PlanEntry entry = new PlanEntry();
     Section section = new Section();
     section.setSectionId(10);
-    section.setCourse(null); // ✅ missing branch
+    section.setCourse(null); 
     entry.setSection(section);
 
     RegistrationPlan plan = new RegistrationPlan(student, 1);
@@ -743,7 +735,7 @@ void getPlanSet_whenCourseHasNullSections_skipsInnerIf() {
             "Test",
             3,
             "",
-            null, // ✅ missing branch
+            null,
             Set.of(),
             Set.of()
     );
@@ -769,7 +761,7 @@ void getPlanSet_whenCourseHasNullSections_skipsInnerIf() {
 @Test
 void saveOrSubmitPlan_skipsNonSelectedEntries() {
     PlanEntry entry = new PlanEntry();
-    entry.setEntryType(PlanEntry.EntryType.WAITLIST); // ✅ skip branch
+    entry.setEntryType(PlanEntry.EntryType.WAITLIST);
 
     RegistrationPlan plan = new RegistrationPlan(student, 1);
     plan.setPlanId(10);
@@ -796,7 +788,7 @@ void saveOrSubmitPlan_skipsNonSelectedEntries() {
 void saveOrSubmitPlan_whenStudentIsNull_throws() {
     RegistrationPlan plan = new RegistrationPlan();
     plan.setPlanId(10);
-    plan.setStudent(null); // ✅ force branch
+    plan.setStudent(null); 
 
     when(registrationPlanRepository.findById(10))
             .thenReturn(Optional.of(plan));
@@ -840,7 +832,6 @@ void saveOrSubmitPlan_sectionAlreadyRegistered_marksApplied1() {
     plan.setPlanId(10);
     plan.addEntry(entry);
 
-    // ✅ CORRECT: create RegistrationRecord using constructor
     RegistrationRecord record =
             new RegistrationRecord(student, section, LocalDateTime.now());
 
@@ -873,7 +864,6 @@ void saveOrSubmitPlan_dropsObsoleteSections() {
     RegistrationRecord record =
             new RegistrationRecord(student, oldSection, LocalDateTime.now());
 
-    // Plan has NO selected entries -> desiredSectionIds = empty
     RegistrationPlan plan = new RegistrationPlan(student, 1);
     plan.setPlanId(10);
 
@@ -1002,7 +992,7 @@ void applyPlan_addSectionSuccess_marksEntryApplied() {
     when(registrationPeriodRepository.findActivePeriod(eq(2024), any()))
             .thenReturn(Optional.of(period));
     when(registrationRecordRepository.findByStudentId(1))
-            .thenReturn(List.of()); // ✅ toAdd contains sectionId
+            .thenReturn(List.of());
 
     doNothing().when(registrationService)
             .addSection(eq(1), eq(50), any());
@@ -1053,9 +1043,7 @@ void applyPlan_addSectionFails_marksEntryFailed() {
 
 @Test
 void saveOrSubmitPlan_sectionWithNullSectionId_executesSecondOrBranch() {
-    // Section exists…
     Section section = new Section();
-    // …but sectionId is NULL ✅
     section.setSectionId(null);
 
     PlanEntry entry = new PlanEntry();
@@ -1082,7 +1070,6 @@ void saveOrSubmitPlan_sectionWithNullSectionId_executesSecondOrBranch() {
     RegistrationPlanService.PlanSubmitResult result =
             registrationPlanService.saveOrSubmitPlan(10, LocalDateTime.now());
 
-    // ✅ Assert side effects (NOT exception)
     assertEquals(RegistrationPlan.ApplyStatus.FAILED, result.plan().getApplyStatus());
     assertEquals(PlanEntry.EntryStatus.FAILED, entry.getStatus());
     assertEquals("Section not found", entry.getFailureReason());
@@ -1095,7 +1082,7 @@ void getPlanSet_courseWithNullSections_executesInnerFalseBranch() {
             "Ghost Course",
             3,
             "",
-            null,          // ✅ sections = null
+            null,         
             Set.of(),
             Set.of()
     );
@@ -1125,7 +1112,7 @@ void getPlanSet_courseExists_butSectionsNull_executesFalseInnerBranch() {
             "Edge Course",
             3,
             "",
-            null,     // ✅ sections == null
+            null,     
             Set.of(),
             Set.of()
     );

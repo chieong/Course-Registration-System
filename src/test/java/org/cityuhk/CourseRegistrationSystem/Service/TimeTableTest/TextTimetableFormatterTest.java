@@ -268,7 +268,6 @@ class TextTimetableFormatterTest {
         when(mockSection.getEndTime()).thenReturn(endTime);
         when(mockSection.getSectionId()).thenReturn(1);
 
-        // 👇 timetableData = null
         String result = formatter.formatRow(mockSection, null);
 
         DateTimeFormatter defaultDayFormatter = DateTimeFormatter.ofPattern("EEE");
@@ -287,7 +286,7 @@ class TextTimetableFormatterTest {
         LocalDateTime endTime = LocalDateTime.of(2024, 4, 23, 10, 30);
 
         when(mockSection.getCourse()).thenReturn(mockCourse);
-        when(mockCourse.getCourseCode()).thenReturn(null); // ✅ missing branch
+        when(mockCourse.getCourseCode()).thenReturn(null); 
         when(mockSection.getType()).thenReturn(mock(Section.Type.class));
         when(mockSection.getType().name()).thenReturn("Lecture");
         when(mockSection.getVenue()).thenReturn("Room 101");
@@ -315,7 +314,7 @@ class TextTimetableFormatterTest {
         when(mockSection.getType().name()).thenReturn("Lecture");
         when(mockSection.getVenue()).thenReturn("Room 101");
         when(mockSection.getStartTime()).thenReturn(startTime);
-        when(mockSection.getEndTime()).thenReturn(null); // ✅ missing branch
+        when(mockSection.getEndTime()).thenReturn(null); 
         when(mockSection.getSectionId()).thenReturn(1);
 
         when(mockTimetableData.getDayFormatter()).thenReturn(DateTimeFormatter.ofPattern("EEE"));
@@ -336,7 +335,7 @@ class TextTimetableFormatterTest {
         when(mockSection.getType()).thenReturn(mock(Section.Type.class));
         when(mockSection.getType().name()).thenReturn("Lecture");
 
-        when(mockSection.getVenue()).thenReturn(null); // ✅ MISSING BRANCH
+        when(mockSection.getVenue()).thenReturn(null);
 
         when(mockSection.getStartTime()).thenReturn(startTime);
         when(mockSection.getEndTime()).thenReturn(endTime);
@@ -350,7 +349,7 @@ class TextTimetableFormatterTest {
         String result = formatter.formatRow(mockSection, mockTimetableData);
 
         assertNotNull(result);
-        assertFalse(result.contains("Room 101")); // proves "" branch
+        assertFalse(result.contains("Room 101")); 
     }
 
 }
