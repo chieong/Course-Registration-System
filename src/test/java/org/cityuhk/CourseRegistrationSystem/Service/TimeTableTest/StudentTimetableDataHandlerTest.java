@@ -3,7 +3,7 @@ package org.cityuhk.CourseRegistrationSystem.Service.TimeTableTest;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationRecord;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Service.Timetable.StudentTimetableOwnerProvider;
+import org.cityuhk.CourseRegistrationSystem.Service.Timetable.StudentTimetableDataHandler;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableData;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidationException;
 import org.cityuhk.CourseRegistrationSystem.Service.Timetable.TimetableValidator;
@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("StudentTimetableOwnerProvider Tests")
-class StudentTimetableOwnerProviderTest {
+class StudentTimetableDataHandlerTest {
 
-    private StudentTimetableOwnerProvider provider;
+    private StudentTimetableDataHandler provider;
     private TimetableValidator mockValidator;
     private RegistrationRecordRepositoryPort mockRepository;
 
@@ -29,7 +29,7 @@ class StudentTimetableOwnerProviderTest {
     void setUp() {
         mockValidator = mock(TimetableValidator.class);
         mockRepository = mock(RegistrationRecordRepositoryPort.class);
-        provider = new StudentTimetableOwnerProvider(mockValidator, mockRepository);
+        provider = new StudentTimetableDataHandler(mockValidator, mockRepository);
     }
 
     @Test

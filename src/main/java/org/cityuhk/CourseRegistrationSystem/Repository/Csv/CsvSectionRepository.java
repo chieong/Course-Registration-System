@@ -156,9 +156,9 @@ public class CsvSectionRepository implements SectionRepositoryPort {
     }
 
     @Override
-    public boolean overlapsInVenue(String venue, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+    public boolean overlapsInVenue(String venue, LocalDateTime startTime, LocalDateTime endTime) {
         return loadAll().stream()
-            .filter(s -> s.overlapsInVenue(venue, dayOfWeek, startTime, endTime))
+            .filter(s -> s.overlapsInVenue(venue, startTime, endTime))
             .findAny()
             .isPresent();
     }

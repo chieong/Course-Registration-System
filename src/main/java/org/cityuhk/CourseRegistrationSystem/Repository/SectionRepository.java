@@ -6,8 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface SectionRepository extends JpaRepository<Section, Integer>, SectionRepositoryPort {
@@ -15,12 +14,10 @@ public interface SectionRepository extends JpaRepository<Section, Integer>, Sect
     public List<Section> findAll();
 
     @Query(
-            "select case when count(s) > 0 then true else false end from Section s where s.venue ="
-                + " :venue and s.dayOfWeek = :dayOfWeek and s.startTime < :endTime and s.endTime >"
-                + " :startTime")
+            "select case when count(s) > 0 then true else false end from Section s"
+                    + " where s.venue = :venue and s.startTime < :endTime and s.endTime > :startTime")
     boolean overlapsInVenue(
             @Param("venue") String venue,
-            @Param("dayOfWeek") DayOfWeek dayOfWeek,
-            @Param("startTime") LocalTime startTime,
-            @Param("endTime") LocalTime endTime);
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
 }

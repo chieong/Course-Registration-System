@@ -11,13 +11,13 @@ public class TimetableService {
     private final TimetableValidator validator;
     private final TimetableExporter defaultExporter;
 
-    private final TimetableOwnerProvider studentOwnerProvider;
-    private final TimetableOwnerProvider instructorOwnerProvider;
+    private final TimetableDataHandler studentOwnerProvider;
+    private final TimetableDataHandler instructorOwnerProvider;
 
     public TimetableService(TimetableValidator validator,
                             TextTimetableExporter defaultExporter,
-                            StudentTimetableOwnerProvider studentOwnerProvider,
-                            InstructorTimetableOwnerProvider instructorOwnerProvider) {
+                            StudentTimetableDataHandler studentOwnerProvider,
+                            InstructorTimetableDataHandler instructorOwnerProvider) {
         this.validator = validator;
         this.defaultExporter = defaultExporter;
         this.studentOwnerProvider = studentOwnerProvider;
@@ -73,7 +73,7 @@ public class TimetableService {
     }
 
     public Path exportTimetable(Integer ownerId,
-                                TimetableOwnerProvider ownerProvider,
+                                TimetableDataHandler ownerProvider,
                                 TimetableExporter exporter)
             throws TimetableExportException, TimetableValidationException {
 
@@ -91,7 +91,7 @@ public class TimetableService {
     }
 
     private TimetableData buildTimetableData(Integer ownerId,
-                                             TimetableOwnerProvider ownerProvider,
+                                             TimetableDataHandler ownerProvider,
                                              DateTimeFormatter dayFormatter,
                                              DateTimeFormatter timeFormatter)
             throws TimetableValidationException {

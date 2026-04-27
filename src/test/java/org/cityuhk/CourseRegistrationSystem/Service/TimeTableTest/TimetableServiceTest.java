@@ -22,15 +22,15 @@ class TimetableServiceTest {
     private TimetableService service;
     private TimetableValidator mockValidator;
     private TextTimetableExporter mockDefaultExporter;
-    private StudentTimetableOwnerProvider mockStudentProvider;
-    private InstructorTimetableOwnerProvider mockInstructorProvider;
+    private StudentTimetableDataHandler mockStudentProvider;
+    private InstructorTimetableDataHandler mockInstructorProvider;
 
     @BeforeEach
     void setUp() {
         mockValidator = mock(TimetableValidator.class);
         mockDefaultExporter = mock(TextTimetableExporter.class);
-        mockStudentProvider = mock(StudentTimetableOwnerProvider.class);
-        mockInstructorProvider = mock(InstructorTimetableOwnerProvider.class);
+        mockStudentProvider = mock(StudentTimetableDataHandler.class);
+        mockInstructorProvider = mock(InstructorTimetableDataHandler.class);
 
         service = new TimetableService(mockValidator, mockDefaultExporter, mockStudentProvider, mockInstructorProvider);
     }
