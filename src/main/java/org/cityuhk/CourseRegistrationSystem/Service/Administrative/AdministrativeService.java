@@ -301,6 +301,9 @@ public class AdministrativeService {
         if (request.getVenue() == null || request.getVenue().isBlank()) {
             throw new RuntimeException("Venue is required");
         }
+        if (sectionRepository.overlapsInVenue(request.getVenue(), request.getStartTime().getDayOfWeek(), request.getStartTime().toLocalTime(), request.getStartTime().toLocalTime())) {
+            throw new RuntimeException("Time conflict with existing section in same venue");
+        }
 
         Section newSection =
                 new Section(

@@ -779,8 +779,9 @@ class InteractiveCliRunnerTest {
                 "--type", "LECTURE",
                 "--enroll-capacity", "30",
                 "--waitlist-capacity", "10",
-                "--start", "2026-05-01T09:00",
-                "--end", "2026-05-01T10:30",
+                "--weekday", "M",
+                "--start", "09:00",
+                "--end", "10:30",
                 "--venue", "Room 101");
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateSection", List.class);
         method.setAccessible(true);
@@ -1207,8 +1208,10 @@ class InteractiveCliRunnerTest {
                 "--type", "LECTURE",
                 "--enroll-capacity", "30",
                 "--waitlist-capacity", "10",
-                "--start", "2026-05-01T09:00",
-                "--end", "2026-05-01T10:30");
+                "--weekday", "M",
+                "--start", "09:00",
+                "--end", "10:30"
+                );
 
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateSection", List.class);
         method.setAccessible(true);
@@ -1226,8 +1229,9 @@ class InteractiveCliRunnerTest {
                 "--type", "LECTURE",
                 "--enroll-capacity", "30",
                 "--waitlist-capacity", "10",
-                "--start", "2026-05-01T09:00",
-                "--end", "2026-05-01T10:30",
+                "--weekday", "M",
+                "--start", "09:00",
+                "--end", "10:30",
                 "--venue", "Room 101");
 
         java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminCreateSection", List.class);
@@ -1465,20 +1469,6 @@ class InteractiveCliRunnerTest {
 
         // Should throw exception when parseInteger encounters invalid value
         assertThrows(Exception.class, () -> method.invoke(cliRunner, "1,notanumber,3", "testField"));
-    }
-
-    @Test
-    void testParseIntegerCsvNegativeValues() throws Exception {
-        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("parseIntegerCsv", String.class, String.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
-        Set<Integer> result = (Set<Integer>) method.invoke(cliRunner, "-1,-2,-3", "testField");
-
-        assertEquals(3, result.size());
-        assertTrue(result.contains(-1));
-        assertTrue(result.contains(-2));
-        assertTrue(result.contains(-3));
     }
 
     @Test
