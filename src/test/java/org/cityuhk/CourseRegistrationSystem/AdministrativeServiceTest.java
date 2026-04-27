@@ -5,6 +5,7 @@ import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserEidAlreadyExistsException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
+import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminSectionService;
@@ -62,6 +63,7 @@ class AdministrativeServiceTest {
     @Mock private AdminUserManagementOperations adminUserManagementService;
     @Mock private StudentUserManagementOperations studentUserManagementService;
     @Mock private InstructorUserManagementOperations instructorUserManagementService;
+    @Mock private RegistrationRecordRepository registrationRecordRepository;
     @InjectMocks private AdministrativeService service;
 
     private AdminUserRequest userReq;
@@ -276,6 +278,7 @@ class AdministrativeServiceTest {
         when(courseRepository.findByCourseCode("CS999")).thenReturn(Optional.of(cs101));
         when(courseRepository.existsByCourseCode("CS999")).thenReturn(false);
         when(courseRepository.save(any())).thenReturn(cs101);
+        when(registrationRecordRepository.existsByCourseCode("CS999")).thenReturn(false);
         assertNotNull(service.modifyCourse(courseReq));
     }
 
@@ -1272,7 +1275,7 @@ void modifySection_withInstructorIds_updatesInstructors() {
 @Test
 void listSections_nullCourseCode_returnsAll() {
     Section s1 = new Section(course, 50, 10,
-            LocalDateTime.now(), LocalDateTime.now(), "Y101");
+            LocalDateTime.now().minusHours(1), LocalDateTime.now(), "Y101");
     when(sectionRepository.findAll()).thenReturn(List.of(s1));
 
     List<Section> result = service.listSections(null);
@@ -1286,9 +1289,9 @@ void listSections_filterByCourseCode() {
     Course cs999 = new Course("CS999", "Other", 3, null, Set.of(), Set.of(), null);
 
     Section s1 = new Section(cs101, 50, 10,
-            LocalDateTime.now(), LocalDateTime.now(), "Y101");
+            LocalDateTime.now().minusHours(1), LocalDateTime.now(), "Y101");
     Section s2 = new Section(cs999, 50, 10,
-            LocalDateTime.now(), LocalDateTime.now(), "Y102");
+            LocalDateTime.now().minusHours(1), LocalDateTime.now(), "Y102");
 
     when(sectionRepository.findAll()).thenReturn(List.of(s1, s2));
 

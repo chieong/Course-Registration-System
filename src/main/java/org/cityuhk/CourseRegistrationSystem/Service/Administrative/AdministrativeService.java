@@ -184,10 +184,6 @@ public class AdministrativeService {
 
         String courseCode = request.getCourseCode().trim();
 
-        if(registrationRecordRepository.existsByCourseCode(courseCode)) {
-            throw new RuntimeException("There are student enrolled.");
-        }
-
         Course existingCourse =
                 courseRepository
                         .findByCourseCode(courseCode.trim())
@@ -235,6 +231,10 @@ public class AdministrativeService {
             existingCourse.setExclusiveCourses(exclusives);
         }
 
+        if(registrationRecordRepository.existsByCourseCode(courseCode)) {
+            throw new RuntimeException("There are student enrolled.");
+        }
+
         return courseRepository.save(existingCourse);
     }
 
@@ -244,14 +244,14 @@ public class AdministrativeService {
             throw new RuntimeException("Course code is required");
         }
 
-        if(registrationRecordRepository.existsByCourseCode(courseCode)) {
-            throw new RuntimeException("There are student enrolled.");
-        }
-
         Course existingCourse =
                 courseRepository
                         .findByCourseCode(courseCode.trim())
                         .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if(registrationRecordRepository.existsByCourseCode(courseCode)) {
+            throw new RuntimeException("There are student enrolled.");
+        }
 
         courseRepository.delete(existingCourse);
     }

@@ -145,11 +145,14 @@ public class DefaultUsersInitializer implements CommandLineRunner {
     }
 
     private void seedSection(Course course, int enrollCap, int waitCap, LocalTime startTime, LocalTime endTime, char weekdayChar, String venue) {
-        // Avoid duplicate sections for the same course at the same time
         DayOfWeek dayOfWeek = mapCharToDayOfWeek(weekdayChar);
-        LocalDate date = LocalDate.now().with(TemporalAdjusters.nextOrSame(dayOfWeek));
-        LocalDateTime start = LocalDateTime.of(date, startTime);
-        LocalDateTime end = LocalDateTime.of(date, endTime);
+
+        // Align with the logic in your request parser:
+        // Use LocalDate.EPOCH as the base, then find the 'next' occurrence of that day.
+        LocalDate baseDate = LocalDate.EPOCH.with(TemporalAdjusters.next(dayOfWeek));
+
+        LocalDateTime start = LocalDateTime.of(baseDate, startTime);
+        LocalDateTime end = LocalDateTime.of(baseDate, endTime);
 
         Section section = new Section(course, enrollCap, waitCap, start, end, venue);
         sectionRepository.save(section);

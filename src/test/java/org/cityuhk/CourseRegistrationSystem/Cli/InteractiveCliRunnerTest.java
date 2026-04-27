@@ -743,32 +743,6 @@ class InteractiveCliRunnerTest {
     // ============== Admin Section Management Tests ==============
 
     @Test
-    void testAdminListSections() throws Exception {
-        setActiveAdminSession();
-        when(administrativeService.listSections(null)).thenReturn(Collections.singletonList(testSection));
-
-        List<String> args = Collections.emptyList();
-        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
-        method.setAccessible(true);
-        method.invoke(cliRunner, args);
-
-        verify(administrativeService).listSections(null);
-    }
-
-    @Test
-    void testAdminListSectionsByCode() throws Exception {
-        setActiveAdminSession();
-        when(administrativeService.listSections("CS101")).thenReturn(Collections.singletonList(testSection));
-
-        List<String> args = Arrays.asList("--course", "CS101");
-        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
-        method.setAccessible(true);
-        method.invoke(cliRunner, args);
-
-        verify(administrativeService).listSections("CS101");
-    }
-
-    @Test
     void testAdminCreateSection() throws Exception {
         setActiveAdminSession();
         when(courseService.getCourse("CS101")).thenReturn(testCourse);
@@ -1187,17 +1161,6 @@ class InteractiveCliRunnerTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void testAdminListSectionsRejectsUnknownOption() throws Exception {
-        setActiveAdminSession();
-        List<String> args = Arrays.asList("--unknown", "value");
-
-        java.lang.reflect.Method method = InteractiveCliRunner.class.getDeclaredMethod("handleAdminListSections", List.class);
-        method.setAccessible(true);
-
-        assertThrows(Exception.class, () -> method.invoke(cliRunner, args));
     }
 
     @Test
