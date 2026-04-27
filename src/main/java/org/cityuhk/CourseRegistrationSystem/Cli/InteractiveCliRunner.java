@@ -8,7 +8,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.cityuhk.CourseRegistrationSystem.Model.*;
@@ -23,7 +33,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @ConditionalOnProperty(name = "app.cli.enabled", havingValue = "true")
@@ -216,6 +225,9 @@ public class InteractiveCliRunner implements CommandLineRunner {
             case "admin-remove-course":
                 handleAdminRemoveCourse(args);
                 return;
+            case "admin-list-sections":
+                handleAdminListSections(args);
+                return;
             case "admin-create-section":
                 handleAdminCreateSection(args);
                 return;
@@ -281,16 +293,17 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("  admin-modify-user <userEID> [--name <name>] [--password <password>]");
         System.out.println("  admin-remove-user <userEID>");
         System.out.println("  admin-list-students");
-        System.out.println("  admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit> [<completedCourseCode1,completedCourseCode2,...,completedCourseCodeN>]");
+        System.out.println("  admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>");
         System.out.println("  admin-modify-student <userEID> [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]");
         System.out.println("  admin-remove-student <userEID>");
         System.out.println("  admin-list-instructors");
         System.out.println("  admin-create-instructor <userEID> <name> <password> [--dept <dept>]");
         System.out.println("  admin-modify-instructor <userEID> [--name <name>] [--password <password>] [--dept <department>]");
         System.out.println("  admin-remove-instructor <userEID>");
-        System.out.println("  admin-create-course --code <code> --title <title> --credits <credits> [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)");
+        System.out.println("  admin-create-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)");
         System.out.println("  admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (alias of admin-create-course)");
         System.out.println("  admin-remove-course <courseCode>");
+        System.out.println("  admin-list-sections [--course <courseCode>]");
         System.out.println("  admin-create-section --course <courseCode> --type <LECTURE|TUTORIAL|LAB> --enroll-capacity <int> --waitlist-capacity <int> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm> --venue <venue> [--instructors <idCsv>]");
         System.out.println("  admin-modify-section --section-id <id> [--course <courseCode>] [--type <LECTURE|TUTORIAL|LAB>] [--enroll-capacity <int>] [--waitlist-capacity <int>] [--start <yyyy-MM-ddTHH:mm>] [--end <yyyy-MM-ddTHH:mm>] [--venue <venue>] [--instructors <idCsv>]");
         System.out.println("  admin-remove-section <sectionId>");
@@ -396,8 +409,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         System.out.println("Logged out.");
     }
 
-    @Transactional
-    public void handleWhoAmI() {
+    private void handleWhoAmI() {
         if (activeSession == null) {
             System.out.println("No active session.");
             return;
@@ -517,9 +529,7 @@ public class InteractiveCliRunner implements CommandLineRunner {
         if (dateTime == null) {
             return "N/A";
         }
-        return String.format("%04d-%02d-%02d %02d:%02d",
-                dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth(),
-                dateTime.getHour(), dateTime.getMinute());
+        return String.format("%s %02d:%02d", dateTime.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.ENGLISH), dateTime.getHour(), dateTime.getMinute());
     }
 
     private void handleAddSection(List<String> args) {
@@ -810,15 +820,12 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
     private void handleAdminCreateStudent(List<String> args) {
         requireAdminSession();
-        if (args.size() < 9) {
+        if (args.size() != 9) {
             throw new IllegalArgumentException(
-                    "Usage: admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit> [<completedCourseCode1,completedCourseCode2,...,completedCourseCodeN>]");
+                    "Usage: admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>");
         }
 
         List<String> positional = args.subList(0, 9);
-
-        //remove dup
-        Set<String> CompletedCourseCodes = args.size() == 10 ? Arrays.stream(args.get(9).split(",")).map(String::trim).collect(Collectors.toSet()) : new HashSet<>();
 
         AdminStudentRequest request = new AdminStudentRequest();
         request.setUserEID(positional.get(0));
@@ -830,7 +837,6 @@ public class InteractiveCliRunner implements CommandLineRunner {
         request.setCohort(Integer.parseInt(positional.get(6)));
         request.setDepartment(positional.get(7));
         request.setMaxDegreeCredit(Integer.parseInt(positional.get(8)));
-        request.setCompletedCourseCodes(CompletedCourseCodes);
 
         Student created = administrativeService.createStudent(request);
         System.out.println("Created student with studentId=" + created.getStudentId());
@@ -1000,6 +1006,60 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
         administrativeService.removeCourse(args.get(0));
         System.out.println("Removed course " + args.get(0));
+    }
+
+    private void handleAdminListSections(List<String> args) {
+        requireAdminSession();
+        String courseCode = null;
+        if (!args.isEmpty()) {
+            Map<String, String> options = CliCommandParser.parseOptions(args);
+            Set<String> allowed = Set.of("course");
+            List<String> unknown = options.keySet().stream()
+                    .filter(key -> !allowed.contains(key))
+                    .sorted()
+                    .collect(Collectors.toList());
+            if (!unknown.isEmpty()) {
+                String unknownOptions = unknown.stream().map(key -> "--" + key).collect(Collectors.joining(", "));
+                throw new IllegalArgumentException("Unknown option(s) for admin-list-sections: " + unknownOptions);
+            }
+            courseCode = options.get("course");
+        }
+
+        List<Section> sections = administrativeService.listSections(courseCode);
+        if (sections.isEmpty()) {
+            System.out.println("No sections found.");
+            return;
+        }
+
+        for (Section section : sections) {
+            String code = section.getCourse() == null ? "-" : section.getCourse().getCourseCode();
+            String type = section.getType() == null ? "-" : section.getType().name();
+            String start = section.getStartTime() == null ? "-" : section.getStartTime().toString();
+            String end = section.getEndTime() == null ? "-" : section.getEndTime().toString();
+            String venue = section.getVenue() == null || section.getVenue().isBlank() ? "-" : section.getVenue();
+            String instructors = section.getInstructors() == null
+                    ? "-"
+                    : section.getInstructors().stream()
+                            .map(Instructor::getStaffId)
+                            .filter(java.util.Objects::nonNull)
+                            .sorted()
+                            .map(String::valueOf)
+                            .collect(Collectors.joining(","));
+            if (instructors.isBlank()) {
+                instructors = "-";
+            }
+
+            System.out.println(
+                    "sectionId=" + section.getSectionId()
+                            + " | course=" + code
+                            + " | type=" + type
+                            + " | start=" + start
+                            + " | end=" + end
+                            + " | enrollCap=" + section.getEnrollCapacity()
+                            + " | waitlistCap=" + section.getWaitlistCapacity()
+                            + " | venue=" + venue
+                            + " | instructors=" + instructors);
+        }
     }
 
     private void handleAdminCreateSection(List<String> args) {
