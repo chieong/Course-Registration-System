@@ -5,6 +5,7 @@ import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationPeriodRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -89,5 +90,9 @@ public class DefaultUsersInitializer implements CommandLineRunner {
                 .build();
 
         adminRepository.save(a);
+    }
+
+    private void seedCourse(String courseCode, String title, int credits, String description) {
+
     }
 }

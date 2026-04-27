@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -60,7 +61,7 @@ public class Student extends User
         this.cohort = builder.cohort;
         this.department = builder.department;
         this.maxDegreeCredit = builder.maxDegreeCredit;
-        // this.completedCourses = builder.completedCourses;
+        this.completedCourses = builder.completedCourses;
         // this.enrolledSections = builder.enrolledSections;
     }
 
@@ -72,8 +73,8 @@ public class Student extends User
         private int cohort;
         private String department;
         private int maxDegreeCredit;
+        private Set<Course> completedCourses = new HashSet<>();
 
-        // private Set<Course> completedCourses = new HashSet<>();
         // private Set<Section> enrolledSections = new HashSet<>();
 
         public StudentBuilder withStudentId(Integer studentId) {
@@ -111,15 +112,10 @@ public class Student extends User
             return self();
         }
 
-        // public StudentBuilder withEnrolledCourses(Set<Course> completedCourses) {
-        //     this.completedCourses = completedCourses;
-        //     return self();
-        // }
-        //
-        // public StudentBuilder withEnrolledSections(Set<Section> enrolledSections) {
-        //     this.enrolledSections = enrolledSections;
-        //     return self();
-        // }
+        public StudentBuilder withCompletedCourses(Set<Course> completedCourses) {
+            this.completedCourses = completedCourses;
+            return self();
+        }
 
         @Override
         protected StudentBuilder self() {

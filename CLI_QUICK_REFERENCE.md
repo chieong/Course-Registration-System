@@ -64,7 +64,7 @@ Instructor: EID: instructor1 , Password: instructor123
 
 ### Student Users
 - `admin-list-students` list all student role user
-- `admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit>`
+- `admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit> [<completedCourseCode1,completedCourseCode2,...,completedCourseCodeN>]`
 - `admin-modify-student <userEID> [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]`  <br>: [ ] fields are optional
 - `admin-remove-student <userEID>` : [userEID] E.g: khplee3, admin1
 
@@ -79,7 +79,7 @@ Instructor: EID: instructor1 , Password: instructor123
 '[ ]' fields are optional,  <br>
 [--prereq <A,B>] : require student to have the course registered before.  <br>
 [--exclusive <X,Y>] : course that require student never registered before  <br>
-- `admin-create-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]` (creates if missing, updates if exists), 
+- `admin-create-course --code <code> --title <title> --credits <credits> [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)` (creates if missing, updates if exists), 
 - `admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]` (alias of `admin-create-course`)
 - `admin-remove-course <courseCode>` <br>
 Example: `admin-create-course --code CS3342 --title Software Design --credit 3 --description This is the software course --prereq CS123.CS1234 --exclusive CS2144,CS53`
@@ -87,7 +87,6 @@ Example: `admin-create-course --code CS3342 --title Software Design --credit 3 -
 ### Sections
 ### Notes: courseCode is optional, <yyyy-MM-ddTHH:mm>: 'T' needs to fill in  <br> E.g: 2026-04-04T23:59
 ### section is the detailed course info which tells the type of the course "LECTURE|TUTORIAL|LAB"
-- `admin-list-sections [--course <courseCode>]`
 - `admin-create-section --course <courseCode> --type <LECTURE|TUTORIAL|LAB> --enroll-capacity <int> --waitlist-capacity <int> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm> --venue <venue> [--instructors <idCsv>]`
 - `admin-modify-section --section-id <id> [--course <courseCode>] [--type <LECTURE|TUTORIAL|LAB>] [--enroll-capacity <int>] [--waitlist-capacity <int>] [--start <yyyy-MM-ddTHH:mm>] [--end <yyyy-MM-ddTHH:mm>] [--venue <venue>] [--instructors <idCsv>]`   
 - `admin-remove-section <sectionId>`  <br>you may use `admin-list-section` to find the exact section id <br>

@@ -1,5 +1,7 @@
 package org.cityuhk.CourseRegistrationSystem.RestController.dto;
 
+import java.util.Set;
+
 public class AdminStudentRequest {
     private String userEID;
     private String name;
@@ -10,6 +12,7 @@ public class AdminStudentRequest {
     private Integer maxSemesterCredit;
     private Integer minSemesterCredit;
     private Integer maxDegreeCredit;
+    private Set<String> CompletedCourseCodes;
 
     public String getUserEID() {
         return userEID;
@@ -81,5 +84,13 @@ public class AdminStudentRequest {
 
     public void setMaxDegreeCredit(Integer maxDegreeCredit) {
         this.maxDegreeCredit = maxDegreeCredit;
+    }
+
+    public Set<String> getCompletedCourseCodes() {
+        return CompletedCourseCodes;
+    }
+
+    public void setCompletedCourseCodes(Set<String> CompletedCourseCodes) {
+        this.CompletedCourseCodes = CompletedCourseCodes;
     }
 }

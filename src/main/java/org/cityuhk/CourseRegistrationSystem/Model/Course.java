@@ -147,4 +147,9 @@ public class Course { // for creating a course
     public int addCredits(int sum) {
         return sum + credits;
     }
+
+    @Override
+    public String toString() {
+        return String.format(" %d %s %s", courseId, title, description);
+    }
 }

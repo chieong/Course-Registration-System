@@ -364,9 +364,16 @@ public class AdministrativeService {
             return all;
         }
         String normalized = courseCode.trim();
-        return all.stream()
+        List<Section> filtered =  all.stream()
                 .filter(s -> s.getCourse() != null && normalized.equals(s.getCourse().getCourseCode()))
                 .toList();
+
+        //force load of courseCode and Instructor
+        filtered.forEach(s -> {
+            s.getInstructors().size(); // Calling .size() forces the load
+            if (s.getCourse() != null) s.getCourse().getCourseCode();
+        });
+        return filtered;
     }
 
     private Set<Instructor> resolveInstructorIds(Set<Integer> instructorIds) {

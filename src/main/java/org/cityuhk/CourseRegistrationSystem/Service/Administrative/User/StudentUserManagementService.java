@@ -59,6 +59,7 @@ public class StudentUserManagementService implements StudentUserManagementOperat
             throw new RuntimeException("No maximum degree credit provided");
         }
 
+
         String normalizedUserEID = request.getUserEID().trim();
         eidPolicy.assertUnique(normalizedUserEID, null, null, null);
 
