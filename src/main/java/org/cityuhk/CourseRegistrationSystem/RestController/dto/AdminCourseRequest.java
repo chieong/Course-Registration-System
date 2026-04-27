@@ -11,6 +11,7 @@ public class AdminCourseRequest {
     private String description;
     private Set<String> prerequisiteCourseCodes;
     private Set<String> exclusiveCourseCodes;
+    private boolean edit = false;
 
     public String getCourseCode() {
         return courseCode;
@@ -58,5 +59,13 @@ public class AdminCourseRequest {
 
     public void setExclusiveCourseCodes(Set<String> exclusiveCourseCodes) {
         this.exclusiveCourseCodes = exclusiveCourseCodes;
+    }
+
+    public boolean isEdit() {
+        return edit;
+    }
+
+    public void setEdit() {
+        this.edit = true;
     }
 }

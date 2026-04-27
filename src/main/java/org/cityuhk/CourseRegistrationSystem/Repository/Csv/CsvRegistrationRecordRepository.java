@@ -153,4 +153,10 @@ public class CsvRegistrationRecordRepository implements RegistrationRecordReposi
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean existsByCourseCode(String courseCode) {
+        return loadAll().stream()
+                .anyMatch(r -> Objects.equals(r.getCourse().getCourseCode(), courseCode));
+    }
 }

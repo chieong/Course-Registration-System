@@ -37,5 +37,12 @@ public interface RegistrationRecordRepository extends JpaRepository<Registration
 
     @Query("select e from RegistrationRecord e where e.section.sectionId = :sectionId order by e.timestamp asc")
     List<RegistrationRecord> findBySectionId(@Param("sectionId") Integer sectionId);
+
+    @Query("""
+      SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END
+      FROM RegistrationRecord e
+      WHERE e.section.course.courseCode = :courseCode
+    """)
+    boolean existsByCourseCode(@Param("courseCode") String courseCode);
 }
 

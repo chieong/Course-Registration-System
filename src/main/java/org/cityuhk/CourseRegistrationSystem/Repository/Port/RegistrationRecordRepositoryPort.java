@@ -17,4 +17,5 @@ public interface RegistrationRecordRepositoryPort {
     RegistrationRecord save(RegistrationRecord record);
     void delete(RegistrationRecord record);
     List<RegistrationRecord> findBySectionId(Integer sectionId);
+    boolean existsByCourseCode(String courseCode);
 }

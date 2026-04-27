@@ -1,17 +1,14 @@
 package org.cityuhk.CourseRegistrationSystem;
 
-import org.cityuhk.CourseRegistrationSystem.Model.Admin;
-import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
-import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationPeriodRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Model.*;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 @Component
 public class DefaultUsersInitializer implements CommandLineRunner {
@@ -20,15 +17,18 @@ public class DefaultUsersInitializer implements CommandLineRunner {
     private final AdminRepositoryPort adminRepository;
     private final InstructorRepositoryPort instructorRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CourseRepositoryPort courseRepository;
 
     @Autowired
     public DefaultUsersInitializer(StudentRepositoryPort studentRepository,
                                    AdminRepositoryPort adminRepository,
-                                   InstructorRepositoryPort instructorRepository) {
+                                   InstructorRepositoryPort instructorRepository,
+                                   CourseRepositoryPort courseRepository) {
         this.studentRepository = studentRepository;
         this.adminRepository = adminRepository;
         this.instructorRepository = instructorRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.courseRepository = courseRepository;
     }
 
     @Override
@@ -90,9 +90,5 @@ public class DefaultUsersInitializer implements CommandLineRunner {
                 .build();
 
         adminRepository.save(a);
-    }
-
-    private void seedCourse(String courseCode, String title, int credits, String description) {
-
     }
 }

@@ -16,6 +16,7 @@ import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepository
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
@@ -31,17 +32,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdministrativeService {
-    private final AdminRepositoryPort adminRepository;
-    private final StudentRepositoryPort studentRepository;
     private final InstructorRepositoryPort instructorRepository;
     private final CourseRepositoryPort courseRepository;
     private final SectionRepositoryPort sectionRepository;
     private final RegistrationPeriodRepository registrationPeriodRepository;
-    private final PasswordEncoder passwordEncoder;
     private final RegistrationPeriodValidator periodValidator;
     private final AdminUserManagementOperations adminUserManagementService;
     private final StudentUserManagementOperations studentUserManagementService;
     private final InstructorUserManagementOperations instructorUserManagementService;
+    private final RegistrationRecordRepositoryPort registrationRecordRepository;
 
     public AdministrativeService(
             AdminRepositoryPort adminRepository,
@@ -54,18 +53,17 @@ public class AdministrativeService {
             RegistrationPeriodValidator periodValidator,
             AdminUserManagementOperations adminUserManagementService,
             StudentUserManagementOperations studentUserManagementService,
-            InstructorUserManagementOperations instructorUserManagementService) {
-        this.adminRepository = adminRepository;
-        this.studentRepository = studentRepository;
+            InstructorUserManagementOperations instructorUserManagementService,
+            RegistrationRecordRepositoryPort registrationRecordRepository) {
         this.instructorRepository = instructorRepository;
         this.adminUserManagementService = adminUserManagementService;
         this.studentUserManagementService = studentUserManagementService;
         this.instructorUserManagementService = instructorUserManagementService;
         this.courseRepository = courseRepository;
-        this.passwordEncoder = passwordEncoder;
         this.sectionRepository = sectionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
         this.periodValidator = periodValidator;
+        this.registrationRecordRepository = registrationRecordRepository;
     }
 
     // Admin user operations
@@ -186,6 +184,10 @@ public class AdministrativeService {
 
         String courseCode = request.getCourseCode().trim();
 
+        if(registrationRecordRepository.existsByCourseCode(courseCode)) {
+            throw new RuntimeException("There are student enrolled.");
+        }
+
         Course existingCourse =
                 courseRepository
                         .findByCourseCode(courseCode.trim())
@@ -240,6 +242,10 @@ public class AdministrativeService {
     public void removeCourse(String courseCode) {
         if (courseCode == null || courseCode.isBlank()) {
             throw new RuntimeException("Course code is required");
+        }
+
+        if(registrationRecordRepository.existsByCourseCode(courseCode)) {
+            throw new RuntimeException("There are student enrolled.");
         }
 
         Course existingCourse =
@@ -441,7 +447,6 @@ public class AdministrativeService {
         if(!section.getInstructors().contains(instructor)) {
             throw new RegistrationPeriodValidationException("Instructor already unassigned to section");
         }
-
         section.removeInstructor(instructor);
     }
 }
