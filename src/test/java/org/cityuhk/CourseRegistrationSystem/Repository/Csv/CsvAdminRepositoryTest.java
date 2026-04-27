@@ -35,7 +35,7 @@ class CsvAdminRepositoryTest {
                 .build();
     }
 
-    // ── save (new entity) ─────────────────────────────────────────────────────
+    
 
     @Test
     void save_NewAdmin_AssignsId() {
@@ -62,7 +62,6 @@ class CsvAdminRepositoryTest {
         assertNotEquals(a1.getStaffId(), a2.getStaffId());
     }
 
-    // ── save (update existing) ────────────────────────────────────────────────
 
     @Test
     void save_ExistingAdmin_UpdatesRecord() {
@@ -77,7 +76,6 @@ class CsvAdminRepositoryTest {
         assertEquals(1, repo.findAll().size());
     }
 
-    // ── findByUserEID ─────────────────────────────────────────────────────────
 
     @Test
     void findByUserEID_CaseInsensitive() {
@@ -92,7 +90,6 @@ class CsvAdminRepositoryTest {
         assertTrue(repo.findByUserEID("ghost").isEmpty());
     }
 
-    // ── findById ──────────────────────────────────────────────────────────────
 
     @Test
     void findById_ExistingId_ReturnsAdmin() {
@@ -133,7 +130,6 @@ class CsvAdminRepositoryTest {
         assertTrue(repo.findByUserEID("e002").isPresent());
     }
 
-    // ── existsById ────────────────────────────────────────────────────────────
 
     @Test
     void existsById_ReturnsTrueForSaved() {
@@ -146,7 +142,6 @@ class CsvAdminRepositoryTest {
         assertFalse(repo.existsById(999));
     }
 
-    // ── deleteById ────────────────────────────────────────────────────────────
 
     @Test
     void deleteById_RemovesAdmin() {
@@ -172,7 +167,6 @@ class CsvAdminRepositoryTest {
         assertEquals("Bob", repo.findById(second.getStaffId()).orElseThrow().getUserName());
     }
 
-    // ── findAll / count ───────────────────────────────────────────────────────
 
     @Test
     void findAll_ReturnsAllSavedAdmins() {
@@ -215,7 +209,6 @@ class CsvAdminRepositoryTest {
         assertEquals("Bob", repo.findById(second.getStaffId()).orElseThrow().getUserName());
     }
 
-    // ── persistence across instances ──────────────────────────────────────────
 
     @Test
     void savedData_PersistedAcrossRepoInstances() {

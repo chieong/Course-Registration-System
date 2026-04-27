@@ -480,7 +480,6 @@ class AdministrativeServiceTest {
         assertThrows(RuntimeException.class, () -> service.createCourse(courseReq));
     }
 
-    // ?�?� modifyCourse ??resolveCourseCodes failure paths ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
 
     @Test
     void modifyCourse_prereqNotFound_throws() {
@@ -1266,7 +1265,7 @@ void modifySection_withInstructorIds_updatesInstructors() {
 
     AdminSectionService req = new AdminSectionService();
     req.setSectionId(10);
-    req.setInstructorStaffIds(Set.of(9)); // 👈 key
+    req.setInstructorStaffIds(Set.of(9)); 
 
     Section result = service.modifySection(req);
 
@@ -1352,7 +1351,6 @@ void createSection_nullEndTime_triggersOrBranch() {
     req.setEnrollCapacity(50);
     req.setWaitlistCapacity(10);
 
-    // ✅ startTime present, endTime missing
     req.setStartTime(LocalDateTime.of(2026, 9, 1, 9, 0));
     req.setEndTime(null);
 

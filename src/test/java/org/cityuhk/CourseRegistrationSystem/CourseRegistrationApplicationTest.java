@@ -27,7 +27,6 @@ class CourseRegistrationApplicationTest {
 
             SpringApplication app = mocked.constructed().get(0);
 
-            // ✅ FIXED: no ambiguity
             verify(app).setDefaultProperties(anyMap());
             verify(app).run(new String[]{"--cli"});
         }
@@ -46,7 +45,7 @@ class CourseRegistrationApplicationTest {
 
             SpringApplication app = mocked.constructed().get(0);
 
-            // ✅ no CLI → defaults NOT applied
+
             verify(app, never()).setDefaultProperties(anyMap());
             verify(app).run(new String[]{});
         }

@@ -46,9 +46,6 @@ class GlobalUserEidUniquenessPolicyTest {
         );
     }
 
-    // =========================================================
-    // ✅ No user exists anywhere → PASS
-    // =========================================================
     @Test
     void assertUnique_WhenEidDoesNotExistAnywhere_Passes() {
         when(adminRepository.findByUserEID(EID)).thenReturn(Optional.empty());
@@ -59,9 +56,6 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, null, null, null));
     }
 
-    // =========================================================
-    // ✅ Admin exists, NOT excluded → THROW
-    // =========================================================
     @Test
     void assertUnique_WhenAdminExistsAndNotExcluded_ThrowsException() {
         Admin admin = mock(Admin.class);
@@ -72,9 +66,6 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, null, null, null));
     }
 
-    // =========================================================
-    // ✅ Admin exists, excluded → PASS
-    // =========================================================
     @Test
     void assertUnique_WhenAdminExistsButExcluded_Passes() {
         Admin admin = mock(Admin.class);
@@ -88,9 +79,7 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, 10, null, null));
     }
 
-    // =========================================================
-    // ✅ Student exists, NOT excluded → THROW
-    // =========================================================
+
     @Test
     void assertUnique_WhenStudentExistsAndNotExcluded_ThrowsException() {
         Student student = mock(Student.class);
@@ -102,9 +91,7 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, null, null, null));
     }
 
-    // =========================================================
-    // ✅ Student exists, excluded → PASS
-    // =========================================================
+
     @Test
     void assertUnique_WhenStudentExistsButExcluded_Passes() {
         Student student = mock(Student.class);
@@ -118,9 +105,7 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, null, 30, null));
     }
 
-    // =========================================================
-    // ✅ Instructor exists, NOT excluded → THROW
-    // =========================================================
+
     @Test
     void assertUnique_WhenInstructorExistsAndNotExcluded_ThrowsException() {
         Instructor instructor = mock(Instructor.class);
@@ -132,9 +117,7 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, null, null, null));
     }
 
-    // =========================================================
-    // ✅ Instructor exists, excluded → PASS
-    // =========================================================
+
     @Test
     void assertUnique_WhenInstructorExistsButExcluded_Passes() {
         Instructor instructor = mock(Instructor.class);
@@ -148,9 +131,7 @@ class GlobalUserEidUniquenessPolicyTest {
                 policy.assertUnique(EID, null, null, 50));
     }
 
-    // =========================================================
-    // ✅ Admin excluded BUT Student exists → THROW
-    // =========================================================
+
     @Test
     void assertUnique_WhenAdminExcludedButStudentExists_ThrowsException() {
         Admin admin = mock(Admin.class);
