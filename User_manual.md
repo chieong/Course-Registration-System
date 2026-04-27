@@ -1,6 +1,7 @@
 # 1. Introduction
 
-## This document provides a guide for using the Command Line Interface (CLI) of the Course Registration System. <br> <br>The CLI allows users (Students, Instructors, and Admins) to interact with the system through text-based commands, including:
+This document provides a guide for using the Command Line Interface (CLI) of the Course Registration System. 
+The CLI allows users (Students, Instructors, and Admins) to interact with the system through text-based commands, including:
 
 - Course registration
 - Timetable management
@@ -12,14 +13,15 @@
 ## Running the System in CLI Mode
 ### Run the following command in your terminal:
 ```powershell
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--cli"
+java -jar .\course-registration-system-0.0.1-SNAPSHOT.jar
 ```
 ## Default Login Credentials:
-```role based access
-Admin: EID: admin , Password: admin123
-Student: EID: student1 , Password: student123 
-Instructor: EID: instructor1 , Password: instructor123
-```
+| Role            | EID             | Password        |
+| --------------- | --------------- | --------------- |
+| Admin           | admin           | admin123        |
+| Student         | student1        | student123      |
+| Instructor      | instructor1     | instructor123   |
+
 
 ## General Session Commands
 
