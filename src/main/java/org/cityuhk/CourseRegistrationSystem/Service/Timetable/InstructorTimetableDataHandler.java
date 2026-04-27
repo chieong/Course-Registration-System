@@ -9,12 +9,12 @@ import java.util.Optional;
 import java.util.Set;
 
 @Component
-public class InstructorTimetableOwnerProvider implements TimetableOwnerProvider {
+public class InstructorTimetableDataHandler implements TimetableDataHandler {
 
     private final TimetableValidator validator;
     private final InstructorRepository instructorRepository;
 
-    public InstructorTimetableOwnerProvider(TimetableValidator validator,
+    public InstructorTimetableDataHandler(TimetableValidator validator,
                                             InstructorRepository instructorRepository) {
         this.validator = validator;
         this.instructorRepository = instructorRepository;

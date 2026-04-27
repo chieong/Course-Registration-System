@@ -1,11 +1,5 @@
 package org.cityuhk.CourseRegistrationSystem.Model;
 
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -18,9 +12,15 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table
-public class Section implements Comparable<Section>{
+public class Section implements Comparable<Section> {
     // A section under a course like lab, lecture..etc
 
     public enum Type {
@@ -52,8 +52,6 @@ public class Section implements Comparable<Section>{
     @Enumerated(EnumType.STRING)
     private Type type;
 
-
-
     public Section() {}
 
     public Section(
@@ -62,9 +60,8 @@ public class Section implements Comparable<Section>{
             int waitlistCapacity,
             LocalDateTime startTime,
             LocalDateTime endTime,
-            String venue
-    ) {
-        this.course = course;
+            String venue) {
+        this.course = code;
         this.enrollCapacity = enrollCapacity;
         this.waitlistCapacity = waitlistCapacity;
         setTime(startTime, endTime);
@@ -132,24 +129,30 @@ public class Section implements Comparable<Section>{
     }
 
     public boolean overlaps(Section other) {
-        return overlaps(other.startTime.getDayOfWeek(), other.startTime.toLocalTime(), other.endTime.toLocalTime());
+        return overlaps(
+                other.startTime.getDayOfWeek(),
+                other.startTime.toLocalTime(),
+                other.endTime.toLocalTime());
     }
 
     public boolean overlaps(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         return this.startTime.getDayOfWeek() == dayOfWeek
-            && this.startTime.toLocalTime().isBefore(endTime) 
-            && this.endTime.toLocalTime().isAfter(startTime);
+                && this.startTime.toLocalTime().isBefore(endTime)
+                && this.endTime.toLocalTime().isAfter(startTime);
     }
 
     public boolean overlapsInVenue(Section other) {
-        return overlapsInVenue(venue, other.startTime.getDayOfWeek(), other.startTime.toLocalTime(), other.endTime.toLocalTime());
+        return overlapsInVenue(venue, other.startTime, other.endTime);
     }
 
-    public boolean overlapsInVenue(String venue, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
-        return this.venue.equals(venue) 
-            && this.startTime.getDayOfWeek() == dayOfWeek
-            && this.startTime.toLocalTime().isBefore(endTime) 
-            && this.endTime.toLocalTime().isAfter(startTime);
+    public boolean overlapsInVenue(String venue, LocalDateTime startTime, LocalDateTime endTime) {
+        return overlapsInVenue(
+                venue, startTime.getDayOfWeek(), startTime.toLocalTime(), endTime.toLocalTime());
+    }
+
+    public boolean overlapsInVenue(
+            String venue, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        return this.venue.equals(venue) && overlaps(dayOfWeek, startTime, endTime);
     }
 
     public int addCredits(int sum) {
@@ -160,10 +163,12 @@ public class Section implements Comparable<Section>{
         this.course = course;
     }
 
-    public void setTime(LocalDateTime startTime, LocalDateTime endTime) throws IllegalArgumentException {
+    public void setTime(LocalDateTime startTime, LocalDateTime endTime)
+            throws IllegalArgumentException {
         this.startTime = startTime;
         this.endTime = endTime;
-        if ((startTime != null && endTime != null) && (endTime.isBefore(startTime) || endTime.isEqual(startTime))) {
+        if ((startTime != null && endTime != null)
+                && (endTime.isBefore(startTime) || endTime.isEqual(startTime))) {
             throw new IllegalArgumentException("End time cannot be before start time");
         }
     }
@@ -171,6 +176,7 @@ public class Section implements Comparable<Section>{
     public void setType(Type type) {
         this.type = type;
     }
+
     public void setVenue(String venue) {
         this.venue = venue;
     }

@@ -1207,12 +1207,12 @@ public class InteractiveCliRunner implements CommandLineRunner {
 
         String start = options.get("start");
         if (start != null && !start.isBlank()) {
-            request.setStartTime(parseTime(start, "start").atDate(LocalDate.now()).with(TemporalAdjusters.next(dayOfWeek)));
+            request.setStartTime(parseTime(start, "start").atDate(LocalDate.EPOCH).with(TemporalAdjusters.next(dayOfWeek)));
         }
 
         String end = options.get("end");
         if (end != null && !end.isBlank()) {
-            request.setEndTime(parseTime(end, "end").atDate(LocalDate.now()).with(TemporalAdjusters.next(dayOfWeek)));
+            request.setEndTime(parseTime(end, "end").atDate(LocalDate.EPOCH).with(TemporalAdjusters.next(dayOfWeek)));
         }
 
         String venue = options.get("venue");
