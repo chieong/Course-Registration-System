@@ -26,7 +26,7 @@ java -jar .\course-registration-system-0.0.1-SNAPSHOT.jar
 ## General Session Commands
 
 - `help` : list all executatble commands
-- `login <userEID> <password>` 
+- `login <userEID> <password>` : login with EID and password
 - `logout` logout current account
 - `whoami`: list your current role
 - `exit` or `quit` : terminate program
@@ -41,34 +41,34 @@ java -jar .\course-registration-system-0.0.1-SNAPSHOT.jar
 ### Registration
 - `list-courses` 
 - `view-master-schedule` : show all avaliable course and sections
-- `add-section <sectionId>` : add a specific section to student's timetable <sectionId> : (e.g: 1,2,11,101) 
+- `add-section <sectionId>` : add a specific section to student's timetable, sectionId can be seen in master class schedule
 - `drop-section <sectionId>` 
 - `join-waitlist <sectionId>`
-- `export-timetable [outputPath]` : output path is optional
+- `export-timetable [outputPath]`
 - `show-timetable`
 
 ### Plan Management
 ### Explaination: When its not in registration period, student can create plans for autosubmittion when registration period started, each plan stored a list of section and course registered by student
 - `list-plans`
-- `create-plan [priority]` [priority] : optional, 1 is the highest priority
+- `create-plan [priority]` priority : 1 is the highest priority
 - `remove-plan <planId>`
-- `add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure] `  [joinWaitlistOnAddFailure] : optional, field: true/false. select true to enable system add your section to waitlist if it is full
-- `remove-plan-entry <planId> <entryId>` : <entryId> is the ID of a specific section inside a plan. E.g. 1,101
-- `reorder-plans <planIdCsv>` : <planIdCsv> = comma-separated list of plan IDs (no spaces). E.g. `reorder-plans 3,1,2` : re-arrange plan order-1st plan becomes 3rd, and so on
+- `add-plan-entry <planId> <sectionId> <SELECTED|WAITLIST> [joinWaitlistOnAddFailure]` joinWaitlistOnAddFailure : true/false. If set to true and section is full, joins waitlist instead
+- `remove-plan-entry <planId> <entryId>` entryId : the ID of a specific section inside a plan. E.g. 1,101
+- `reorder-plans <planIdCsv>` planIdCsv : comma-separated list of plan IDs (no spaces). E.g. `reorder-plans 3,1,2` : re-arrange plan order-1st plan becomes 3rd, and so on
 
 ## Admin Commands
 
 ### Admin Users
-- `admin-list-users` : list all admin role user
+- `admin-list-users`
 - `admin-create-user <userEID> <name> <password>` 
-- `admin-modify-user <userEID> <name> [password]`  <br>: [password] is optional
-- `admin-remove-user <userEID>` : [staffId] is the Id stored in the database, for example <admin-remove-user 1> 
+- `admin-modify-user <userEID> <name> [password]` 
+- `admin-remove-user <userEID>`
 
 ### Student Users
-- `admin-list-students` list all student role user
+- `admin-list-students`
 - `admin-create-student <userEID> <name> <password> <minSemesterCredit> <maxSemesterCredit> <major> <cohort> <department> <maxDegreeCredit> [<completedCourseCode1,completedCourseCode2,...,completedCourseCodeN>]`
-- `admin-modify-student <userEID> [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]`  <br>: [ ] fields are optional
-- `admin-remove-student <userEID>` : [userEID] E.g: khplee3, admin1
+- `admin-modify-student <userEID> [--name <name>] [--password <password>] [--min-creds <minSemesterCredit>] [--max-creds <maxSemesterCredit>] [--major <major>] [--cohort <cohort>] [--dept <dept>] [--max-degree <maxDegreeCredit>]` 
+- `admin-remove-student <userEID>`
 
 ### Instructor Users
 ### [--dept] : optional, meaning: department belongs to 
@@ -78,22 +78,27 @@ java -jar .\course-registration-system-0.0.1-SNAPSHOT.jar
 - `admin-remove-instructor <userEID>`
 
 ### Courses
-'[ ]' fields are optional,  <br>
-[--prereq <A,B>] : require student to have the course registered before.  <br>
-[--exclusive <X,Y>] : course that require student never registered before  <br>
 - `admin-create-course --code <code> --title <title> --credits <credits> [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>] (creates if missing, updates if exists)` (creates if missing, updates if exists), 
 - `admin-modify-course --code <code> [--title <title>] [--credits <credits>] [--description <desc>] [--prereq <A,B>] [--exclusive <X,Y>]` (alias of `admin-create-course`)
-- `admin-remove-course <courseCode>` <br>
-Example: `admin-create-course --code CS3342 --title Software Design --credit 3 --description This is the software course --prereq CS123.CS1234 --exclusive CS2144,CS53`
+- `admin-remove-course <courseCode>`
+Example: 
+```
+admin-create-course --code CS3342 --title Software Design --credit 3 --description This is the software course --prereq CS123.CS1234 --exclusive CS2144,CS53
+```
 
+Note:
+[--prereq <A,B>] : require student to have the course registered before.  <br>
+[--exclusive <X,Y>] : course that require student never registered before  <br>
 ### Sections
-### Notes: courseCode is optional, <yyyy-MM-ddTHH:mm>: 'T' needs to fill in  <br> E.g: 2026-04-04T23:59
 ### section is the detailed course info which tells the type of the course "LECTURE|TUTORIAL|LAB"
-- `admin-create-section --course <courseCode> --type <LECTURE|TUTORIAL|LAB> --enroll-capacity <int> --waitlist-capacity <int> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm> --venue <venue> [--instructors <idCsv>]`
-- `admin-modify-section --section-id <id> [--course <courseCode>] [--type <LECTURE|TUTORIAL|LAB>] [--enroll-capacity <int>] [--waitlist-capacity <int>] [--start <yyyy-MM-ddTHH:mm>] [--end <yyyy-MM-ddTHH:mm>] [--venue <venue>] [--instructors <idCsv>]`   
-- `admin-remove-section <sectionId>`  <br>you may use `admin-list-section` to find the exact section id <br>
-Example: <br>
-`admin-modify-section --section-id 12 --course CS3342 --type LECTURE --enroll-capacity 80 --waitlist-capacity 20 --start 2026-05-01T09:00 --end 2026-05-01T10:50 --venue "Y4701" --instructors 1,2` 
+- `admin-create-section --course <courseCode> --type <LECTURE|TUTORIAL|LAB> --enroll-capacity <int> --waitlist-capacity <int> --weekday <int [1,7]> --start <HH:mm> --end <HH:mm> --venue <venue> [--instructors <idCsv>]`
+- `admin-modify-section --section-id <id> [--course <courseCode>] [--type <LECTURE|TUTORIAL|LAB>] [--enroll-capacity <int>] [--waitlist-capacity <int>] [--weekday <int [1,7]>] [--start <HH:mm>] [--end <HH:mm>] [--venue <venue>] [--instructors <idCsv>]`   
+- `admin-remove-section <sectionId>`
+
+Example:
+```
+admin-modify-section --section-id 12 --course CS3342 --type LECTURE --enroll-capacity 80 --waitlist-capacity 20 --start 2026-05-01T09:00 --end 2026-05-01T10:50 --venue "Y4701" --instructors 1,2
+```
 ### Registration Periods
 - `admin-list-periods [--cohort <cohort>]`
 - `admin-create-period --cohort <cohort> --start <yyyy-MM-ddTHH:mm> --end <yyyy-MM-ddTHH:mm>`
@@ -101,6 +106,9 @@ Example: <br>
 
 ## Notes
 
+- `<required field>` The field is required
+- `[optional field]` The field is optional
+- `yyyy-MM-ddTHH:mm`: 'T' is a literal, i.e. 2026-04-04T23:59
 - Use double quotes for arguments with spaces.
 - Some commands require a logged-in user with the correct role.
 
