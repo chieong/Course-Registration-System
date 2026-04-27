@@ -1,22 +1,20 @@
-package org.cityuhk.CourseRegistrationSystem;
+package org.cityuhk.CourseRegistrationSystem.Config;
 
 import org.cityuhk.CourseRegistrationSystem.Model.*;
 import org.cityuhk.CourseRegistrationSystem.Repository.Port.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.HashSet;
 import java.util.Set;
 
-@Component
+@Configuration
 public class DefaultUsersInitializer implements CommandLineRunner {
 
     private final StudentRepositoryPort studentRepository;
