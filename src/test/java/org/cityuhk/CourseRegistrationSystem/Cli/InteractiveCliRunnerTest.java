@@ -1038,7 +1038,7 @@ class InteractiveCliRunnerTest {
         method.setAccessible(true);
         String result = (String) method.invoke(cliRunner, LocalDateTime.of(2026, 5, 1, 9, 0));  // ← Use cliRunner
         assertNotNull(result);
-        assertTrue(result.contains("2026"));
+        assertTrue(result.contains("Fri")); // 2026-05-01 is a Friday
 
         result = (String) method.invoke(cliRunner, (LocalDateTime) null);  // ← Use cliRunner
         assertEquals("N/A", result);
