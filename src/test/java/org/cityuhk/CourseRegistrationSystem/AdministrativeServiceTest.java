@@ -5,6 +5,7 @@ import org.cityuhk.CourseRegistrationSystem.Exception.InvalidPasswordException;
 import org.cityuhk.CourseRegistrationSystem.Exception.InvalidUserEIDException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserEidAlreadyExistsException;
 import org.cityuhk.CourseRegistrationSystem.Exception.UserNotFoundException;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationPeriodRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationRecordRepository;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
@@ -58,7 +59,7 @@ class AdministrativeServiceTest {
     @Mock private InstructorRepository instructorRepository;
     @Mock private CourseRepositoryPort courseRepository;
     @Mock private SectionRepositoryPort sectionRepository;
-    @Mock private RegistrationPeriodRepository registrationPeriodRepository;
+    @Mock private RegistrationPeriodRepositoryPort registrationPeriodRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private RegistrationPeriodValidator periodValidator;
     @Mock private AdminUserManagementOperations adminUserManagementService;

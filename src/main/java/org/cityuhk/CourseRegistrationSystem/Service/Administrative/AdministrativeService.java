@@ -10,13 +10,8 @@ import org.cityuhk.CourseRegistrationSystem.Model.Instructor;
 import org.cityuhk.CourseRegistrationSystem.Model.RegistrationPeriod;
 import org.cityuhk.CourseRegistrationSystem.Model.Section;
 import org.cityuhk.CourseRegistrationSystem.Model.Student;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.AdminRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.CourseRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.InstructorRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.SectionRepositoryPort;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.StudentRepositoryPort;
+import org.cityuhk.CourseRegistrationSystem.Repository.Port.*;
 import org.cityuhk.CourseRegistrationSystem.Repository.RegistrationPeriodRepository;
-import org.cityuhk.CourseRegistrationSystem.Repository.Port.RegistrationRecordRepositoryPort;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminCourseRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminInstructorRequest;
 import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminPeriodRequest;
@@ -26,6 +21,7 @@ import org.cityuhk.CourseRegistrationSystem.RestController.dto.AdminUserRequest;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.AdminUserManagementOperations;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.InstructorUserManagementOperations;
 import org.cityuhk.CourseRegistrationSystem.Service.Administrative.User.StudentUserManagementOperations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,13 +31,14 @@ public class AdministrativeService {
     private final InstructorRepositoryPort instructorRepository;
     private final CourseRepositoryPort courseRepository;
     private final SectionRepositoryPort sectionRepository;
-    private final RegistrationPeriodRepository registrationPeriodRepository;
+    private final RegistrationPeriodRepositoryPort registrationPeriodRepository;
     private final RegistrationPeriodValidator periodValidator;
     private final AdminUserManagementOperations adminUserManagementService;
     private final StudentUserManagementOperations studentUserManagementService;
     private final InstructorUserManagementOperations instructorUserManagementService;
     private final RegistrationRecordRepositoryPort registrationRecordRepository;
 
+    @Autowired
     public AdministrativeService(
             AdminRepositoryPort adminRepository,
             StudentRepositoryPort studentRepository,
@@ -49,7 +46,7 @@ public class AdministrativeService {
             CourseRepositoryPort courseRepository,
             PasswordEncoder passwordEncoder,
             SectionRepositoryPort sectionRepository,
-            RegistrationPeriodRepository registrationPeriodRepository,
+            RegistrationPeriodRepositoryPort registrationPeriodRepository,
             RegistrationPeriodValidator periodValidator,
             AdminUserManagementOperations adminUserManagementService,
             StudentUserManagementOperations studentUserManagementService,

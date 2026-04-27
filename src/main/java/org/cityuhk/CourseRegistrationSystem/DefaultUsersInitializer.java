@@ -33,11 +33,12 @@ public class DefaultUsersInitializer implements CommandLineRunner {
                                    InstructorRepositoryPort instructorRepository,
                                    CourseRepositoryPort courseRepository,
                                    SectionRepositoryPort sectionRepository,
-                                   RegistrationPeriodRepositoryPort registrationPeriodRepository) {
+                                   RegistrationPeriodRepositoryPort registrationPeriodRepository,
+                                   PasswordEncoder passwordEncoder) {
         this.studentRepository = studentRepository;
         this.adminRepository = adminRepository;
         this.instructorRepository = instructorRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
         this.courseRepository = courseRepository;
         this.sectionRepository = sectionRepository;
         this.registrationPeriodRepository = registrationPeriodRepository;
@@ -71,7 +72,7 @@ public class DefaultUsersInitializer implements CommandLineRunner {
         seedSection(ge103, 40, 20, LocalTime.of(14, 0), LocalTime.of(17, 0), 'F', "Online");
         seedSection(ge103, 40, 20, LocalTime.of(10, 0), LocalTime.of(13, 0), 'S', "LT-5");
 
-        seedStudent("student101", "Student One", "student123", "Literature", 2024, "Humanities", 12, 18, 120, Set.of(cs101));
+        seedStudent("student1", "Student One", "student123", "Literature", 2024, "Humanities", 12, 18, 120, Set.of(cs101));
 
         seedStudent("student2", "Student Two", "student123", "International Studies", 2024, "Social Sciences", 15, 21, 128, Set.of());
 
@@ -145,6 +146,7 @@ public class DefaultUsersInitializer implements CommandLineRunner {
         LocalDateTime end = LocalDateTime.of(baseDate, endTime);
 
         Section section = new Section(course, enrollCap, waitCap, start, end, venue);
+        section.setType(Section.Type.LECTURE);
         sectionRepository.save(section);
     }
 

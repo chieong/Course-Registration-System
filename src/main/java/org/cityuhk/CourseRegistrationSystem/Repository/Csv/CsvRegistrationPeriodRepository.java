@@ -86,11 +86,102 @@ public class CsvRegistrationPeriodRepository implements RegistrationPeriodReposi
     }
 
     @Override
-    public Optional<RegistrationPeriod> findActivePeriod(int cohort, LocalDateTime now) {
+    public Optional<RegistrationPeriod> findActivePeriod(Integer cohort, LocalDateTime now) {
         return loadAll().stream()
                 .filter(p -> p.getCohort() == cohort)
                 .filter(p -> p.getStartDateTime() != null && p.getEndDateTime() != null)
                 .filter(p -> !now.isBefore(p.getStartDateTime()) && !now.isAfter(p.getEndDateTime()))
                 .findFirst();
+    }
+    @Override
+    public List<RegistrationPeriod> findUpcomingPeriods(Integer cohort, LocalDateTime now) {
+        return loadAll().stream()
+                .filter(p -> Objects.equals(p.getCohort(), cohort))
+                .filter(p -> p.getStartDateTime() != null)
+                .filter(p -> p.getStartDateTime().isAfter(now))
+                .sorted((a, b) -> a.getStartDateTime().compareTo(b.getStartDateTime()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationPeriod> findByCohortOrderByStartDateTime(Integer cohort) {
+        return loadAll().stream()
+                .filter(p -> Objects.equals(p.getCohort(), cohort))
+                .sorted((a, b) -> {
+                    LocalDateTime as = a.getStartDateTime();
+                    LocalDateTime bs = b.getStartDateTime();
+                    if (as == null && bs == null) return 0;
+                    if (as == null) return 1;
+                    if (bs == null) return -1;
+                    return as.compareTo(bs);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationPeriod> findActivePeriods(LocalDateTime now) {
+        return loadAll().stream()
+                .filter(p -> p.getStartDateTime() != null && p.getEndDateTime() != null)
+                .filter(p -> !now.isBefore(p.getStartDateTime()) && !now.isAfter(p.getEndDateTime()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Integer> getActiveCohortByTime(LocalDateTime time) {
+        return loadAll().stream()
+                .filter(p -> p.getStartDateTime() != null && p.getEndDateTime() != null)
+                .filter(p -> !time.isBefore(p.getStartDateTime()) && !time.isAfter(p.getEndDateTime()))
+                .map(RegistrationPeriod::getCohort)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationPeriod> findOverlappingPeriods(Integer cohort, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return loadAll().stream()
+                .filter(p -> Objects.equals(p.getCohort(), cohort))
+                .filter(p -> p.getStartDateTime() != null && p.getEndDateTime() != null)
+                .filter(p -> p.getStartDateTime().isBefore(endDateTime) && p.getEndDateTime().isAfter(startDateTime))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RegistrationPeriod> findAllOrderByCohortAndStartDateTime() {
+        return loadAll().stream()
+                .sorted((a, b) -> {
+                    Integer ac = a.getCohort();
+                    Integer bc = b.getCohort();
+                    if (ac == null && bc != null) return 1;
+                    if (ac != null && bc == null) return -1;
+                    if (ac != null && bc != null) {
+                        int cmp = ac.compareTo(bc);
+                        if (cmp != 0) return cmp;
+                    }
+
+                    LocalDateTime as = a.getStartDateTime();
+                    LocalDateTime bs = b.getStartDateTime();
+                    if (as == null && bs == null) return 0;
+                    if (as == null) return 1;
+                    if (bs == null) return -1;
+                    return as.compareTo(bs);
+                })
+                .collect(Collectors.toList());
+    }
+    @Override
+    public boolean existsById(Integer id) {
+        return loadAll().stream()
+                .anyMatch(p -> Objects.equals(p.getPeriodId(), id));
+    }
+
+    @Override
+    public synchronized void deleteById(Integer id) {
+        List<RegistrationPeriod> all = loadAll();
+        // removeIf returns true if an element was removed
+        boolean removed = all.removeIf(p -> Objects.equals(p.getPeriodId(), id));
+
+        if (removed) {
+            saveAll(all);
+        }
     }
 }

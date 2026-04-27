@@ -16,6 +16,12 @@ This is a Course Registration System supporting students, instructors, and admin
 
 ----------------------------------------
 
+How to compile & package src into jar:
+
+Windows: ./mvnw.cmd clean package
+Linux: ./mvnw clean package
+
+----------------------------------------
 How to Run:
 
 1. Open a command line interpreter in the Release directory
