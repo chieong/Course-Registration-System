@@ -45,24 +45,18 @@ public class DefaultUsersInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // 1. Seed Admins
         seedAdmin("admin", "Admin", "admin123");
-        seedAdmin("kobyashi", "Kobyashi", "kobyashi123");
+        seedAdmin("admin1", "Admin2", "admin123");
 
-        // 2. Seed Instructors
-        seedInstructor("sakiko", "Sakiko Togawa", "saki123", "Classical Composition");
-        seedInstructor("umiri", "Umiri Yahata", "umiri123", "Computer Science");
+        seedInstructor("instructor1", "Instructor One", "instructor123", "Classical Composition");
+        seedInstructor("instructor2", "Instructor Two", "instructor123", "Computer Science");
 
         Course cs101 = seedCourse("CS101", "Intro to Java", 3, "Basics of Programming", Set.of(), Set.of(),null);
 
-        // Course B: Requires CS101
         Course cs202 = seedCourse("CS202", "Data Structures", 3, "Advanced Algorithms", Set.of(cs101), Set.of(),null);
 
-        // Course C: Mutually Exclusive with CS202
         Course ge103 = seedCourse("GE103", "Digital Literacy", 3, "Computing for non-majors", Set.of(), Set.of(cs202),null);
 
-        // 4. Seed Sections (3 for each course)
-        // Sections for CS101
         seedSection(cs101, 30, 10, LocalTime.of(9, 0), LocalTime.of(12, 0), 'M', "Room 101");
         seedSection(cs101, 30, 10, LocalTime.of(14, 0), LocalTime.of(17, 0), 'W', "Room 101");
         seedSection(cs101, 2, 1, LocalTime.of(9, 0), LocalTime.of(12, 0), 'F', "Lab A"); // Tiny capacity for waitlist test
@@ -77,18 +71,14 @@ public class DefaultUsersInitializer implements CommandLineRunner {
         seedSection(ge103, 40, 20, LocalTime.of(14, 0), LocalTime.of(17, 0), 'F', "Online");
         seedSection(ge103, 40, 20, LocalTime.of(10, 0), LocalTime.of(13, 0), 'S', "LT-5");
 
-        // 5. Seed Students with Completed Course Data
-        // Tomori has finished CS101 (Can take CS202)
-        seedStudent("tomori01", "Tomori Takamatsu", "tomori123", "Literature", 2024, "Humanities", 12, 18, 120, Set.of(cs101));
+        seedStudent("student101", "Student One", "student123", "Literature", 2024, "Humanities", 12, 18, 120, Set.of(cs101));
 
-        // Anon has no completed courses (Blocked from CS202)
-        seedStudent("anon01", "Anon Chihaya", "anon123", "International Studies", 2024, "Social Sciences", 15, 21, 128, Set.of());
+        seedStudent("student2", "Student Two", "student123", "International Studies", 2024, "Social Sciences", 15, 21, 128, Set.of());
 
-        seedStudent("rana01", "Raana Kaname", "rana123", "Music Performance", 2024, "Arts", 9, 15, 120, Set.of());
-        seedStudent("soyo01", "Soyo Nagasaki", "soyo123", "Political Science", 2024, "Social Sciences", 12, 18, 130, Set.of());
-        seedStudent("taki01", "Taki Shiina", "taki123", "Music Production", 2024, "Arts", 12, 18, 120, Set.of());
+        seedStudent("student3", "Student Three", "student123", "Music Performance", 2024, "Arts", 9, 15, 120, Set.of());
+        seedStudent("student4", "Student Four", "student123", "Political Science", 2024, "Social Sciences", 12, 18, 130, Set.of());
+        seedStudent("student5", "Student Five", "student123", "Music Production", 2024, "Arts", 12, 18, 120, Set.of());
 
-        // 6. Seed Registration Period
         seedRegistrationPeriod(2024, LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(7));
     }
 
